@@ -1,0 +1,19 @@
+{
+  "name": "Respira - Breathwork & Meditação",
+  "short_name": "Respira",
+  "description": "Encontre calma através da respiração guiada e meditação",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#2A9D8F",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["health", "lifestyle", "wellness"],
+  "lang": "pt-BR"
+}
