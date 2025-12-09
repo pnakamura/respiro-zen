@@ -1,17 +1,22 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmotionCard } from './EmotionCard';
 import { BreathPacer } from './BreathPacer';
 import { MeditationPlayer } from './MeditationPlayer';
 import { emotions } from '@/data/emotions';
 import { Emotion, EmotionType } from '@/types/breathing';
-import { Wind, Sparkles } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Wind, Sparkles, User, LogOut } from 'lucide-react';
 
 interface HomeScreenProps {
   onSessionComplete: (technique: string, duration: number) => void;
 }
 
 export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
   const [showMeditation, setShowMeditation] = useState(false);
 
@@ -46,18 +51,43 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
         animate={{ y: 0, opacity: 1 }}
         className="pt-8 px-6 pb-4"
       >
-        <div className="flex items-center gap-3 mb-6">
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 rounded-2xl bg-gradient-to-br from-calm to-calm/70 flex items-center justify-center shadow-lg"
-          >
-            <Wind className="w-6 h-6 text-primary-foreground" />
-          </motion.div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Respira</h1>
-            <p className="text-sm text-muted-foreground">Seu momento de paz</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-calm to-calm/70 flex items-center justify-center shadow-lg"
+            >
+              <Wind className="w-6 h-6 text-primary-foreground" />
+            </motion.div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">Respira</h1>
+              <p className="text-sm text-muted-foreground">Seu momento de paz</p>
+            </div>
           </div>
+          
+          {/* Auth button */}
+          {user ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => signOut()}
+              className="rounded-full"
+              title="Sair"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/auth')}
+              className="rounded-full"
+              title="Entrar"
+            >
+              <User className="w-5 h-5" />
+            </Button>
+          )}
         </div>
       </motion.header>
 
