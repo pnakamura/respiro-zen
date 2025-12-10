@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmotionCard } from './EmotionCard';
 import { BreathPacer } from './BreathPacer';
@@ -8,7 +8,7 @@ import { emotions } from '@/data/emotions';
 import { Emotion, EmotionType } from '@/types/breathing';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Wind, Sparkles, User, LogOut } from 'lucide-react';
+import { Wind, Sparkles, User, LogOut, Settings } from 'lucide-react';
 
 interface HomeScreenProps {
   onSessionComplete: (technique: string, duration: number) => void;
@@ -76,6 +76,19 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
                 <span className="text-sm text-muted-foreground hidden sm:block">
                   Olá, {firstName}
                 </span>
+              )}
+              {/* Admin link for socios */}
+              {usuario?.tipo_usuario === 'socio' && (
+                <Link to="/admin">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full"
+                    title="Administração"
+                  >
+                    <Settings className="w-5 h-5" />
+                  </Button>
+                </Link>
               )}
               <Button
                 variant="ghost"
