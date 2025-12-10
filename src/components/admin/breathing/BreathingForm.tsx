@@ -98,11 +98,32 @@ export function BreathingForm() {
   }, [technique, form]);
 
   const onSubmit = async (data: FormData) => {
+    let specialConfig = {};
+    try {
+      specialConfig = data.special_config ? JSON.parse(data.special_config) : {};
+    } catch {
+      specialConfig = {};
+    }
+
     const payload = {
-      ...data,
+      emotion_id: data.emotion_id,
+      label: data.label,
+      description: data.description,
       explanation: data.explanation || null,
+      icon: data.icon,
+      color_class: data.color_class,
+      bg_class: data.bg_class,
+      inhale_ms: data.inhale_ms,
+      hold_in_ms: data.hold_in_ms,
+      exhale_ms: data.exhale_ms,
+      hold_out_ms: data.hold_out_ms,
+      pattern_name: data.pattern_name,
       pattern_description: data.pattern_description || null,
-      special_config: data.special_config ? JSON.parse(data.special_config) : {},
+      cycles: data.cycles,
+      is_special_technique: data.is_special_technique,
+      special_config: specialConfig,
+      display_order: data.display_order,
+      is_active: data.is_active,
       created_by: user?.id || null,
     };
 
