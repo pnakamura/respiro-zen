@@ -14,6 +14,7 @@ export interface Emotion {
   id: EmotionType;
   label: string;
   description: string;
+  explanation: string;
   icon: string;
   colorClass: string;
   bgClass: string;

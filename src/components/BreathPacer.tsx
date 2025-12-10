@@ -2,12 +2,21 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { BreathPattern, BreathPhase, EmotionType } from '@/types/breathing';
 import { cn } from '@/lib/utils';
-import { X, Play, Pause, RotateCcw } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, Info, ArrowUp, ArrowDown, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface BreathPacerProps {
   pattern: BreathPattern;
   emotionType: EmotionType;
+  explanation: string;
   onClose: () => void;
   onComplete: (durationSeconds: number) => void;
 }
@@ -19,6 +28,15 @@ const phaseLabels: Record<BreathPhase, string> = {
   exhale: 'Expire',
   holdOut: 'Segure',
   complete: 'Concluído',
+};
+
+const phaseIcons: Record<BreathPhase, React.ReactNode> = {
+  idle: <Circle className="w-8 h-8" />,
+  inhale: <ArrowUp className="w-8 h-8" />,
+  holdIn: <Circle className="w-8 h-8" />,
+  exhale: <ArrowDown className="w-8 h-8" />,
+  holdOut: <Circle className="w-8 h-8" />,
+  complete: <Circle className="w-8 h-8" />,
 };
 
 const emotionGradients: Record<EmotionType, string> = {
@@ -43,14 +61,24 @@ const emotionShadows: Record<EmotionType, string> = {
   coherent: 'shadow-[0_0_80px_20px_hsl(var(--grounding)/0.4)]',
 };
 
-// Audio bell sound URL (placeholder)
+const emotionTextColors: Record<EmotionType, string> = {
+  anxious: 'text-calm',
+  angry: 'text-grounding',
+  tired: 'text-energy',
+  panic: 'text-panic',
+  meditate: 'text-meditate',
+  wimhof: 'text-energy',
+  alternate: 'text-calm',
+  coherent: 'text-grounding',
+};
+
+// Audio bell sound URL
 const BELL_SOUND_URL = 'https://cdn.freesound.org/previews/411/411089_5121236-lq.mp3';
 
-export function BreathPacer({ pattern, emotionType, onClose, onComplete }: BreathPacerProps) {
+export function BreathPacer({ pattern, emotionType, explanation, onClose, onComplete }: BreathPacerProps) {
   const [phase, setPhase] = useState<BreathPhase>('idle');
   const [isRunning, setIsRunning] = useState(false);
   const [currentCycle, setCurrentCycle] = useState(0);
-  const [scale, setScale] = useState(1);
   const [countdown, setCountdown] = useState(3);
   const [phaseTime, setPhaseTime] = useState(0);
   const startTimeRef = useRef<number>(0);
@@ -209,7 +237,6 @@ export function BreathPacer({ pattern, emotionType, onClose, onComplete }: Breat
   };
 
   const handlePause = () => {
-    // For simplicity, we'll just close - full pause would require more complex state
     setIsRunning(false);
     setPhase('idle');
   };
@@ -234,10 +261,29 @@ export function BreathPacer({ pattern, emotionType, onClose, onComplete }: Breat
         animate={{ y: 0, opacity: 1 }}
         className="flex items-center justify-between p-4 safe-top"
       >
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">
-            {pattern.name}
-          </h2>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-foreground">
+              {pattern.name}
+            </h2>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full">
+                  <Info className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-sm mx-4">
+                <DialogHeader>
+                  <DialogTitle className={emotionTextColors[emotionType]}>
+                    {pattern.name}
+                  </DialogTitle>
+                  <DialogDescription className="pt-3 text-base leading-relaxed">
+                    {explanation}
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
+          </div>
           <p className="text-sm text-muted-foreground">
             {pattern.description}
           </p>
@@ -252,8 +298,8 @@ export function BreathPacer({ pattern, emotionType, onClose, onComplete }: Breat
         </Button>
       </motion.header>
 
-      {/* Main breathing circle area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
+      {/* Main breathing area */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6">
         {/* Countdown overlay */}
         <AnimatePresence>
           {countdown > 0 && isRunning && (
@@ -276,12 +322,49 @@ export function BreathPacer({ pattern, emotionType, onClose, onComplete }: Breat
           )}
         </AnimatePresence>
 
-        {/* Breathing circle */}
+        {/* Phase label - FIXED POSITION ABOVE CIRCLE */}
+        <div className="h-24 flex flex-col items-center justify-end">
+          <AnimatePresence mode="wait">
+            {isRunning && countdown === 0 && phase !== 'complete' && (
+              <motion.div
+                key={phase}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center gap-2"
+              >
+                <div className={cn("transition-colors duration-300", emotionTextColors[emotionType])}>
+                  {phaseIcons[phase]}
+                </div>
+                <span className={cn(
+                  "text-4xl font-bold tracking-wide transition-colors duration-300",
+                  emotionTextColors[emotionType]
+                )}>
+                  {phaseLabels[phase]}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Idle state message */}
+          {!isRunning && phase === 'idle' && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-lg text-muted-foreground text-center"
+            >
+              Pressione iniciar e<br />acompanhe o ritmo
+            </motion.p>
+          )}
+        </div>
+
+        {/* Breathing circle - CLEAN, NO TEXT INSIDE */}
         <div className="relative flex items-center justify-center">
           {/* Outer glow ring */}
           <motion.div
             className={cn(
-              'absolute w-64 h-64 rounded-full opacity-30',
+              'absolute w-56 h-56 rounded-full opacity-30',
               emotionGradients[emotionType]
             )}
             animate={{
@@ -290,82 +373,86 @@ export function BreathPacer({ pattern, emotionType, onClose, onComplete }: Breat
             transition={{ duration: 0.5 }}
           />
           
-          {/* Main circle */}
+          {/* Main circle - NO TEXT INSIDE */}
           <motion.div
             className={cn(
-              'w-48 h-48 rounded-full flex items-center justify-center',
+              'w-44 h-44 rounded-full',
               emotionGradients[emotionType],
               emotionShadows[emotionType]
             )}
             variants={getPhaseVariants()}
             animate={phase}
             initial="idle"
-          >
-            <div className="text-center">
-              <motion.p
-                key={phase}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-2xl font-semibold text-primary-foreground"
-              >
-                {phaseLabels[phase]}
-              </motion.p>
-              {phaseTime > 0 && isRunning && countdown === 0 && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-4xl font-bold text-primary-foreground mt-1"
-                >
-                  {phaseTime}
-                </motion.p>
-              )}
-            </div>
-          </motion.div>
+          />
         </div>
 
-        {/* Cycle indicator */}
-        {isRunning && countdown === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 text-center"
-          >
-            <p className="text-muted-foreground">
-              Ciclo {currentCycle} de {pattern.cycles}
-            </p>
-            <div className="flex gap-2 justify-center mt-3">
-              {Array.from({ length: pattern.cycles }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  className={cn(
-                    'w-2 h-2 rounded-full transition-colors duration-300',
-                    i < currentCycle ? emotionGradients[emotionType] : 'bg-muted'
-                  )}
-                  animate={{ scale: i === currentCycle - 1 ? 1.3 : 1 }}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
+        {/* Timer and cycle indicator - FIXED POSITION BELOW CIRCLE */}
+        <div className="h-28 flex flex-col items-center justify-start gap-3">
+          {/* Phase timer */}
+          <AnimatePresence>
+            {phaseTime > 0 && isRunning && countdown === 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="flex items-center justify-center"
+              >
+                <span className="text-5xl font-bold text-foreground tabular-nums">
+                  {phaseTime}
+                </span>
+                <span className="text-xl text-muted-foreground ml-1">s</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* Complete state */}
-        <AnimatePresence>
-          {phase === 'complete' && (
+          {/* Cycle indicator */}
+          {isRunning && countdown === 0 && phase !== 'complete' && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mt-8 text-center"
+              className="text-center"
             >
-              <p className="text-xl font-semibold text-primary">
-                Parabéns! 🎉
+              <p className="text-sm text-muted-foreground mb-2">
+                Ciclo {currentCycle} de {pattern.cycles}
               </p>
-              <p className="text-muted-foreground mt-2">
-                Você completou a prática
-              </p>
+              <div className="flex gap-1.5 justify-center">
+                {Array.from({ length: pattern.cycles }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className={cn(
+                      'w-2 h-2 rounded-full transition-all duration-300',
+                      i < currentCycle 
+                        ? emotionGradients[emotionType] 
+                        : 'bg-muted'
+                    )}
+                    animate={{ 
+                      scale: i === currentCycle - 1 ? 1.4 : 1,
+                    }}
+                  />
+                ))}
+              </div>
             </motion.div>
           )}
-        </AnimatePresence>
+
+          {/* Complete state */}
+          <AnimatePresence>
+            {phase === 'complete' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-center"
+              >
+                <p className={cn("text-2xl font-bold", emotionTextColors[emotionType])}>
+                  Parabéns!
+                </p>
+                <p className="text-muted-foreground mt-1">
+                  Você completou a prática
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Bottom controls - Thumb zone */}

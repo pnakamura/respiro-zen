@@ -156,6 +156,7 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
             key="breath-pacer"
             pattern={selectedEmotion.pattern}
             emotionType={selectedEmotion.id as EmotionType}
+            explanation={selectedEmotion.explanation}
             onClose={handleClose}
             onComplete={handleBreathComplete}
           />
