@@ -112,21 +112,22 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
     const midScale = 1.25; // Scale after first inhale in physiological sigh
     
     if (isPanic) {
-      // Physiological Sigh: double inhale pattern (2s + 2s = 4s total inhale)
-      // First inhale to 1.25 (2s), pause briefly, second inhale to 1.5 (2s)
+      // Physiological Sigh: 2s inhale, 1s pause, 2s inhale, 1s pause (holdIn), 6s exhale
+      // Total inhale phase: 5s (2s + 1s pause + 2s)
+      // times: 0=start, 0.4=end first inhale (2s), 0.6=end pause (1s), 1.0=end second inhale (2s)
       return {
         idle: { scale: baseScale },
         inhale: { 
           scale: [baseScale, midScale, midScale, maxScale],
           transition: { 
-            duration: pattern.inhale / 1000, // 4 seconds total
-            times: [0, 0.45, 0.55, 1], // 2s up, 0.4s pause, 2s up
+            duration: pattern.inhale / 1000, // 5 seconds total
+            times: [0, 0.4, 0.6, 1], // 2s up, 1s hold, 2s up
             ease: ["easeOut", "linear", "easeOut"]
           }
         },
         holdIn: { 
           scale: maxScale,
-          transition: { duration: pattern.holdIn / 1000 }
+          transition: { duration: pattern.holdIn / 1000 } // 1s pause
         },
         exhale: { 
           scale: baseScale,
