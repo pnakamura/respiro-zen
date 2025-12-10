@@ -83,8 +83,8 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
   const [phaseTime, setPhaseTime] = useState(0);
   const startTimeRef = useRef<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const isPanic = emotionType === 'panic';
-
   // Initialize audio
   useEffect(() => {
     audioRef.current = new Audio(BELL_SOUND_URL);
@@ -175,7 +175,18 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
     };
   }, [pattern, isPanic]);
 
-  const runBreathCycle = useCallback(async () => {
+  // Utility to create a cancellable delay
+  const delay = useCallback((ms: number, signal: AbortSignal): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(resolve, ms);
+      signal.addEventListener('abort', () => {
+        clearTimeout(timeoutId);
+        reject(new DOMException('Aborted', 'AbortError'));
+      });
+    });
+  }, []);
+
+  const runBreathCycle = useCallback(async (signal: AbortSignal) => {
     const phases: { phase: BreathPhase; duration: number }[] = [];
     
     if (pattern.inhale > 0) phases.push({ phase: 'inhale', duration: pattern.inhale });
@@ -184,6 +195,8 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
     if (pattern.holdOut > 0) phases.push({ phase: 'holdOut', duration: pattern.holdOut });
 
     for (const { phase, duration } of phases) {
+      if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+      
       setPhase(phase);
       playBell();
       
@@ -193,43 +206,63 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
       setPhaseTime(1); // Start at 1
       
       const updatePhaseTime = () => {
+        if (signal.aborted) return;
         const elapsed = Date.now() - startTime;
         const currentSecond = Math.min(Math.ceil(elapsed / 1000), Math.ceil(totalDuration / 1000));
         setPhaseTime(currentSecond);
         
-        if (elapsed < totalDuration) {
+        if (elapsed < totalDuration && !signal.aborted) {
           requestAnimationFrame(updatePhaseTime);
         }
       };
       
       updatePhaseTime();
-      await new Promise(resolve => setTimeout(resolve, duration));
+      await delay(duration, signal);
     }
-  }, [pattern, playBell]);
+  }, [pattern, playBell, delay]);
 
   const startBreathing = useCallback(async () => {
+    // Cancel any previous session
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const signal = controller.signal;
+    
     startTimeRef.current = Date.now();
     setIsRunning(true);
     
-    // Countdown
-    for (let i = 3; i > 0; i--) {
-      setCountdown(i);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-    setCountdown(0);
+    try {
+      // Countdown
+      for (let i = 3; i > 0; i--) {
+        if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+        setCountdown(i);
+        await delay(1000, signal);
+      }
+      setCountdown(0);
 
-    // Run cycles
-    for (let cycle = 0; cycle < pattern.cycles; cycle++) {
-      setCurrentCycle(cycle + 1);
-      await runBreathCycle();
-    }
+      // Run cycles
+      for (let cycle = 0; cycle < pattern.cycles; cycle++) {
+        if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+        setCurrentCycle(cycle + 1);
+        await runBreathCycle(signal);
+      }
 
-    setPhase('complete');
-    setIsRunning(false);
-    
-    const durationSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
-    onComplete(durationSeconds);
-  }, [pattern.cycles, runBreathCycle, onComplete]);
+      setPhase('complete');
+      setIsRunning(false);
+      
+      const durationSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
+      onComplete(durationSeconds);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        // Session was cancelled - do nothing
+        return;
+      }
+      throw error;
+    }
+  }, [pattern.cycles, runBreathCycle, onComplete, delay]);
 
   const handleStart = () => {
     if (!isRunning) {
@@ -238,15 +271,24 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
   };
 
   const handlePause = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setIsRunning(false);
     setPhase('idle');
+    setPhaseTime(0);
+    setCountdown(3);
   };
 
   const handleReset = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setIsRunning(false);
     setPhase('idle');
     setCurrentCycle(0);
     setCountdown(3);
+    setPhaseTime(0);
   };
 
   return (
