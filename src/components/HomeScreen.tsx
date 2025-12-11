@@ -1,14 +1,50 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EmotionCard } from './EmotionCard';
 import { BreathPacer } from './BreathPacer';
 import { MeditationPlayer } from './MeditationPlayer';
-import { emotions } from '@/data/emotions';
+import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
 import { Emotion, EmotionType } from '@/types/breathing';
+import type { BreathingTechnique } from '@/types/admin';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Wind, Sparkles, User, LogOut, Settings } from 'lucide-react';
+
+// Mapeia técnica do banco para o formato Emotion usado pelos componentes
+function mapTechniqueToEmotion(technique: BreathingTechnique): Emotion {
+  return {
+    id: technique.emotion_id as EmotionType,
+    label: technique.label,
+    description: technique.description || '',
+    explanation: technique.explanation || '',
+    icon: technique.icon || '💨',
+    colorClass: technique.color_class || 'text-primary',
+    bgClass: technique.bg_class || 'bg-primary/10',
+    pattern: {
+      inhale: technique.inhale_ms,
+      holdIn: technique.hold_in_ms,
+      exhale: technique.exhale_ms,
+      holdOut: technique.hold_out_ms,
+      name: technique.pattern_name,
+      description: technique.pattern_description || '',
+      cycles: technique.cycles,
+    },
+  };
+}
+
+// Item de meditação estático (não é uma técnica de respiração)
+const meditateEmotion: Emotion = {
+  id: 'meditate',
+  label: 'Quero Meditar',
+  description: 'Meditações guiadas para paz interior',
+  explanation: 'A meditação é uma prática milenar que promove calma e clareza mental.',
+  icon: '🧘',
+  colorClass: 'text-meditate',
+  bgClass: 'bg-meditate-light',
+  pattern: { inhale: 0, holdIn: 0, exhale: 0, holdOut: 0, name: 'Meditação', description: '', cycles: 0 },
+};
 
 interface HomeScreenProps {
   onSessionComplete: (technique: string, duration: number) => void;
@@ -19,6 +55,18 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
   const { user, usuario, signOut } = useAuth();
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
   const [showMeditation, setShowMeditation] = useState(false);
+  
+  // Busca técnicas do banco de dados
+  const { data: techniques, isLoading: loadingTechniques } = useBreathingTechniques();
+  
+  // Transforma técnicas em emotions e adiciona meditação
+  const emotions = useMemo(() => {
+    if (!techniques) return [];
+    const activeEmotions = techniques
+      .filter(t => t.is_active && !t.deleted_at)
+      .map(mapTechniqueToEmotion);
+    return [...activeEmotions, meditateEmotion];
+  }, [techniques]);
 
   const handleEmotionSelect = (emotion: Emotion) => {
     if (emotion.id === 'meditate') {
@@ -139,14 +187,21 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
 
         {/* Emotion cards */}
         <div className="space-y-4">
-          {emotions.map((emotion, index) => (
-            <EmotionCard
-              key={emotion.id}
-              emotion={emotion}
-              onClick={() => handleEmotionSelect(emotion)}
-              index={index}
-            />
-          ))}
+          {loadingTechniques ? (
+            // Loading state
+            Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-xl" />
+            ))
+          ) : (
+            emotions.map((emotion, index) => (
+              <EmotionCard
+                key={emotion.id}
+                emotion={emotion}
+                onClick={() => handleEmotionSelect(emotion)}
+                index={index}
+              />
+            ))
+          )}
         </div>
       </main>
 
