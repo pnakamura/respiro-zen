@@ -345,7 +345,7 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
       >
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-xl md:text-lg font-semibold text-foreground">
               {pattern.name}
             </h2>
             <Dialog>
@@ -366,7 +366,7 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
               </DialogContent>
             </Dialog>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base md:text-sm text-muted-foreground">
             {pattern.description}
           </p>
         </div>
@@ -421,7 +421,7 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-lg text-muted-foreground text-center"
+              className="text-xl md:text-lg text-muted-foreground text-center"
             >
               Pressione iniciar e<br />acompanhe o ritmo
             </motion.p>
@@ -499,7 +499,7 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
               animate={{ opacity: 1, y: 0 }}
               className="text-center mt-3"
             >
-              <p className="text-sm text-muted-foreground mb-2">
+              <p className="text-base md:text-sm text-muted-foreground mb-2">
                 Ciclo {currentCycle} de {pattern.cycles}
               </p>
               <div className="flex gap-2 justify-center">
@@ -530,10 +530,10 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
                 exit={{ opacity: 0 }}
                 className="text-center"
               >
-                <p className={cn("text-3xl font-bold", emotionTextColors[emotionType])}>
+                <p className={cn("text-4xl md:text-3xl font-bold", emotionTextColors[emotionType])}>
                   Parabéns!
                 </p>
-                <p className="text-muted-foreground mt-2">
+                <p className="text-lg md:text-base text-muted-foreground mt-2">
                   Você completou a prática
                 </p>
               </motion.div>
