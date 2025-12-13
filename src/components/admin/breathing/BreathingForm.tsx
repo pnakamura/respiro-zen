@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useBreathingTechnique, useCreateBreathingTechnique, useUpdateBreathingTechnique } from '@/hooks/useBreathingTechniques';
@@ -15,6 +15,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { HelpTooltip } from '@/components/admin/HelpTooltip';
+import { ColorPicker } from '@/components/admin/breathing/ColorPicker';
 
 const formSchema = z.object({
   emotion_id: z.string().min(1, 'ID é obrigatório').regex(/^[a-z_]+$/, 'Use apenas letras minúsculas e underscore'),
@@ -38,6 +39,27 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
+
+function ColorPickerField() {
+  const { control, setValue } = useFormContext<FormData>();
+  const colorClass = useWatch({ control, name: 'color_class' });
+  const bgClass = useWatch({ control, name: 'bg_class' });
+  const icon = useWatch({ control, name: 'icon' });
+  const label = useWatch({ control, name: 'label' });
+
+  return (
+    <ColorPicker
+      textClass={colorClass}
+      bgClass={bgClass}
+      icon={icon}
+      label={label}
+      onColorChange={(textClass, newBgClass) => {
+        setValue('color_class', textClass);
+        setValue('bg_class', newBgClass);
+      }}
+    />
+  );
+}
 
 export function BreathingForm() {
   const { id } = useParams();
@@ -499,40 +521,7 @@ export function BreathingForm() {
                 )}
               />
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="color_class"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center">
-                        Classe de cor (texto)
-                        <HelpTooltip content="Classe Tailwind para cor do texto (ex: text-primary, text-red-500, text-blue-600, text-green-500). Define a cor do texto e ícones." />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="text-primary" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="bg_class"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center">
-                        Classe de cor (fundo)
-                        <HelpTooltip content="Classe Tailwind para cor de fundo (ex: bg-primary/10, bg-red-500/10, bg-blue-100). O /10 indica 10% de opacidade." />
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="bg-primary/10" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <ColorPickerField />
             </CardContent>
           </Card>
 
