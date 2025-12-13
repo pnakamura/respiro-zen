@@ -332,15 +332,30 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col bg-background"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="fixed inset-0 z-50 flex flex-col bg-background overflow-hidden"
     >
+      {/* Animated background gradient */}
+      <motion.div
+        className="absolute inset-0 -z-10 pointer-events-none"
+        animate={{
+          background: phase === 'inhale' 
+            ? `radial-gradient(circle at center, hsl(var(--calm) / 0.15) 0%, transparent 60%)`
+            : phase === 'exhale'
+            ? `radial-gradient(circle at center, hsl(var(--calm) / 0.05) 0%, transparent 60%)`
+            : `radial-gradient(circle at center, hsl(var(--calm) / 0.08) 0%, transparent 60%)`
+        }}
+        transition={{ duration: 1.5, ease: "easeInOut" }}
+      />
+
       {/* Header */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
         className="flex items-center justify-between p-4 safe-top"
       >
         <div className="flex-1">
@@ -389,20 +404,24 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
             {isRunning && countdown === 0 && phase !== 'complete' && (
               <motion.div
                 key={isPanic && phase === 'inhale' ? `panic-${panicSubPhase}` : phase}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -20, filter: 'blur(8px)' }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
                 className="flex flex-col items-center gap-3"
               >
-                <div className="text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                <motion.div 
+                  className="text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+                >
                   {isPanic && phase === 'inhale' && panicSubPhase === 'pause1' ? (
                     <Circle className="w-8 h-8" />
                   ) : (
                     phaseIcons[phase]
                   )}
-                </div>
-                <span className="text-5xl font-bold tracking-wide text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]">
+                </motion.div>
+                <span className="text-5xl font-bold tracking-wide text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.7)]">
                   {isPanic && phase === 'inhale' ? (
                     panicSubPhase === 'inhale1' ? 'Inspire 1' :
                     panicSubPhase === 'pause1' ? 'Segure' :
@@ -431,16 +450,42 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
         {/* MIDDLE SECTION: Breathing circle container with padding for expansion */}
         <div className="flex items-center justify-center min-h-[280px]">
           <div className="relative flex items-center justify-center w-72 h-72">
+            {/* Concentric ripple rings */}
+            {isRunning && countdown === 0 && [1, 2, 3].map((ring) => (
+              <motion.div
+                key={ring}
+                className={cn(
+                  'absolute rounded-full border-2 opacity-20',
+                  emotionGradients[emotionType]
+                )}
+                style={{ 
+                  width: 160 + ring * 50, 
+                  height: 160 + ring * 50,
+                  borderColor: `hsl(var(--calm) / 0.3)`
+                }}
+                animate={{
+                  scale: phase === 'inhale' ? [1, 1.3] : phase === 'exhale' ? [1.3, 1] : [1.15, 1.15],
+                  opacity: [0.3, 0.1, 0.3]
+                }}
+                transition={{ 
+                  duration: phase === 'inhale' ? pattern.inhale / 1000 : phase === 'exhale' ? pattern.exhale / 1000 : 2,
+                  delay: ring * 0.15,
+                  ease: "easeInOut"
+                }}
+              />
+            ))}
+
             {/* Outer glow ring */}
             <motion.div
               className={cn(
-                'absolute w-48 h-48 rounded-full opacity-30',
+                'absolute w-48 h-48 rounded-full opacity-40',
                 emotionGradients[emotionType]
               )}
               animate={{
-                scale: phase === 'inhale' ? [1, 1.4] : phase === 'exhale' ? [1.4, 1] : 1.2,
+                scale: phase === 'inhale' ? [1, 1.5] : phase === 'exhale' ? [1.5, 1] : 1.25,
+                opacity: phase === 'inhale' ? [0.3, 0.5] : phase === 'exhale' ? [0.5, 0.3] : 0.4
               }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
             />
             
             {/* Main circle - PURE VISUAL, NO TEXT */}
@@ -453,6 +498,11 @@ export function BreathPacer({ pattern, emotionType, explanation, onClose, onComp
               variants={getPhaseVariants()}
               animate={phase}
               initial="idle"
+              style={{ 
+                boxShadow: phase !== 'idle' 
+                  ? `0 0 100px 30px hsl(var(--calm) / 0.4)` 
+                  : `0 0 60px 15px hsl(var(--calm) / 0.3)`
+              }}
             />
 
             {/* Countdown - CENTERED ON CIRCLE */}

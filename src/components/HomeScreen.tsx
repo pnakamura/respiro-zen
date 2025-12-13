@@ -105,9 +105,16 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              animate={{ 
+                rotate: [0, 360],
+                scale: [1, 1.05, 1]
+              }}
+              transition={{ 
+                rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+                scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+              }}
               className="w-12 h-12 rounded-2xl bg-gradient-to-br from-calm to-calm/70 flex items-center justify-center shadow-lg"
+              style={{ boxShadow: '0 0 30px hsl(var(--calm) / 0.4)' }}
             >
               <Wind className="w-6 h-6 text-primary-foreground" />
             </motion.div>
