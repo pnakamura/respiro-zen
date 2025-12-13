@@ -112,8 +112,8 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
               <Wind className="w-6 h-6 text-primary-foreground" />
             </motion.div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Respira</h1>
-              <p className="text-sm text-muted-foreground">Seu momento de paz</p>
+              <h1 className="text-2xl md:text-xl font-bold text-foreground">Respira</h1>
+              <p className="text-base md:text-sm text-muted-foreground">Seu momento de paz</p>
             </div>
           </div>
           
@@ -173,14 +173,14 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
         >
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-5 h-5 text-calm" />
-            <span className="text-sm font-medium text-calm">
+            <span className="text-base md:text-sm font-medium text-calm">
               {firstName ? `Olá, ${firstName}!` : 'Olá!'}
             </span>
           </div>
-          <h2 className="text-2xl font-bold text-foreground leading-tight">
+          <h2 className="text-3xl md:text-2xl font-bold text-foreground leading-tight">
             Como você está se sentindo agora?
           </h2>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-lg md:text-base text-muted-foreground mt-2">
             Escolha o que mais representa seu estado atual
           </p>
         </motion.div>
@@ -212,7 +212,7 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
         transition={{ delay: 0.5 }}
         className="px-6 py-4 text-center safe-bottom"
       >
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm md:text-xs text-muted-foreground">
           Respire. Relaxe. Renove.
         </p>
       </motion.footer>

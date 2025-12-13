@@ -115,10 +115,10 @@ export function MeditationPlayer({ onClose, onComplete }: MeditationPlayerProps)
         className="flex items-center justify-between p-4"
       >
         <div>
-          <h2 className="text-lg font-semibold text-foreground">
+          <h2 className="text-xl md:text-lg font-semibold text-foreground">
             Meditações
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-base md:text-sm text-muted-foreground">
             Escolha uma prática guiada
           </p>
         </div>
@@ -160,10 +160,10 @@ export function MeditationPlayer({ onClose, onComplete }: MeditationPlayerProps)
                     <Headphones className="w-6 h-6 text-meditate" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">
+                    <h3 className="text-lg md:text-base font-semibold text-foreground">
                       {track.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-base md:text-sm text-muted-foreground">
                       <span>{track.category}</span>
                       <span>•</span>
                       <span>{track.duration}</span>
@@ -195,10 +195,10 @@ export function MeditationPlayer({ onClose, onComplete }: MeditationPlayerProps)
 
               {/* Track info */}
               <div className="mt-8 text-center">
-                <h3 className="text-xl font-semibold text-foreground">
+                <h3 className="text-2xl md:text-xl font-semibold text-foreground">
                   {selectedTrack.title}
                 </h3>
-                <p className="text-muted-foreground mt-1">
+                <p className="text-lg md:text-base text-muted-foreground mt-1">
                   {selectedTrack.category}
                 </p>
               </div>
