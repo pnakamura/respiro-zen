@@ -243,6 +243,12 @@ export function BreathingForm() {
                   </FormItem>
                 )}
               />
+              
+              {/* Color Picker - posicionado de forma proeminente */}
+              <div className="sm:col-span-2">
+                <ColorPickerField />
+              </div>
+              
               <FormField
                 control={form.control}
                 name="display_order"
@@ -521,7 +527,6 @@ export function BreathingForm() {
                 )}
               />
 
-              <ColorPickerField />
             </CardContent>
           </Card>
 
