@@ -87,6 +87,7 @@ export type Database = {
       }
       breathing_techniques: {
         Row: {
+          background_audio_url: string | null
           bg_class: string | null
           color_class: string | null
           created_at: string | null
@@ -112,6 +113,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          background_audio_url?: string | null
           bg_class?: string | null
           color_class?: string | null
           created_at?: string | null
@@ -137,6 +139,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          background_audio_url?: string | null
           bg_class?: string | null
           color_class?: string | null
           created_at?: string | null

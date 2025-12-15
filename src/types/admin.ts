@@ -22,6 +22,7 @@ export interface BreathingTechnique {
   updated_at: string;
   created_by: string | null;
   deleted_at: string | null;
+  background_audio_url: string | null;
 }
 
 export interface MeditationCategory {

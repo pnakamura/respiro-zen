@@ -12,8 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Wind, Sparkles, User, LogOut, Settings } from 'lucide-react';
 
+// Extend Emotion type to include backgroundAudioUrl
+interface EmotionWithAudio extends Emotion {
+  backgroundAudioUrl?: string | null;
+}
+
 // Mapeia técnica do banco para o formato Emotion usado pelos componentes
-function mapTechniqueToEmotion(technique: BreathingTechnique): Emotion {
+function mapTechniqueToEmotion(technique: BreathingTechnique): EmotionWithAudio {
   return {
     id: technique.emotion_id as EmotionType,
     label: technique.label,
@@ -31,11 +36,12 @@ function mapTechniqueToEmotion(technique: BreathingTechnique): Emotion {
       description: technique.pattern_description || '',
       cycles: technique.cycles,
     },
+    backgroundAudioUrl: technique.background_audio_url,
   };
 }
 
 // Item de meditação estático (não é uma técnica de respiração)
-const meditateEmotion: Emotion = {
+const meditateEmotion: EmotionWithAudio = {
   id: 'meditate',
   label: 'Quero Meditar',
   description: 'Meditações guiadas para paz interior',
@@ -44,6 +50,7 @@ const meditateEmotion: Emotion = {
   colorClass: 'text-meditate',
   bgClass: 'bg-meditate-light',
   pattern: { inhale: 0, holdIn: 0, exhale: 0, holdOut: 0, name: 'Meditação', description: '', cycles: 0 },
+  backgroundAudioUrl: null,
 };
 
 interface HomeScreenProps {
@@ -53,7 +60,7 @@ interface HomeScreenProps {
 export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
   const navigate = useNavigate();
   const { user, usuario, signOut } = useAuth();
-  const [selectedEmotion, setSelectedEmotion] = useState<Emotion | null>(null);
+  const [selectedEmotion, setSelectedEmotion] = useState<EmotionWithAudio | null>(null);
   const [showMeditation, setShowMeditation] = useState(false);
   
   // Busca técnicas do banco de dados
@@ -68,7 +75,7 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
     return [...activeEmotions, meditateEmotion];
   }, [techniques]);
 
-  const handleEmotionSelect = (emotion: Emotion) => {
+  const handleEmotionSelect = (emotion: EmotionWithAudio) => {
     if (emotion.id === 'meditate') {
       setShowMeditation(true);
     } else {
@@ -234,6 +241,7 @@ export function HomeScreen({ onSessionComplete }: HomeScreenProps) {
             explanation={selectedEmotion.explanation}
             colorClass={selectedEmotion.colorClass}
             bgClass={selectedEmotion.bgClass}
+            backgroundAudioUrl={selectedEmotion.backgroundAudioUrl}
             onClose={handleClose}
             onComplete={handleBreathComplete}
           />

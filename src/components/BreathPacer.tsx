@@ -19,6 +19,7 @@ interface BreathPacerProps {
   explanation: string;
   colorClass?: string;
   bgClass?: string;
+  backgroundAudioUrl?: string | null;
   onClose: () => void;
   onComplete: (durationSeconds: number) => void;
 }
@@ -77,7 +78,7 @@ const emotionTextColors: Record<EmotionType, string> = {
 // Audio bell sound URL
 const BELL_SOUND_URL = 'https://cdn.freesound.org/previews/411/411089_5121236-lq.mp3';
 
-export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgClass, onClose, onComplete }: BreathPacerProps) {
+export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgClass, backgroundAudioUrl, onClose, onComplete }: BreathPacerProps) {
   // Use cores dinâmicas se fornecidas, senão fallback para mappings estáticos
   const dynamicTextColor = colorClass || emotionTextColors[emotionType];
   const dynamicBgClass = bgClass || '';
@@ -120,9 +121,11 @@ export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgC
   const [panicSubPhase, setPanicSubPhase] = useState<'inhale1' | 'pause1' | 'inhale2' | null>(null);
   const startTimeRef = useRef<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const backgroundAudioRef = useRef<HTMLAudioElement | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isPanic = emotionType === 'panic';
-  // Initialize audio
+  
+  // Initialize bell audio
   useEffect(() => {
     audioRef.current = new Audio(BELL_SOUND_URL);
     audioRef.current.volume = 0.3;
@@ -133,6 +136,21 @@ export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgC
       }
     };
   }, []);
+
+  // Initialize background audio
+  useEffect(() => {
+    if (backgroundAudioUrl) {
+      backgroundAudioRef.current = new Audio(backgroundAudioUrl);
+      backgroundAudioRef.current.volume = 0.4;
+      backgroundAudioRef.current.loop = true;
+    }
+    return () => {
+      if (backgroundAudioRef.current) {
+        backgroundAudioRef.current.pause();
+        backgroundAudioRef.current = null;
+      }
+    };
+  }, [backgroundAudioUrl]);
 
   const playBell = useCallback(() => {
     if (audioRef.current) {
@@ -306,6 +324,12 @@ export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgC
     
     startTimeRef.current = Date.now();
     setIsRunning(true);
+
+    // Start background music
+    if (backgroundAudioRef.current) {
+      backgroundAudioRef.current.currentTime = 0;
+      backgroundAudioRef.current.play().catch(() => {});
+    }
     
     try {
       // Countdown
@@ -325,12 +349,20 @@ export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgC
 
       setPhase('complete');
       setIsRunning(false);
+
+      // Stop background music
+      if (backgroundAudioRef.current) {
+        backgroundAudioRef.current.pause();
+      }
       
       const durationSeconds = Math.round((Date.now() - startTimeRef.current) / 1000);
       onComplete(durationSeconds);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        // Session was cancelled - do nothing
+        // Session was cancelled - stop background music
+        if (backgroundAudioRef.current) {
+          backgroundAudioRef.current.pause();
+        }
         return;
       }
       throw error;
@@ -347,6 +379,10 @@ export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgC
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
+    // Stop background music on pause
+    if (backgroundAudioRef.current) {
+      backgroundAudioRef.current.pause();
+    }
     setIsRunning(false);
     setPhase('idle');
     setPhaseTime(0);
@@ -358,6 +394,11 @@ export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgC
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
+    // Stop background music on reset
+    if (backgroundAudioRef.current) {
+      backgroundAudioRef.current.pause();
+      backgroundAudioRef.current.currentTime = 0;
+    }
     setIsRunning(false);
     setPhase('idle');
     setCurrentCycle(0);
@@ -365,6 +406,7 @@ export function BreathPacer({ pattern, emotionType, explanation, colorClass, bgC
     setPhaseTime(0);
     setPanicSubPhase(null);
   };
+
 
   return (
     <motion.div
