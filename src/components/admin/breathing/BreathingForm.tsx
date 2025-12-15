@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, useWatch, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useBreathingTechnique, useCreateBreathingTechnique, useUpdateBreathingTechnique } from '@/hooks/useBreathingTechniques';
+import { useBreathingTechnique, useCreateBreathingTechnique, useUpdateBreathingTechnique, useUploadBreathingAudio } from '@/hooks/useBreathingTechniques';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Upload, Music, X, Volume2, VolumeX } from 'lucide-react';
 import { HelpTooltip } from '@/components/admin/HelpTooltip';
 import { ColorPicker } from '@/components/admin/breathing/ColorPicker';
 
@@ -36,6 +36,7 @@ const formSchema = z.object({
   special_config: z.string().optional(),
   display_order: z.number().min(0),
   is_active: z.boolean().default(true),
+  background_audio_url: z.string().optional().nullable(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -70,6 +71,13 @@ export function BreathingForm() {
   const { data: technique, isLoading } = useBreathingTechnique(isEditing ? id : undefined);
   const createMutation = useCreateBreathingTechnique();
   const updateMutation = useUpdateBreathingTechnique();
+  const uploadAudioMutation = useUploadBreathingAudio();
+  
+  const [isUploading, setIsUploading] = useState(false);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -92,6 +100,7 @@ export function BreathingForm() {
       special_config: '{}',
       display_order: 0,
       is_active: true,
+      background_audio_url: null,
     },
   });
 
@@ -116,9 +125,51 @@ export function BreathingForm() {
         special_config: JSON.stringify(technique.special_config, null, 2),
         display_order: technique.display_order,
         is_active: technique.is_active,
+        background_audio_url: technique.background_audio_url || null,
       });
+      if (technique.background_audio_url) {
+        setAudioPreviewUrl(technique.background_audio_url);
+      }
     }
   }, [technique, form]);
+
+  const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const techniqueId = id || 'new-' + Date.now();
+      const publicUrl = await uploadAudioMutation.mutateAsync({ file, techniqueId });
+      form.setValue('background_audio_url', publicUrl);
+      setAudioPreviewUrl(publicUrl);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveAudio = () => {
+    form.setValue('background_audio_url', null);
+    setAudioPreviewUrl(null);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const toggleAudioPreview = () => {
+    if (!audioRef.current || !audioPreviewUrl) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   const onSubmit = async (data: FormData) => {
     let specialConfig = {};
@@ -148,6 +199,7 @@ export function BreathingForm() {
       display_order: data.display_order,
       is_active: data.is_active,
       created_by: user?.id || null,
+      background_audio_url: data.background_audio_url || null,
     };
 
     if (isEditing) {
@@ -458,6 +510,80 @@ export function BreathingForm() {
                     </FormItem>
                   )}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Audio */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Music className="h-5 w-5" />
+                Música de Fundo
+              </CardTitle>
+              <CardDescription>Adicione uma música ambiente para tocar durante a respiração</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col gap-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleAudioUpload}
+                  className="hidden"
+                />
+                
+                {audioPreviewUrl ? (
+                  <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={toggleAudioPreview}
+                      className="shrink-0"
+                    >
+                      {isPlaying ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    </Button>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">Música carregada</p>
+                      <p className="text-xs text-muted-foreground truncate">{audioPreviewUrl.split('/').pop()}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleRemoveAudio}
+                      className="shrink-0 text-destructive hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <audio 
+                      ref={audioRef} 
+                      src={audioPreviewUrl} 
+                      loop
+                      onEnded={() => setIsPlaying(false)}
+                    />
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="w-full h-24 border-dashed"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-5 w-5 mr-2" />
+                    )}
+                    {isUploading ? 'Enviando...' : 'Fazer upload de áudio'}
+                  </Button>
+                )}
+                
+                <FormDescription>
+                  Formatos suportados: MP3, WAV, OGG. A música tocará em loop durante toda a sessão.
+                </FormDescription>
               </div>
             </CardContent>
           </Card>

@@ -131,3 +131,34 @@ export function useDeleteBreathingTechnique() {
     },
   });
 }
+
+export function useUploadBreathingAudio() {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ file, techniqueId }: { file: File; techniqueId: string }) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${techniqueId}-${Date.now()}.${fileExt}`;
+      const filePath = `breathing/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('meditation-audio')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('meditation-audio')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao fazer upload',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}
