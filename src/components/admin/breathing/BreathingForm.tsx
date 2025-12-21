@@ -4,6 +4,8 @@ import { useForm, useWatch, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useBreathingTechnique, useCreateBreathingTechnique, useUpdateBreathingTechnique, useUploadBreathingAudio } from '@/hooks/useBreathingTechniques';
+import { sanitizeFileName, validateFileSize } from '@/lib/fileUtils';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,6 +138,13 @@ export function BreathingForm() {
   const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Validate file size (100MB limit)
+    const sizeError = validateFileSize(file, 100);
+    if (sizeError) {
+      toast.error(sizeError);
+      return;
+    }
 
     setIsUploading(true);
     try {

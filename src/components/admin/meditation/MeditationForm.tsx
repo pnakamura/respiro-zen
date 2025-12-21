@@ -10,6 +10,8 @@ import {
   useUpdateMeditationTrack,
   useUploadAudio
 } from '@/hooks/useMeditationTracks';
+import { sanitizeFileName, validateFileSize } from '@/lib/fileUtils';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -107,13 +109,25 @@ export function MeditationForm() {
 
     // Upload background audio if new file selected
     if (backgroundFile) {
-      const path = `background/${Date.now()}-${backgroundFile.name}`;
+      const sizeError = validateFileSize(backgroundFile, 100);
+      if (sizeError) {
+        toast.error(sizeError);
+        return;
+      }
+      const sanitizedName = sanitizeFileName(backgroundFile.name);
+      const path = `background/${Date.now()}-${sanitizedName}`;
       bgUrl = await uploadMutation.mutateAsync({ file: backgroundFile, path });
     }
 
     // Upload narration audio if new file selected
     if (narrationFile) {
-      const path = `narration/${Date.now()}-${narrationFile.name}`;
+      const sizeError = validateFileSize(narrationFile, 100);
+      if (sizeError) {
+        toast.error(sizeError);
+        return;
+      }
+      const sanitizedName = sanitizeFileName(narrationFile.name);
+      const path = `narration/${Date.now()}-${sanitizedName}`;
       narrUrl = await uploadMutation.mutateAsync({ file: narrationFile, path });
     }
 

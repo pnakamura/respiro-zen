@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { BreathingTechnique } from '@/types/admin';
 import { useToast } from '@/hooks/use-toast';
 import type { Json } from '@/integrations/supabase/types';
+import { sanitizeFileName } from '@/lib/fileUtils';
 
 export function useBreathingTechniques() {
   return useQuery({
@@ -138,7 +139,8 @@ export function useUploadBreathingAudio() {
   return useMutation({
     mutationFn: async ({ file, techniqueId }: { file: File; techniqueId: string }) => {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${techniqueId}-${Date.now()}.${fileExt}`;
+      const sanitizedName = sanitizeFileName(file.name.replace(`.${fileExt}`, ''));
+      const fileName = `${techniqueId}-${Date.now()}-${sanitizedName}.${fileExt}`;
       const filePath = `breathing/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
