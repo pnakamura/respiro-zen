@@ -42,151 +42,52 @@ export function PlutchikWheel({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      {/* Wheel Container */}
-      <div className="relative aspect-square">
-        {/* Decorative background gradient */}
-        <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent rounded-full" />
-        
-        {/* Animated decorative rings */}
-        <motion.div 
-          className="absolute inset-2 rounded-full"
-          style={{
-            background: 'linear-gradient(135deg, hsl(var(--primary)/0.1), transparent, hsl(var(--accent)/0.1))',
-          }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div 
-          className="absolute inset-6 rounded-full border border-dashed border-primary/20"
-          animate={{ rotate: -360 }}
-          transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div 
-          className="absolute inset-10 rounded-full border border-dotted border-muted-foreground/10"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-        />
-        
-        {/* Pulse ring on selection */}
-        <AnimatePresence>
-          {recentlySelected && (
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0.8 }}
-              animate={{ scale: 1.5, opacity: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="absolute inset-0 rounded-full border-2 border-primary"
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Center hub with breathing animation */}
-        <motion.div 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          className="absolute inset-0 flex items-center justify-center z-10"
-        >
-          <div className="relative">
-            {/* Multi-layer glow effect */}
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full blur-2xl"
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 0.8, 0.5]
-              }}
-              transition={{ 
-                duration: 4, 
-                repeat: Infinity, 
-                ease: 'easeInOut' 
-              }}
-            />
-            <motion.div 
-              className="absolute -inset-2 bg-primary/10 rounded-full blur-xl"
-              animate={{ 
-                scale: [1.1, 1, 1.1],
-                opacity: [0.3, 0.6, 0.3]
-              }}
-              transition={{ 
-                duration: 3, 
-                repeat: Infinity, 
-                ease: 'easeInOut',
-                delay: 0.5
-              }}
-            />
-            
-            {/* Hub container with glass effect */}
-            <motion.div 
-              className="relative w-28 h-28 rounded-full glass-card-premium flex flex-col items-center justify-center p-3 overflow-hidden"
-              animate={{ 
-                boxShadow: [
-                  '0 0 20px hsl(var(--primary)/0.2)',
-                  '0 0 40px hsl(var(--primary)/0.3)',
-                  '0 0 20px hsl(var(--primary)/0.2)'
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              {/* Animated gradient background */}
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-              />
-              
-              {/* Pulsing heart icon */}
+    <div className="w-full max-w-md mx-auto px-2">
+      {/* Header com título e contador */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-6"
+      >
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 backdrop-blur-sm border border-primary/20">
+          <motion.div
+            animate={{ 
+              scale: [1, 1.15, 1],
+            }}
+            transition={{ 
+              duration: 1.5, 
+              repeat: Infinity, 
+              ease: 'easeInOut' 
+            }}
+          >
+            <Heart className="w-5 h-5 text-primary fill-primary/30" />
+          </motion.div>
+          <span className="text-sm font-medium text-foreground">
+            Como você se sente?
+          </span>
+          
+          {/* Selection dots */}
+          <div className="flex gap-1 ml-2">
+            {[0, 1, 2].map((i) => (
               <motion.div
-                animate={{ 
-                  scale: [1, 1.15, 1],
-                }}
-                transition={{ 
-                  duration: 1.5, 
-                  repeat: Infinity, 
-                  ease: 'easeInOut' 
-                }}
-              >
-                <Heart className="w-6 h-6 text-primary fill-primary/30" />
-              </motion.div>
-              
-              <span className="relative text-[11px] font-medium text-center text-muted-foreground leading-tight mt-1">
-                Como você<br />se sente?
-              </span>
-              
-              {/* Selection counter */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={selectedEmotions.length}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0, opacity: 0 }}
-                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-1"
-                >
-                  {[0, 1, 2].map((i) => (
-                    <motion.div
-                      key={i}
-                      className={cn(
-                        "w-1.5 h-1.5 rounded-full transition-colors duration-300",
-                        i < selectedEmotions.length 
-                          ? "bg-primary" 
-                          : "bg-muted-foreground/30"
-                      )}
-                      animate={i < selectedEmotions.length ? { scale: [1, 1.3, 1] } : {}}
-                      transition={{ duration: 0.3 }}
-                    />
-                  ))}
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
+                key={i}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all duration-300",
+                  i < selectedEmotions.length 
+                    ? "bg-primary scale-110" 
+                    : "bg-muted-foreground/30"
+                )}
+                animate={i < selectedEmotions.length ? { scale: [1, 1.3, 1] } : {}}
+                transition={{ duration: 0.3 }}
+              />
+            ))}
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
-        {/* Emotion Petals */}
+      {/* Emotion Grid - 2 columns, 4 rows */}
+      <div className="grid grid-cols-2 gap-3">
         {primaryEmotions.map((emotion, index) => {
-          const angle = (index * 360) / 8 - 90;
-          const radius = 38;
-          const x = 50 + radius * Math.cos((angle * Math.PI) / 180);
-          const y = 50 + radius * Math.sin((angle * Math.PI) / 180);
           const selected = isSelected(emotion.id);
           const selectedData = getSelectedEmotion(emotion.id);
           const isRecent = recentlySelected === emotion.id;
@@ -194,184 +95,208 @@ export function PlutchikWheel({
           return (
             <motion.button
               key={emotion.id}
-              initial={{ opacity: 0, scale: 0, rotate: -180 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ 
-                delay: 0.1 + index * 0.08,
+                delay: index * 0.05,
                 type: 'spring',
-                stiffness: 200,
-                damping: 15
+                stiffness: 300,
+                damping: 20
               }}
               onClick={() => handleSelect(emotion.id)}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2 group focus:outline-none"
-              style={{
-                left: `${x}%`,
-                top: `${y}%`,
-              }}
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.95 }}
+              className="relative group focus:outline-none"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {/* Multi-layer glow for selected state */}
+              {/* Glow effect for selected state */}
               <AnimatePresence>
                 {selected && (
-                  <>
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ 
-                        scale: [1, 1.3, 1],
-                        opacity: [0.6, 0.3, 0.6]
-                      }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                      className="absolute inset-0 rounded-full blur-xl"
-                      style={{ backgroundColor: emotion.color }}
-                    />
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="absolute -inset-1 rounded-full blur-md opacity-40"
-                      style={{ backgroundColor: emotion.color }}
-                    />
-                  </>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ 
+                      opacity: [0.4, 0.6, 0.4],
+                      scale: 1
+                    }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ 
+                      opacity: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+                      scale: { duration: 0.3 }
+                    }}
+                    className="absolute -inset-1 rounded-2xl blur-lg"
+                    style={{ backgroundColor: emotion.color }}
+                  />
                 )}
               </AnimatePresence>
-              
-              {/* Hover glow preview */}
-              <motion.div
-                className="absolute inset-0 rounded-full blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300"
-                style={{ backgroundColor: emotion.color }}
-              />
-              
-              {/* Selection burst effect */}
+
+              {/* Selection burst particles */}
               <AnimatePresence>
                 {isRecent && selected && (
                   <>
-                    {[...Array(6)].map((_, i) => (
+                    {[...Array(8)].map((_, i) => (
                       <motion.div
                         key={i}
-                        initial={{ scale: 0, opacity: 1 }}
+                        initial={{ scale: 0, opacity: 1, x: 0, y: 0 }}
                         animate={{ 
-                          scale: 2,
-                          opacity: 0,
-                          x: Math.cos((i * 60 * Math.PI) / 180) * 30,
-                          y: Math.sin((i * 60 * Math.PI) / 180) * 30,
+                          scale: [0, 1, 0.5],
+                          opacity: [1, 0.8, 0],
+                          x: Math.cos((i * 45 * Math.PI) / 180) * 40,
+                          y: Math.sin((i * 45 * Math.PI) / 180) * 40,
                         }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.5, ease: 'easeOut' }}
-                        className="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                        className="absolute top-1/2 left-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full z-20"
                         style={{ backgroundColor: emotion.color }}
                       />
                     ))}
                   </>
                 )}
               </AnimatePresence>
-              
-              {/* Main petal circle */}
+
+              {/* Main Card */}
               <motion.div
                 className={cn(
-                  'relative flex flex-col items-center justify-center w-[5rem] h-[5rem] rounded-full transition-all duration-300',
+                  'relative flex items-center gap-3 p-4 rounded-2xl transition-all duration-300 overflow-hidden',
+                  'border backdrop-blur-sm',
                   selected 
-                    ? 'shadow-2xl' 
-                    : 'shadow-lg hover:shadow-xl group-hover:ring-2 group-hover:ring-white/20'
+                    ? 'shadow-xl border-white/30' 
+                    : 'shadow-md hover:shadow-lg border-white/10 hover:border-white/20'
                 )}
                 style={{
                   backgroundColor: selected ? emotion.color : emotion.bgColor,
                   boxShadow: selected 
-                    ? `0 10px 40px -10px ${emotion.color}80, 0 0 20px ${emotion.color}40`
+                    ? `0 10px 40px -10px ${emotion.color}80, 0 0 20px ${emotion.color}30`
                     : undefined
                 }}
                 animate={selected ? {
                   boxShadow: [
-                    `0 10px 40px -10px ${emotion.color}80, 0 0 20px ${emotion.color}40`,
-                    `0 10px 50px -10px ${emotion.color}90, 0 0 30px ${emotion.color}50`,
-                    `0 10px 40px -10px ${emotion.color}80, 0 0 20px ${emotion.color}40`,
+                    `0 10px 40px -10px ${emotion.color}80, 0 0 20px ${emotion.color}30`,
+                    `0 10px 50px -10px ${emotion.color}90, 0 0 30px ${emotion.color}40`,
+                    `0 10px 40px -10px ${emotion.color}80, 0 0 20px ${emotion.color}30`,
                   ]
                 } : {}}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                {/* Inner gradient overlay */}
+                {/* Gradient overlay */}
                 <div 
-                  className="absolute inset-0 rounded-full opacity-30"
+                  className="absolute inset-0 opacity-40"
                   style={{
-                    background: `linear-gradient(135deg, white 0%, transparent 50%, ${emotion.color}40 100%)`
+                    background: `linear-gradient(135deg, white 0%, transparent 50%, ${emotion.color}30 100%)`
                   }}
                 />
-                
-                {/* Selection ring */}
-                <AnimatePresence>
-                  {selected && (
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 1.2, opacity: 0 }}
-                      className="absolute -inset-1 rounded-full border-2 border-white/50"
-                    />
-                  )}
-                </AnimatePresence>
 
-                {/* Selection check badge */}
-                <AnimatePresence>
-                  {selected && (
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180, opacity: 0 }}
-                      animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                      exit={{ scale: 0, rotate: 180, opacity: 0 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                      className="absolute -top-1 -right-1 w-7 h-7 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg z-20"
-                      style={{
-                        boxShadow: `0 4px 15px hsl(var(--primary)/0.5)`
-                      }}
+                {/* Subtle pattern */}
+                <div 
+                  className="absolute inset-0 opacity-10"
+                  style={{
+                    backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
+                    backgroundSize: '16px 16px'
+                  }}
+                />
+
+                {/* Emoji Container */}
+                <div className="relative flex-shrink-0">
+                  <motion.div 
+                    className={cn(
+                      "w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300",
+                      selected 
+                        ? "bg-white/30 shadow-inner" 
+                        : "bg-white/50 group-hover:bg-white/60"
+                    )}
+                    animate={selected ? { 
+                      scale: [1, 1.05, 1],
+                    } : {}}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <motion.span 
+                      className="text-3xl drop-shadow-sm"
+                      animate={isRecent && selected ? { 
+                        scale: [1, 1.3, 1],
+                        rotate: [0, -10, 10, 0]
+                      } : {}}
+                      transition={{ duration: 0.4 }}
                     >
+                      {emotion.icon}
+                    </motion.span>
+                  </motion.div>
+
+                  {/* Check badge */}
+                  <AnimatePresence>
+                    {selected && (
                       <motion.div
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ delay: 0.1, duration: 0.3 }}
+                        initial={{ scale: 0, rotate: -180, opacity: 0 }}
+                        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                        exit={{ scale: 0, rotate: 180, opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                        className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg z-10"
+                        style={{
+                          boxShadow: `0 4px 12px hsl(var(--primary)/0.4)`
+                        }}
                       >
-                        <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
+                        <Check className="w-3.5 h-3.5 text-primary-foreground" strokeWidth={3} />
                       </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                
-                {/* Emoji with animation */}
-                <motion.span 
-                  className="text-3xl relative z-10 drop-shadow-sm"
-                  animate={selected ? { 
-                    scale: [1, 1.15, 1],
-                    rotate: [0, -5, 5, 0]
-                  } : {}}
-                  transition={{ duration: 0.5 }}
-                >
-                  {emotion.icon}
-                </motion.span>
-              </motion.div>
-              
-              {/* Label with improved styling */}
-              <motion.div 
-                className="absolute -bottom-7 left-1/2 -translate-x-1/2 flex flex-col items-center"
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + index * 0.08 }}
-              >
-                <span 
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Text Content */}
+                <div className="relative flex-1 text-left min-w-0">
+                  <motion.span 
+                    className={cn(
+                      'block text-base font-semibold truncate transition-colors duration-300',
+                      selected ? 'text-white drop-shadow-sm' : 'text-foreground'
+                    )}
+                    layout
+                  >
+                    {selectedData 
+                      ? getIntensityLabel(emotion, selectedData.intensity)
+                      : emotion.label
+                    }
+                  </motion.span>
+                  <span 
+                    className={cn(
+                      'text-xs transition-colors duration-300 truncate block',
+                      selected ? 'text-white/80' : 'text-muted-foreground'
+                    )}
+                  >
+                    {emotion.survivalFunction.split(' ')[0]}
+                  </span>
+                </div>
+
+                {/* Hover indicator */}
+                <motion.div
                   className={cn(
-                    'text-[11px] font-semibold whitespace-nowrap transition-all duration-300 px-2 py-0.5 rounded-full',
+                    "absolute right-3 w-2 h-2 rounded-full transition-all duration-300",
                     selected 
-                      ? 'text-foreground bg-background/80 shadow-sm' 
-                      : 'text-muted-foreground group-hover:text-foreground'
+                      ? "bg-white/50" 
+                      : "bg-primary/0 group-hover:bg-primary/50"
                   )}
-                >
-                  {selectedData 
-                    ? getIntensityLabel(emotion, selectedData.intensity)
-                    : emotion.label
-                  }
-                </span>
+                />
               </motion.div>
             </motion.button>
           );
         })}
       </div>
+
+      {/* Helper Text */}
+      <motion.div 
+        className="mt-6 text-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={selectedEmotions.length}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="text-sm text-muted-foreground"
+          >
+            {getHelperText()}
+          </motion.p>
+        </AnimatePresence>
+      </motion.div>
 
       {/* Selected Emotions Pills */}
       <AnimatePresence mode="popLayout">
@@ -380,7 +305,7 @@ export function PlutchikWheel({
             initial={{ opacity: 0, y: 20, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: 20, height: 0 }}
-            className="mt-10 flex flex-wrap gap-3 justify-center"
+            className="mt-6 flex flex-wrap gap-2 justify-center"
           >
             {selectedEmotions.map((selected, index) => {
               const emotion = primaryEmotions.find(e => e.id === selected.id);
@@ -392,36 +317,38 @@ export function PlutchikWheel({
                   layout
                   initial={{ opacity: 0, scale: 0.5, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.5, y: -20 }}
+                  exit={{ opacity: 0, scale: 0.5, x: -20 }}
                   transition={{ 
                     type: 'spring',
-                    stiffness: 300,
+                    stiffness: 400,
                     damping: 25,
-                    delay: index * 0.05 
+                    delay: index * 0.03 
                   }}
                   className="group relative"
                 >
                   {/* Pill glow */}
-                  <div 
+                  <motion.div 
                     className="absolute inset-0 rounded-full blur-md opacity-30"
                     style={{ backgroundColor: emotion.color }}
+                    animate={{ opacity: [0.2, 0.4, 0.2] }}
+                    transition={{ duration: 2, repeat: Infinity }}
                   />
                   
                   <div 
-                    className="relative flex items-center gap-2 px-4 py-2.5 rounded-full text-sm shadow-lg backdrop-blur-sm border transition-all duration-300 group-hover:shadow-xl"
+                    className="relative flex items-center gap-2 pl-3 pr-2 py-2 rounded-full text-sm shadow-lg backdrop-blur-sm border transition-all duration-300 group-hover:shadow-xl"
                     style={{ 
-                      backgroundColor: `${emotion.color}20`,
-                      borderColor: `${emotion.color}40`,
+                      backgroundColor: `${emotion.color}25`,
+                      borderColor: `${emotion.color}50`,
                     }}
                   >
                     <motion.span 
-                      className="text-xl"
-                      animate={{ rotate: [0, -10, 10, 0] }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className="text-lg"
+                      animate={{ rotate: [0, -5, 5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
                     >
                       {emotion.icon}
                     </motion.span>
-                    <span className="font-medium text-foreground">
+                    <span className="font-medium text-foreground text-sm">
                       {getIntensityLabel(emotion, selected.intensity)}
                     </span>
                     
@@ -431,11 +358,11 @@ export function PlutchikWheel({
                         e.stopPropagation();
                         onSelect(emotion.id);
                       }}
-                      className="ml-1 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-destructive/20"
+                      className="ml-1 p-1 rounded-full bg-foreground/10 hover:bg-destructive/80 transition-colors duration-200 group/btn"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
-                      <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
+                      <X className="w-3 h-3 text-muted-foreground group-hover/btn:text-white transition-colors" />
                     </motion.button>
                   </div>
                 </motion.div>
@@ -445,23 +372,29 @@ export function PlutchikWheel({
         )}
       </AnimatePresence>
 
-      {/* Dynamic helper text */}
-      <AnimatePresence mode="wait">
-        <motion.div 
-          key={selectedEmotions.length}
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -5 }}
-          transition={{ duration: 0.2 }}
-          className="mt-6 text-center"
-        >
-          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
-            {selectedEmotions.length === 3 && (
-              <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
-            )}
-            {getHelperText()}
-          </p>
-        </motion.div>
+      {/* Sparkle decoration when max reached */}
+      <AnimatePresence>
+        {selectedEmotions.length >= 3 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            className="flex justify-center mt-4"
+          >
+            <motion.div
+              animate={{ 
+                rotate: [0, 360],
+                scale: [1, 1.1, 1]
+              }}
+              transition={{ 
+                rotate: { duration: 3, repeat: Infinity, ease: 'linear' },
+                scale: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }
+              }}
+            >
+              <Sparkles className="w-5 h-5 text-primary" />
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
