@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, PenLine } from 'lucide-react';
-import { EmotionGrid } from '@/components/emotions/EmotionGrid';
-import { IntensitySlider } from '@/components/emotions/IntensitySlider';
+import { PlutchikWheel } from '@/components/emotions/PlutchikWheel';
+import { EmotionIntensitySlider } from '@/components/emotions/EmotionIntensitySlider';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { BreathPacer } from '@/components/BreathPacer';
 import { MeditationPlayer } from '@/components/MeditationPlayer';
@@ -11,16 +11,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
+import { primaryEmotions, detectDyads } from '@/data/plutchik-emotions';
+import { getRecommendedTreatment } from '@/data/emotion-treatments';
 import { toast } from 'sonner';
 import type { EmotionType } from '@/types/breathing';
+
+interface SelectedEmotion {
+  id: string;
+  intensity: number;
+}
 
 export default function Home() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
   const { data: techniques } = useBreathingTechniques();
   
-  const [selectedEmotions, setSelectedEmotions] = useState<string[]>([]);
-  const [intensity, setIntensity] = useState(3);
+  const [selectedEmotions, setSelectedEmotions] = useState<SelectedEmotion[]>([]);
   const [freeText, setFreeText] = useState('');
   const [showBreathPacer, setShowBreathPacer] = useState(false);
   const [showMeditation, setShowMeditation] = useState(false);
@@ -34,16 +40,40 @@ export default function Home() {
     day: 'numeric',
     month: 'long'
   });
-  // Capitalize first letter
   const formattedDate = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+
+  // Detectar díades baseado nas emoções selecionadas
+  const detectedDyads = useMemo(() => {
+    const emotionIds = selectedEmotions.map(e => e.id);
+    return detectDyads(emotionIds);
+  }, [selectedEmotions]);
+
+  // Obter tratamento recomendado
+  const recommendedTreatment = useMemo(() => {
+    if (selectedEmotions.length === 0) return null;
+    const emotionIds = selectedEmotions.map(e => e.id);
+    const dyadIds = detectedDyads.map(d => d.result);
+    return getRecommendedTreatment(emotionIds, dyadIds);
+  }, [selectedEmotions, detectedDyads]);
 
   const handleEmotionSelect = (emotionId: string) => {
     setSelectedEmotions(prev => {
-      if (prev.includes(emotionId)) {
-        return prev.filter(id => id !== emotionId);
+      const exists = prev.find(e => e.id === emotionId);
+      if (exists) {
+        return prev.filter(e => e.id !== emotionId);
       }
-      return [...prev, emotionId];
+      if (prev.length >= 3) {
+        toast.info('Você pode selecionar até 3 emoções');
+        return prev;
+      }
+      return [...prev, { id: emotionId, intensity: 3 }];
     });
+  };
+
+  const handleIntensityChange = (emotionId: string, intensity: number) => {
+    setSelectedEmotions(prev =>
+      prev.map(e => (e.id === emotionId ? { ...e, intensity } : e))
+    );
   };
 
   const handleContinue = () => {
@@ -52,25 +82,11 @@ export default function Home() {
       return;
     }
     
-    // Map emotions to a main emotion for recommendations
-    const mainEmotion = selectedEmotions[0] || 'reflexivo';
-    const emotionMap: Record<string, { emotion: string; emoji: string }> = {
-      alegria: { emotion: 'Alegria', emoji: '😊' },
-      tristeza: { emotion: 'Tristeza', emoji: '😢' },
-      raiva: { emotion: 'Raiva', emoji: '😠' },
-      medo: { emotion: 'Ansiedade', emoji: '😰' },
-      surpresa: { emotion: 'Surpresa', emoji: '😮' },
-      nojo: { emotion: 'Desconforto', emoji: '🤢' },
-    };
-    
-    const result = emotionMap[mainEmotion] || { emotion: 'Reflexivo', emoji: '🤔' };
-    
     navigate('/emotion-result', { 
       state: { 
-        mainEmotion: result.emotion, 
-        mainEmoji: result.emoji,
         selectedEmotions,
-        intensity,
+        detectedDyads,
+        recommendedTreatment,
         freeText 
       } 
     });
@@ -90,7 +106,6 @@ export default function Home() {
     setShowMeditation(false);
   };
 
-  // Get first technique for breathing demo
   const firstTechnique = techniques?.[0];
 
   return (
@@ -122,21 +137,75 @@ export default function Home() {
             Como você está se sentindo agora?
           </h1>
           <p className="text-sm text-muted-foreground mt-2">
-            Selecione as emoções que representam seu estado atual
+            Selecione até 3 emoções que representam seu estado atual
           </p>
         </motion.div>
 
-        {/* Emotion Grid */}
+        {/* Plutchik Wheel */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <EmotionGrid
+          <PlutchikWheel
             selectedEmotions={selectedEmotions}
             onSelect={handleEmotionSelect}
           />
         </motion.div>
+
+        {/* Intensity Sliders for Selected Emotions */}
+        <AnimatePresence mode="popLayout">
+          {selectedEmotions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-3"
+            >
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Ajuste a intensidade:
+              </h3>
+              {selectedEmotions.map(selected => {
+                const emotion = primaryEmotions.find(e => e.id === selected.id);
+                if (!emotion) return null;
+                return (
+                  <EmotionIntensitySlider
+                    key={selected.id}
+                    emotion={emotion}
+                    value={selected.intensity}
+                    onChange={(value) => handleIntensityChange(selected.id, value)}
+                  />
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Díades Detectadas */}
+        <AnimatePresence>
+          {detectedDyads.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-4 rounded-xl bg-primary/10 border border-primary/20"
+            >
+              <p className="text-sm text-muted-foreground mb-2">
+                Emoções combinadas detectadas:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {detectedDyads.map(dyad => (
+                  <span
+                    key={dyad.result}
+                    className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-medium"
+                  >
+                    {dyad.label}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Free Text Input */}
         <motion.div
@@ -154,24 +223,34 @@ export default function Home() {
           />
         </motion.div>
 
-        {/* Intensity Slider */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-card rounded-xl p-4"
-        >
-          <IntensitySlider value={intensity} onChange={setIntensity} />
-        </motion.div>
+        {/* Tratamento Recomendado Preview */}
+        <AnimatePresence>
+          {recommendedTreatment && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-4 rounded-xl bg-muted/50"
+            >
+              <p className="text-xs text-muted-foreground mb-1">
+                Recomendação baseada no seu estado:
+              </p>
+              <p className="text-sm font-medium text-foreground">
+                {recommendedTreatment.label}: {recommendedTreatment.techniques[0]?.name}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Continue Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.4 }}
         >
           <Button
             onClick={handleContinue}
+            disabled={selectedEmotions.length === 0 && !freeText.trim()}
             className="w-full h-14 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base"
           >
             Continuar
