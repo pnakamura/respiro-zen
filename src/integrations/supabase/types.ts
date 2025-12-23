@@ -85,6 +85,54 @@ export type Database = {
         }
         Relationships: []
       }
+      breathing_sessions: {
+        Row: {
+          completed_at: string
+          cycles_completed: number
+          duration_ms: number
+          emotion_entry_id: string | null
+          id: string
+          technique_id: string | null
+          technique_name: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          cycles_completed?: number
+          duration_ms?: number
+          emotion_entry_id?: string | null
+          id?: string
+          technique_id?: string | null
+          technique_name: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          cycles_completed?: number
+          duration_ms?: number
+          emotion_entry_id?: string | null
+          id?: string
+          technique_id?: string | null
+          technique_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breathing_sessions_emotion_entry_id_fkey"
+            columns: ["emotion_entry_id"]
+            isOneToOne: false
+            referencedRelation: "emotion_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breathing_sessions_technique_id_fkey"
+            columns: ["technique_id"]
+            isOneToOne: false
+            referencedRelation: "breathing_techniques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       breathing_techniques: {
         Row: {
           background_audio_url: string | null
@@ -227,6 +275,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      emotion_entries: {
+        Row: {
+          created_at: string
+          detected_dyads: Json | null
+          free_text: string | null
+          id: string
+          recommended_treatment: Json | null
+          selected_emotions: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detected_dyads?: Json | null
+          free_text?: string | null
+          id?: string
+          recommended_treatment?: Json | null
+          selected_emotions?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detected_dyads?: Json | null
+          free_text?: string | null
+          id?: string
+          recommended_treatment?: Json | null
+          selected_emotions?: Json
+          user_id?: string
+        }
+        Relationships: []
       }
       gamification_achievements: {
         Row: {
@@ -397,6 +475,47 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          content: string
+          created_at: string
+          detected_emotions: Json | null
+          emotion_entry_id: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          word_count: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          detected_emotions?: Json | null
+          emotion_entry_id?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          word_count?: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          detected_emotions?: Json | null
+          emotion_entry_id?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          word_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_emotion_entry_id_fkey"
+            columns: ["emotion_entry_id"]
+            isOneToOne: false
+            referencedRelation: "emotion_entries"
             referencedColumns: ["id"]
           },
         ]
