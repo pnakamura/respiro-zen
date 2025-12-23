@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
+import { useCreateEmotionEntry } from '@/hooks/useEmotionEntries';
 import { primaryEmotions, detectDyads } from '@/data/plutchik-emotions';
 import { getRecommendedTreatment } from '@/data/emotion-treatments';
 import { toast } from 'sonner';
@@ -23,8 +24,9 @@ interface SelectedEmotion {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { usuario } = useAuth();
+  const { usuario, user } = useAuth();
   const { data: techniques } = useBreathingTechniques();
+  const createEmotionEntry = useCreateEmotionEntry();
   
   const [selectedEmotions, setSelectedEmotions] = useState<SelectedEmotion[]>([]);
   const [freeText, setFreeText] = useState('');
@@ -80,20 +82,52 @@ export default function Home() {
     );
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedEmotions.length === 0 && !freeText.trim()) {
       toast.error('Selecione pelo menos uma emoção ou escreva como se sente');
       return;
     }
     
-    navigate('/emotion-result', { 
-      state: { 
-        selectedEmotions,
-        detectedDyads,
-        recommendedTreatment,
-        freeText 
-      } 
-    });
+    // Save emotion entry if user is authenticated
+    if (user && selectedEmotions.length > 0) {
+      try {
+        const entry = await createEmotionEntry.mutateAsync({
+          selected_emotions: selectedEmotions,
+          detected_dyads: detectedDyads,
+          recommended_treatment: recommendedTreatment as unknown as Record<string, unknown> | null,
+          free_text: freeText || undefined,
+        });
+        
+        navigate('/emotion-result', { 
+          state: { 
+            selectedEmotions,
+            detectedDyads,
+            recommendedTreatment,
+            freeText,
+            emotionEntryId: entry.id,
+          } 
+        });
+      } catch (error) {
+        // Navigate anyway even if save fails
+        navigate('/emotion-result', { 
+          state: { 
+            selectedEmotions,
+            detectedDyads,
+            recommendedTreatment,
+            freeText 
+          } 
+        });
+      }
+    } else {
+      navigate('/emotion-result', { 
+        state: { 
+          selectedEmotions,
+          detectedDyads,
+          recommendedTreatment,
+          freeText 
+        } 
+      });
+    }
   };
 
   const handleSessionComplete = (technique: string, duration: number) => {

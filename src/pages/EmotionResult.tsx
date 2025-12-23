@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Wind, Brain, Sparkles, Play, Clock, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Wind, Brain, Sparkles, Play, Clock, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { BreathPacer } from '@/components/BreathPacer';
 import { MeditationPlayer } from '@/components/MeditationPlayer';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCreateBreathingSession } from '@/hooks/useBreathingSessions';
 import { primaryEmotions, getIntensityLabel, EmotionDyad } from '@/data/plutchik-emotions';
 import { TreatmentCategory, techniqueToBreathPattern, BreathingTechnique } from '@/data/emotion-treatments';
 import type { EmotionType } from '@/types/breathing';
+import { toast } from 'sonner';
 
 interface SelectedEmotion {
   id: string;
@@ -20,16 +23,20 @@ interface LocationState {
   detectedDyads: EmotionDyad[];
   recommendedTreatment: TreatmentCategory | null;
   freeText: string;
+  emotionEntryId?: string;
 }
 
 export default function EmotionResult() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const createBreathingSession = useCreateBreathingSession();
   const state = location.state as LocationState | null;
   
   const [showBreathPacer, setShowBreathPacer] = useState(false);
   const [showMeditation, setShowMeditation] = useState(false);
   const [selectedTechnique, setSelectedTechnique] = useState<BreathingTechnique | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<number>(0);
 
   // Fallback if no state
   if (!state || state.selectedEmotions.length === 0) {
@@ -62,7 +69,7 @@ export default function EmotionResult() {
     );
   }
 
-  const { selectedEmotions, detectedDyads, recommendedTreatment } = state;
+  const { selectedEmotions, detectedDyads, recommendedTreatment, emotionEntryId } = state;
 
   // Emoção principal (maior intensidade)
   const mainEmotion = [...selectedEmotions].sort((a, b) => b.intensity - a.intensity)[0];
@@ -70,16 +77,69 @@ export default function EmotionResult() {
 
   const handleStartBreathing = (technique: BreathingTechnique) => {
     setSelectedTechnique(technique);
+    setSessionStartTime(Date.now());
     setShowBreathPacer(true);
   };
 
   const handleStartMeditation = () => {
+    setSessionStartTime(Date.now());
     setShowMeditation(true);
   };
 
-  const handleSessionComplete = () => {
+  const handleBreathingComplete = async (cycles: number) => {
+    const durationMs = Date.now() - sessionStartTime;
+    
+    if (user && selectedTechnique) {
+      try {
+        await createBreathingSession.mutateAsync({
+          technique_name: selectedTechnique.name,
+          emotion_entry_id: emotionEntryId,
+          cycles_completed: cycles,
+          duration_ms: durationMs,
+        });
+      } catch (error) {
+        console.error('Failed to save breathing session:', error);
+      }
+    }
+    
+    const minutes = Math.floor(durationMs / 60000);
+    const seconds = Math.floor((durationMs % 60000) / 1000);
+    const timeStr = minutes > 0 ? `${minutes}min ${seconds}s` : `${seconds}s`;
+    
+    toast.success(`${selectedTechnique?.name} concluída!`, {
+      description: `Você praticou ${cycles} ciclos em ${timeStr}. Continue assim! 🌟`,
+      duration: 5000,
+    });
+    
     setShowBreathPacer(false);
+  };
+
+  const handleMeditationComplete = async () => {
+    const durationMs = Date.now() - sessionStartTime;
+    
+    if (user) {
+      try {
+        await createBreathingSession.mutateAsync({
+          technique_name: 'Meditação Guiada',
+          emotion_entry_id: emotionEntryId,
+          cycles_completed: 1,
+          duration_ms: durationMs,
+        });
+      } catch (error) {
+        console.error('Failed to save meditation session:', error);
+      }
+    }
+    
+    toast.success('Meditação concluída!', {
+      description: 'Momento de paz registrado. 🧘',
+      duration: 5000,
+    });
+    
     setShowMeditation(false);
+  };
+
+  const handleSaveToDiary = () => {
+    navigate('/journal');
   };
 
   return (
@@ -350,6 +410,7 @@ export default function EmotionResult() {
           >
             <Button
               variant="outline"
+              onClick={handleSaveToDiary}
               className="w-full h-12 rounded-2xl border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50"
             >
               Salvar no Diário
@@ -372,7 +433,7 @@ export default function EmotionResult() {
             colorClass="text-primary"
             bgClass="bg-primary/10"
             onClose={() => setShowBreathPacer(false)}
-            onComplete={() => handleSessionComplete()}
+            onComplete={(duration) => handleBreathingComplete(selectedTechnique.cycles)}
           />
         )}
       </AnimatePresence>
@@ -383,7 +444,7 @@ export default function EmotionResult() {
           <MeditationPlayer
             key="meditation-player"
             onClose={() => setShowMeditation(false)}
-            onComplete={() => handleSessionComplete()}
+            onComplete={() => handleMeditationComplete()}
           />
         )}
       </AnimatePresence>
