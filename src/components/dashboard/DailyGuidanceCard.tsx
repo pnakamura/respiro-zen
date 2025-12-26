@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight } from 'lucide-react';
 import { useMemo } from 'react';
 
-interface DailyCoachingCardProps {
-  onCoachClick?: () => void;
+interface DailyGuidanceCardProps {
+  onGuideClick?: () => void;
 }
 
 const dailyMessages = [
@@ -44,7 +44,7 @@ const dailyMessages = [
   },
 ];
 
-export function DailyCoachingCard({ onCoachClick }: DailyCoachingCardProps) {
+export function DailyGuidanceCard({ onGuideClick }: DailyGuidanceCardProps) {
   // Get message based on day of week
   const todayMessage = useMemo(() => {
     const dayOfWeek = new Date().getDay();
@@ -77,7 +77,7 @@ export function DailyCoachingCard({ onCoachClick }: DailyCoachingCardProps) {
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
               <span className="text-xs font-medium text-primary uppercase tracking-wide">
-                Coach do dia
+                Guia do dia
               </span>
             </div>
             <h3 className="text-base font-bold text-foreground mt-0.5">
@@ -92,14 +92,14 @@ export function DailyCoachingCard({ onCoachClick }: DailyCoachingCardProps) {
         </p>
 
         {/* CTA Button */}
-        {onCoachClick && (
+        {onGuideClick && (
           <motion.button
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.98 }}
-            onClick={onCoachClick}
+            onClick={onGuideClick}
             className="flex items-center gap-1 text-sm font-semibold text-primary"
           >
-            Conversar com o coach
+            Falar com seu guia
             <ChevronRight className="w-4 h-4" />
           </motion.button>
         )}

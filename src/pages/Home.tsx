@@ -14,7 +14,7 @@ import { BottomNavigation } from '@/components/BottomNavigation';
 import { BreathPacer } from '@/components/BreathPacer';
 import { MeditationPlayer } from '@/components/MeditationPlayer';
 import { QuickActionCard } from '@/components/dashboard/QuickActionCard';
-import { DailyCoachingCard } from '@/components/dashboard/DailyCoachingCard';
+import { DailyGuidanceCard } from '@/components/dashboard/DailyGuidanceCard';
 import { StreakWidget } from '@/components/dashboard/StreakWidget';
 import { MoodCheckModal } from '@/components/dashboard/MoodCheckModal';
 import { useAuth } from '@/contexts/AuthContext';
@@ -188,9 +188,9 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Daily Coaching Card */}
-        <DailyCoachingCard 
-          onCoachClick={() => toast.info('Coach IA em breve! 🤖')}
+        {/* Daily Guidance Card */}
+        <DailyGuidanceCard 
+          onGuideClick={() => toast.info('Seu guia pessoal em breve! 🌟')}
         />
 
         {/* Floating Action Button */}
