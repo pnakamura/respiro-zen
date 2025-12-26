@@ -1,35 +1,35 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, PenLine, ArrowRight, Heart } from 'lucide-react';
-import { PlutchikWheel } from '@/components/emotions/PlutchikWheel';
-import { EmotionIntensitySlider } from '@/components/emotions/EmotionIntensitySlider';
+import { 
+  Smile, 
+  Wind, 
+  BookOpen, 
+  BarChart3, 
+  Heart,
+  Plus,
+  Sparkles,
+} from 'lucide-react';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { BreathPacer } from '@/components/BreathPacer';
 import { MeditationPlayer } from '@/components/MeditationPlayer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { QuickActionCard } from '@/components/dashboard/QuickActionCard';
+import { DailyCoachingCard } from '@/components/dashboard/DailyCoachingCard';
+import { StreakWidget } from '@/components/dashboard/StreakWidget';
+import { MoodCheckModal } from '@/components/dashboard/MoodCheckModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
-import { useCreateEmotionEntry } from '@/hooks/useEmotionEntries';
-import { primaryEmotions, detectDyads } from '@/data/plutchik-emotions';
-import { getRecommendedTreatment } from '@/data/emotion-treatments';
+import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { toast } from 'sonner';
 import type { EmotionType } from '@/types/breathing';
 
-interface SelectedEmotion {
-  id: string;
-  intensity: number;
-}
-
 export default function Home() {
   const navigate = useNavigate();
-  const { usuario, user } = useAuth();
+  const { usuario } = useAuth();
   const { data: techniques } = useBreathingTechniques();
-  const createEmotionEntry = useCreateEmotionEntry();
+  const { data: gamificationStats, isLoading: isLoadingStats } = useGamificationStats();
   
-  const [selectedEmotions, setSelectedEmotions] = useState<SelectedEmotion[]>([]);
-  const [freeText, setFreeText] = useState('');
+  const [showMoodModal, setShowMoodModal] = useState(false);
   const [showBreathPacer, setShowBreathPacer] = useState(false);
   const [showMeditation, setShowMeditation] = useState(false);
   
@@ -48,88 +48,6 @@ export default function Home() {
   const hour = today.getHours();
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
 
-  // Detectar díades baseado nas emoções selecionadas
-  const detectedDyads = useMemo(() => {
-    const emotionIds = selectedEmotions.map(e => e.id);
-    return detectDyads(emotionIds);
-  }, [selectedEmotions]);
-
-  // Obter tratamento recomendado
-  const recommendedTreatment = useMemo(() => {
-    if (selectedEmotions.length === 0) return null;
-    const emotionIds = selectedEmotions.map(e => e.id);
-    const dyadIds = detectedDyads.map(d => d.result);
-    return getRecommendedTreatment(emotionIds, dyadIds);
-  }, [selectedEmotions, detectedDyads]);
-
-  const handleEmotionSelect = (emotionId: string) => {
-    setSelectedEmotions(prev => {
-      const exists = prev.find(e => e.id === emotionId);
-      if (exists) {
-        return prev.filter(e => e.id !== emotionId);
-      }
-      if (prev.length >= 3) {
-        toast.info('Você pode selecionar até 3 emoções');
-        return prev;
-      }
-      return [...prev, { id: emotionId, intensity: 3 }];
-    });
-  };
-
-  const handleIntensityChange = (emotionId: string, intensity: number) => {
-    setSelectedEmotions(prev =>
-      prev.map(e => (e.id === emotionId ? { ...e, intensity } : e))
-    );
-  };
-
-  const handleContinue = async () => {
-    if (selectedEmotions.length === 0 && !freeText.trim()) {
-      toast.error('Selecione pelo menos uma emoção ou escreva como se sente');
-      return;
-    }
-    
-    // Save emotion entry if user is authenticated
-    if (user && selectedEmotions.length > 0) {
-      try {
-        const entry = await createEmotionEntry.mutateAsync({
-          selected_emotions: selectedEmotions,
-          detected_dyads: detectedDyads,
-          recommended_treatment: recommendedTreatment,
-          free_text: freeText || undefined,
-        });
-        
-        navigate('/emotion-result', { 
-          state: { 
-            selectedEmotions,
-            detectedDyads,
-            recommendedTreatment,
-            freeText,
-            emotionEntryId: entry.id,
-          } 
-        });
-      } catch (error) {
-        // Navigate anyway even if save fails
-        navigate('/emotion-result', { 
-          state: { 
-            selectedEmotions,
-            detectedDyads,
-            recommendedTreatment,
-            freeText 
-          } 
-        });
-      }
-    } else {
-      navigate('/emotion-result', { 
-        state: { 
-          selectedEmotions,
-          detectedDyads,
-          recommendedTreatment,
-          freeText 
-        } 
-      });
-    }
-  };
-
   const handleSessionComplete = (technique: string, duration: number) => {
     const minutes = Math.floor(duration / 60);
     const seconds = duration % 60;
@@ -146,12 +64,25 @@ export default function Home() {
 
   const firstTechnique = techniques?.[0];
 
+  // Quick Actions handlers
+  const handleMoodCheck = () => setShowMoodModal(true);
+  const handleBreathing = () => {
+    if (firstTechnique) {
+      setShowBreathPacer(true);
+    } else {
+      toast.info('Carregando técnicas de respiração...');
+    }
+  };
+  const handleJournal = () => navigate('/journal');
+  const handleInsights = () => navigate('/insights');
+
   return (
     <div className="min-h-[100dvh] flex flex-col pb-28">
       {/* Decorative background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 -left-32 w-64 h-64 bg-secondary/5 rounded-full blur-3xl" />
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/8 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -left-32 w-80 h-80 bg-secondary/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
       </div>
 
       {/* Header */}
@@ -166,16 +97,16 @@ export default function Home() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: 'spring' }}
-              className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"
+              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center border border-primary/20"
             >
-              <Heart className="w-5 h-5 text-primary" fill="currentColor" />
+              <Heart className="w-6 h-6 text-primary" fill="currentColor" />
             </motion.div>
             <div>
               <motion.p 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-base font-semibold text-foreground"
+                className="text-lg font-bold text-foreground"
               >
                 {greeting}{firstName ? `, ${firstName}` : ''}!
               </motion.p>
@@ -183,7 +114,7 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.15 }}
-                className="text-xs text-muted-foreground"
+                className="text-sm text-muted-foreground"
               >
                 {formattedDate}
               </motion.p>
@@ -193,7 +124,7 @@ export default function Home() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3 }}
-            className="w-10 h-10 rounded-full glass-card flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-card border border-border/50 flex items-center justify-center shadow-sm"
           >
             <Sparkles className="w-5 h-5 text-primary" />
           </motion.div>
@@ -201,152 +132,88 @@ export default function Home() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="flex-1 px-6 space-y-6 relative">
-        {/* Question Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="card-elevated p-5"
-        >
-          <h1 className="text-xl font-bold text-foreground leading-snug">
-            Como você está se sentindo agora?
-          </h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Selecione as emoções que representam seu estado atual
-          </p>
-        </motion.div>
+      <main className="flex-1 px-6 space-y-5 relative">
+        {/* Streak Widget */}
+        <StreakWidget
+          currentStreak={gamificationStats?.sequencia_atual ?? 0}
+          bestStreak={gamificationStats?.melhor_sequencia ?? 0}
+          level={gamificationStats?.nivel ?? 1}
+          totalPoints={gamificationStats?.total_pontos ?? 0}
+          isLoading={isLoadingStats}
+        />
 
-        {/* Plutchik Wheel */}
+        {/* Quick Actions Grid */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <PlutchikWheel
-            selectedEmotions={selectedEmotions}
-            onSelect={handleEmotionSelect}
-          />
+          <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+            <span className="w-1 h-1 rounded-full bg-primary" />
+            Ações rápidas
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            <QuickActionCard
+              emoji="😊"
+              icon={Smile}
+              label="Como me sinto"
+              color="joy"
+              onClick={handleMoodCheck}
+              delay={0.1}
+            />
+            <QuickActionCard
+              emoji="🧘"
+              icon={Wind}
+              label="Respirar"
+              color="calm"
+              onClick={handleBreathing}
+              delay={0.15}
+            />
+            <QuickActionCard
+              emoji="📔"
+              icon={BookOpen}
+              label="Diário"
+              color="trust"
+              onClick={handleJournal}
+              delay={0.2}
+            />
+            <QuickActionCard
+              emoji="📊"
+              icon={BarChart3}
+              label="Insights"
+              color="accent"
+              onClick={handleInsights}
+              delay={0.25}
+            />
+          </div>
         </motion.div>
 
-        {/* Intensity Sliders for Selected Emotions */}
-        <AnimatePresence mode="popLayout">
-          {selectedEmotions.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="card-elevated p-5 space-y-4"
-            >
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                Ajuste a intensidade
-              </h3>
-              {selectedEmotions.map(selected => {
-                const emotion = primaryEmotions.find(e => e.id === selected.id);
-                if (!emotion) return null;
-                return (
-                  <EmotionIntensitySlider
-                    key={selected.id}
-                    emotion={emotion}
-                    value={selected.intensity}
-                    onChange={(value) => handleIntensityChange(selected.id, value)}
-                  />
-                );
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Daily Coaching Card */}
+        <DailyCoachingCard 
+          onCoachClick={() => toast.info('Coach IA em breve! 🤖')}
+        />
 
-        {/* Díades Detectadas */}
-        <AnimatePresence>
-          {detectedDyads.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="card-elevated p-4 border-l-4 border-l-primary"
-            >
-              <p className="text-xs font-medium text-muted-foreground mb-3">
-                Emoções combinadas detectadas
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {detectedDyads.map(dyad => (
-                  <motion.span
-                    key={dyad.result}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-semibold"
-                  >
-                    {dyad.label}
-                  </motion.span>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Free Text Input */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="relative"
+        {/* Floating Action Button */}
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.5, type: 'spring' }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleMoodCheck}
+          className="fixed bottom-32 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center z-40"
         >
-          <PenLine className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={freeText}
-            onChange={(e) => setFreeText(e.target.value)}
-            placeholder="Ou descreva como você se sente..."
-            className="pl-11 h-14 rounded-2xl bg-card border-border/50 text-foreground placeholder:text-muted-foreground input-premium text-sm"
-          />
-        </motion.div>
-
-        {/* Tratamento Recomendado Preview */}
-        <AnimatePresence>
-          {recommendedTreatment && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="card-elevated p-4 bg-gradient-to-r from-primary/5 to-secondary/5"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">
-                    Recomendação para você
-                  </p>
-                  <p className="text-sm font-semibold text-foreground">
-                    {recommendedTreatment.techniques[0]?.name}
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Continue Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="pt-2 pb-4"
-        >
-          <Button
-            onClick={handleContinue}
-            disabled={selectedEmotions.length === 0 && !freeText.trim()}
-            className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base shadow-lg shadow-primary/20 btn-glow group transition-all duration-300 disabled:opacity-50 disabled:shadow-none"
-          >
-            <span>Continuar</span>
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </motion.div>
+          <Plus className="w-7 h-7" />
+        </motion.button>
       </main>
 
       <BottomNavigation />
+
+      {/* Mood Check Modal */}
+      <MoodCheckModal 
+        isOpen={showMoodModal} 
+        onClose={() => setShowMoodModal(false)} 
+      />
 
       {/* Overlays */}
       <AnimatePresence>

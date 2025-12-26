@@ -1,0 +1,109 @@
+import { motion } from 'framer-motion';
+import { Sparkles, ChevronRight } from 'lucide-react';
+import { useMemo } from 'react';
+
+interface DailyCoachingCardProps {
+  onCoachClick?: () => void;
+}
+
+const dailyMessages = [
+  {
+    title: 'Respire fundo',
+    message: 'Cada respiração é uma oportunidade de recomeçar. Que tal uma pausa consciente agora?',
+    emoji: '🌬️',
+  },
+  {
+    title: 'Você é incrível',
+    message: 'Lembre-se: seus sentimentos são válidos. Está tudo bem não estar bem às vezes.',
+    emoji: '💫',
+  },
+  {
+    title: 'Momento presente',
+    message: 'O agora é o único momento real. Permita-se estar aqui, inteiro.',
+    emoji: '🧘',
+  },
+  {
+    title: 'Pequenos passos',
+    message: 'Grandes mudanças começam com pequenas ações. O que você pode fazer hoje por você?',
+    emoji: '🌱',
+  },
+  {
+    title: 'Gratidão',
+    message: 'Encontre uma coisa pela qual ser grato hoje. Isso transforma perspectivas.',
+    emoji: '🙏',
+  },
+  {
+    title: 'Autocuidado',
+    message: 'Cuidar de si não é egoísmo, é necessidade. Você merece esse tempo.',
+    emoji: '💚',
+  },
+  {
+    title: 'Força interior',
+    message: 'Você já superou 100% dos seus dias difíceis. Sua força é maior do que imagina.',
+    emoji: '🦋',
+  },
+];
+
+export function DailyCoachingCard({ onCoachClick }: DailyCoachingCardProps) {
+  // Get message based on day of week
+  const todayMessage = useMemo(() => {
+    const dayOfWeek = new Date().getDay();
+    return dailyMessages[dayOfWeek];
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3, type: 'spring', stiffness: 400, damping: 25 }}
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 border border-primary/20 p-5"
+    >
+      {/* Decorative background */}
+      <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
+      <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-secondary/10 rounded-full blur-2xl" />
+
+      <div className="relative">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-3">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.4, type: 'spring' }}
+            className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"
+          >
+            <span className="text-2xl">{todayMessage.emoji}</span>
+          </motion.div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium text-primary uppercase tracking-wide">
+                Coach do dia
+              </span>
+            </div>
+            <h3 className="text-base font-bold text-foreground mt-0.5">
+              {todayMessage.title}
+            </h3>
+          </div>
+        </div>
+
+        {/* Message */}
+        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          {todayMessage.message}
+        </p>
+
+        {/* CTA Button */}
+        {onCoachClick && (
+          <motion.button
+            whileHover={{ x: 4 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onCoachClick}
+            className="flex items-center gap-1 text-sm font-semibold text-primary"
+          >
+            Conversar com o coach
+            <ChevronRight className="w-4 h-4" />
+          </motion.button>
+        )}
+      </div>
+    </motion.div>
+  );
+}
