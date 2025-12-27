@@ -7,7 +7,7 @@ interface QuickActionCardProps {
   emoji?: string;
   label: string;
   description?: string;
-  color: 'primary' | 'secondary' | 'accent' | 'joy' | 'trust' | 'calm';
+  color: 'primary' | 'secondary' | 'accent' | 'joy' | 'trust' | 'calm' | 'meditate';
   onClick: () => void;
   delay?: number;
 }
@@ -48,6 +48,12 @@ const colorClasses = {
     text: 'text-[hsl(168_65%_38%)]',
     border: 'border-[hsl(168_65%_38%/0.3)]',
     shadow: 'hover:shadow-[hsl(168_65%_38%/0.2)]',
+  },
+  meditate: {
+    bg: 'bg-[hsl(var(--meditate)/0.15)]',
+    text: 'text-[hsl(var(--meditate))]',
+    border: 'border-[hsl(var(--meditate)/0.3)]',
+    shadow: 'hover:shadow-[hsl(var(--meditate)/0.2)]',
   },
 };
 
