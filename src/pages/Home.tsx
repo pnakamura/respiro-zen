@@ -10,6 +10,7 @@ import {
   Plus,
   Sparkles,
   Headphones,
+  Utensils,
 } from 'lucide-react';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { BreathPacer } from '@/components/BreathPacer';
@@ -19,6 +20,7 @@ import { DailyGuidanceCard } from '@/components/dashboard/DailyGuidanceCard';
 import { StreakWidget } from '@/components/dashboard/StreakWidget';
 import { MoodCheckModal } from '@/components/dashboard/MoodCheckModal';
 import { BreathingTechniqueSelector } from '@/components/dashboard/BreathingTechniqueSelector';
+import { MealCheckModal } from '@/components/nutrition/MealCheckModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
@@ -37,6 +39,7 @@ export default function Home() {
   const [showBreathingSelector, setShowBreathingSelector] = useState(false);
   const [showBreathPacer, setShowBreathPacer] = useState(false);
   const [showMeditation, setShowMeditation] = useState(false);
+  const [showMealModal, setShowMealModal] = useState(false);
   const [selectedTechnique, setSelectedTechnique] = useState<BreathingTechnique | null>(null);
   
   const firstName = usuario?.nome_completo?.split(' ')[0];
@@ -79,6 +82,7 @@ export default function Home() {
   const handleMoodCheck = () => setShowMoodModal(true);
   const handleBreathing = () => setShowBreathingSelector(true);
   const handleMeditation = () => setShowMeditation(true);
+  const handleNutrition = () => setShowMealModal(true);
   const handleJournal = () => navigate('/journal');
   const handleInsights = () => navigate('/insights');
 
@@ -192,12 +196,20 @@ export default function Home() {
               delay={0.25}
             />
             <QuickActionCard
+              emoji="🍽️"
+              icon={Utensils}
+              label="Alimentação"
+              color="nutrition"
+              onClick={handleNutrition}
+              delay={0.3}
+            />
+            <QuickActionCard
               emoji="📊"
               icon={BarChart3}
               label="Insights"
               color="accent"
               onClick={handleInsights}
-              delay={0.3}
+              delay={0.35}
             />
           </div>
         </motion.div>
@@ -227,6 +239,16 @@ export default function Home() {
       <MoodCheckModal 
         isOpen={showMoodModal} 
         onClose={() => setShowMoodModal(false)} 
+      />
+
+      {/* Meal Check Modal */}
+      <MealCheckModal
+        isOpen={showMealModal}
+        onClose={() => setShowMealModal(false)}
+        onSuggestBreathing={() => {
+          setShowMealModal(false);
+          setShowBreathingSelector(true);
+        }}
       />
 
       {/* Breathing Technique Selector */}

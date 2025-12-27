@@ -306,6 +306,50 @@ export type Database = {
         }
         Relationships: []
       }
+      emotion_nutrition_context: {
+        Row: {
+          created_at: string
+          energy_after: string | null
+          hunger_type: string
+          id: string
+          meal_category: string | null
+          mindful_eating_notes: string | null
+          mood_before: string
+          nutrition_entry_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          energy_after?: string | null
+          hunger_type?: string
+          id?: string
+          meal_category?: string | null
+          mindful_eating_notes?: string | null
+          mood_before: string
+          nutrition_entry_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          energy_after?: string | null
+          hunger_type?: string
+          id?: string
+          meal_category?: string | null
+          mindful_eating_notes?: string | null
+          mood_before?: string
+          nutrition_entry_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emotion_nutrition_context_nutrition_entry_id_fkey"
+            columns: ["nutrition_entry_id"]
+            isOneToOne: false
+            referencedRelation: "informacoes_nutricionais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gamification_achievements: {
         Row: {
           code: string
