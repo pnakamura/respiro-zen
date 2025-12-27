@@ -9,6 +9,7 @@ import {
   Heart,
   Plus,
   Sparkles,
+  Headphones,
 } from 'lucide-react';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { BreathPacer } from '@/components/BreathPacer';
@@ -17,21 +18,26 @@ import { QuickActionCard } from '@/components/dashboard/QuickActionCard';
 import { DailyGuidanceCard } from '@/components/dashboard/DailyGuidanceCard';
 import { StreakWidget } from '@/components/dashboard/StreakWidget';
 import { MoodCheckModal } from '@/components/dashboard/MoodCheckModal';
+import { BreathingTechniqueSelector } from '@/components/dashboard/BreathingTechniqueSelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { toast } from 'sonner';
 import type { EmotionType } from '@/types/breathing';
 
+// Type for breathing technique from DB
+type BreathingTechnique = NonNullable<ReturnType<typeof useBreathingTechniques>['data']>[number];
+
 export default function Home() {
   const navigate = useNavigate();
   const { usuario } = useAuth();
-  const { data: techniques } = useBreathingTechniques();
   const { data: gamificationStats, isLoading: isLoadingStats } = useGamificationStats();
   
   const [showMoodModal, setShowMoodModal] = useState(false);
+  const [showBreathingSelector, setShowBreathingSelector] = useState(false);
   const [showBreathPacer, setShowBreathPacer] = useState(false);
   const [showMeditation, setShowMeditation] = useState(false);
+  const [selectedTechnique, setSelectedTechnique] = useState<BreathingTechnique | null>(null);
   
   const firstName = usuario?.nome_completo?.split(' ')[0];
   
@@ -60,19 +66,19 @@ export default function Home() {
     
     setShowBreathPacer(false);
     setShowMeditation(false);
+    setSelectedTechnique(null);
   };
 
-  const firstTechnique = techniques?.[0];
+  const handleTechniqueSelect = (technique: BreathingTechnique) => {
+    setSelectedTechnique(technique);
+    setShowBreathingSelector(false);
+    setShowBreathPacer(true);
+  };
 
   // Quick Actions handlers
   const handleMoodCheck = () => setShowMoodModal(true);
-  const handleBreathing = () => {
-    if (firstTechnique) {
-      setShowBreathPacer(true);
-    } else {
-      toast.info('Carregando técnicas de respiração...');
-    }
-  };
+  const handleBreathing = () => setShowBreathingSelector(true);
+  const handleMeditation = () => setShowMeditation(true);
   const handleJournal = () => navigate('/journal');
   const handleInsights = () => navigate('/insights');
 
@@ -170,12 +176,20 @@ export default function Home() {
               delay={0.15}
             />
             <QuickActionCard
+              emoji="🎧"
+              icon={Headphones}
+              label="Meditar"
+              color="meditate"
+              onClick={handleMeditation}
+              delay={0.2}
+            />
+            <QuickActionCard
               emoji="📔"
               icon={BookOpen}
               label="Diário"
               color="trust"
               onClick={handleJournal}
-              delay={0.2}
+              delay={0.25}
             />
             <QuickActionCard
               emoji="📊"
@@ -183,7 +197,7 @@ export default function Home() {
               label="Insights"
               color="accent"
               onClick={handleInsights}
-              delay={0.25}
+              delay={0.3}
             />
           </div>
         </motion.div>
@@ -215,27 +229,34 @@ export default function Home() {
         onClose={() => setShowMoodModal(false)} 
       />
 
+      {/* Breathing Technique Selector */}
+      <BreathingTechniqueSelector
+        isOpen={showBreathingSelector}
+        onClose={() => setShowBreathingSelector(false)}
+        onSelect={handleTechniqueSelect}
+      />
+
       {/* Overlays */}
       <AnimatePresence>
-        {showBreathPacer && firstTechnique && (
+        {showBreathPacer && selectedTechnique && (
           <BreathPacer
             key="breath-pacer"
             pattern={{
-              inhale: firstTechnique.inhale_ms,
-              holdIn: firstTechnique.hold_in_ms,
-              exhale: firstTechnique.exhale_ms,
-              holdOut: firstTechnique.hold_out_ms,
-              name: firstTechnique.pattern_name,
-              description: firstTechnique.pattern_description || '',
-              cycles: firstTechnique.cycles,
+              inhale: selectedTechnique.inhale_ms,
+              holdIn: selectedTechnique.hold_in_ms,
+              exhale: selectedTechnique.exhale_ms,
+              holdOut: selectedTechnique.hold_out_ms,
+              name: selectedTechnique.pattern_name,
+              description: selectedTechnique.pattern_description || '',
+              cycles: selectedTechnique.cycles,
             }}
-            emotionType={firstTechnique.emotion_id as EmotionType}
-            explanation={firstTechnique.explanation || ''}
-            colorClass={firstTechnique.color_class || 'text-primary'}
-            bgClass={firstTechnique.bg_class || 'bg-primary/10'}
-            backgroundAudioUrl={firstTechnique.background_audio_url}
+            emotionType={selectedTechnique.emotion_id as EmotionType}
+            explanation={selectedTechnique.explanation || ''}
+            colorClass={selectedTechnique.color_class || 'text-primary'}
+            bgClass={selectedTechnique.bg_class || 'bg-primary/10'}
+            backgroundAudioUrl={selectedTechnique.background_audio_url}
             onClose={() => setShowBreathPacer(false)}
-            onComplete={(duration) => handleSessionComplete(firstTechnique.pattern_name, duration)}
+            onComplete={(duration) => handleSessionComplete(selectedTechnique.pattern_name, duration)}
           />
         )}
         
