@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Wind, Brain, Sparkles, Play, Clock, ChevronRight, Loader2 } from 'lucide-react';
+import { ArrowLeft, Wind, Brain, Sparkles, Play, Clock, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { BreathPacer } from '@/components/BreathPacer';
@@ -9,7 +9,7 @@ import { MeditationPlayer } from '@/components/MeditationPlayer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateBreathingSession } from '@/hooks/useBreathingSessions';
 import { primaryEmotions, getIntensityLabel, EmotionDyad } from '@/data/plutchik-emotions';
-import { TreatmentCategory, techniqueToBreathPattern, BreathingTechnique } from '@/data/emotion-treatments';
+import { TreatmentCategory, BreathingTechnique, techniqueToBreathPattern } from '@/hooks/useTreatmentCategories';
 import type { EmotionType } from '@/types/breathing';
 import { toast } from 'sonner';
 

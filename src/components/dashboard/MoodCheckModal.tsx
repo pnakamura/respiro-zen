@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateEmotionEntry } from '@/hooks/useEmotionEntries';
 import { primaryEmotions, detectDyads } from '@/data/plutchik-emotions';
-import { getRecommendedTreatment } from '@/data/emotion-treatments';
+import { useTreatmentCategories } from '@/hooks/useTreatmentCategories';
 import { toast } from 'sonner';
 
 interface SelectedEmotion {
@@ -26,6 +26,7 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const createEmotionEntry = useCreateEmotionEntry();
+  const { getRecommendedTreatment } = useTreatmentCategories();
 
   const [selectedEmotions, setSelectedEmotions] = useState<SelectedEmotion[]>([]);
   const [freeText, setFreeText] = useState('');
@@ -37,13 +38,13 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
     return detectDyads(emotionIds);
   }, [selectedEmotions]);
 
-  // Get recommended treatment
+  // Get recommended treatment from database
   const recommendedTreatment = useMemo(() => {
     if (selectedEmotions.length === 0) return null;
     const emotionIds = selectedEmotions.map(e => e.id);
     const dyadIds = detectedDyads.map(d => d.result);
     return getRecommendedTreatment(emotionIds, dyadIds);
-  }, [selectedEmotions, detectedDyads]);
+  }, [selectedEmotions, detectedDyads, getRecommendedTreatment]);
 
   const handleEmotionSelect = (emotionId: string) => {
     setSelectedEmotions(prev => {
