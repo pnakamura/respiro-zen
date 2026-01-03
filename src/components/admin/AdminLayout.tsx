@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Wind, 
   Music, 
+  Compass,
   Home, 
   Menu, 
   X, 
@@ -15,6 +16,7 @@ import {
 const navItems = [
   { label: 'Respirações', href: '/admin/breathing', icon: Wind },
   { label: 'Meditações', href: '/admin/meditation', icon: Music },
+  { label: 'Jornadas', href: '/admin/journeys', icon: Compass },
 ];
 
 export function AdminLayout() {
