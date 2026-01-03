@@ -12,7 +12,10 @@ import {
   Headphones,
   Utensils,
   Compass,
+  LogIn,
+  Settings,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { BreathPacer } from '@/components/BreathPacer';
 import { MeditationPlayer } from '@/components/MeditationPlayer';
@@ -139,9 +142,28 @@ export default function Home() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3 }}
-            className="w-10 h-10 rounded-full bg-card border border-border/50 flex items-center justify-center shadow-sm"
+            className="flex items-center gap-2"
           >
-            <Sparkles className="w-5 h-5 text-primary" />
+            {!usuario ? (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/auth')}
+                className="gap-1.5"
+              >
+                <LogIn className="w-4 h-4" />
+                Entrar
+              </Button>
+            ) : usuario.tipo_usuario === 'socio' && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/admin')}
+                className="w-10 h-10 rounded-full bg-card border border-border/50 shadow-sm"
+              >
+                <Settings className="w-5 h-5 text-primary" />
+              </Button>
+            )}
           </motion.div>
         </div>
       </motion.header>
