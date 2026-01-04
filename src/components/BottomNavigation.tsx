@@ -1,4 +1,4 @@
-import { Home, BookOpen, BarChart3, User, Utensils, Compass } from 'lucide-react';
+import { Home, BookOpen, User, Utensils, Compass } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -21,11 +21,11 @@ export function BottomNavigation() {
       transition={{ delay: 0.3, type: 'spring', stiffness: 260, damping: 25 }}
       className="fixed bottom-0 left-0 right-0 z-50 safe-bottom"
     >
-      {/* Glass background */}
-      <div className="absolute inset-0 glass" />
+      {/* Glass background with shadow */}
+      <div className="absolute inset-0 glass shadow-[0_-4px_20px_hsl(var(--foreground)/0.05)]" />
       
-      {/* Nav content */}
-      <div className="relative flex items-center justify-around px-2 py-3">
+      {/* Nav content - increased height and padding */}
+      <div className="relative flex items-center justify-around px-2 py-4">
         {navItems.map((item, index) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
@@ -40,8 +40,9 @@ export function BottomNavigation() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + index * 0.05 }}
+                whileTap={{ scale: 0.9 }}
                 className={cn(
-                  'nav-item min-w-[4.5rem]',
+                  'nav-item min-w-[4.5rem] min-h-[52px] px-3',
                   isActive && 'nav-item-active'
                 )}
               >
@@ -49,32 +50,32 @@ export function BottomNavigation() {
                 {isActive && (
                   <motion.div
                     layoutId="nav-glow"
-                    className="absolute inset-0 bg-primary/10 rounded-2xl"
+                    className="absolute inset-0 bg-primary/12 rounded-2xl"
                     transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
                   />
                 )}
                 
-                {/* Active indicator dot */}
+                {/* Active indicator line */}
                 {isActive && (
                   <motion.div
                     layoutId="nav-indicator"
-                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
+                    className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-primary"
                     transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
                   />
                 )}
                 
                 <Icon
                   className={cn(
-                    'w-5 h-5 transition-all duration-200 relative z-10',
+                    'w-6 h-6 transition-all duration-200 relative z-10',
                     isActive 
                       ? 'text-primary' 
-                      : 'text-muted-foreground group-hover:text-foreground'
+                      : 'text-muted-foreground'
                   )}
                   strokeWidth={isActive ? 2.5 : 2}
                 />
                 <span
                   className={cn(
-                    'text-[10px] font-semibold transition-colors relative z-10',
+                    'text-xs font-semibold transition-colors relative z-10 mt-1',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
                 >

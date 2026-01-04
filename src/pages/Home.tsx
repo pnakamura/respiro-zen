@@ -95,7 +95,7 @@ export default function Home() {
   const handleJourneys = () => navigate('/journeys');
 
   return (
-    <div className="min-h-[100dvh] flex flex-col pb-28">
+    <div className="min-h-[100dvh] flex flex-col pb-32">
       {/* Decorative background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/8 rounded-full blur-3xl" />
@@ -103,11 +103,11 @@ export default function Home() {
         <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
       </div>
 
-      {/* Header */}
+      {/* Header - more compact for mobile */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative pt-8 px-6 pb-4"
+        className="relative pt-6 px-5 pb-3"
       >
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-3">
@@ -115,16 +115,16 @@ export default function Home() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: 'spring' }}
-              className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center border border-primary/20"
+              className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center border border-primary/20"
             >
-              <Heart className="w-6 h-6 text-primary" fill="currentColor" />
+              <Heart className="w-5 h-5 text-primary" fill="currentColor" />
             </motion.div>
             <div>
               <motion.p 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-lg font-bold text-foreground"
+                className="text-base font-bold text-foreground"
               >
                 {greeting}{firstName ? `, ${firstName}` : ''}!
               </motion.p>
@@ -132,7 +132,7 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.15 }}
-                className="text-sm text-muted-foreground"
+                className="text-xs text-muted-foreground"
               >
                 {formattedDate}
               </motion.p>
@@ -149,7 +149,7 @@ export default function Home() {
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/auth')}
-                className="gap-1.5"
+                className="gap-1.5 h-9"
               >
                 <LogIn className="w-4 h-4" />
                 Entrar
@@ -159,9 +159,9 @@ export default function Home() {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/admin')}
-                className="w-10 h-10 rounded-full bg-card border border-border/50 shadow-sm"
+                className="w-9 h-9 rounded-full bg-card border border-border/50 shadow-sm"
               >
-                <Settings className="w-5 h-5 text-primary" />
+                <Settings className="w-4 h-4 text-primary" />
               </Button>
             )}
           </motion.div>
@@ -169,7 +169,7 @@ export default function Home() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="flex-1 px-6 space-y-5 relative">
+      <main className="flex-1 px-5 space-y-4 relative">
         {/* Active Journey Banner */}
         {activeJourney && (
           <ActiveJourneyBanner
@@ -192,21 +192,21 @@ export default function Home() {
           isLoading={isLoadingStats}
         />
 
-        {/* Quick Actions Grid */}
+        {/* Quick Actions Grid - optimized 3-column for mobile */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+          <h2 className="text-xs font-semibold text-muted-foreground mb-2.5 flex items-center gap-2 uppercase tracking-wide">
             <span className="w-1 h-1 rounded-full bg-primary" />
             Ações rápidas
           </h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2.5">
             <QuickActionCard
               emoji="😊"
               icon={Smile}
-              label="Como me sinto"
+              label="Humor"
               color="joy"
               onClick={handleMoodCheck}
               delay={0.1}
@@ -238,7 +238,7 @@ export default function Home() {
             <QuickActionCard
               emoji="🍽️"
               icon={Utensils}
-              label="Alimentação"
+              label="Nutrição"
               color="nutrition"
               onClick={handleNutrition}
               delay={0.3}
@@ -251,14 +251,6 @@ export default function Home() {
               onClick={handleInsights}
               delay={0.35}
             />
-            <QuickActionCard
-              emoji="🧭"
-              icon={Compass}
-              label="Jornadas"
-              color="accent"
-              onClick={handleJourneys}
-              delay={0.4}
-            />
           </div>
         </motion.div>
 
@@ -267,17 +259,16 @@ export default function Home() {
           onGuideClick={() => toast.info('Seu guia pessoal em breve! 🌟')}
         />
 
-        {/* Floating Action Button */}
+        {/* Floating Action Button - repositioned for thumb zone */}
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.5, type: 'spring' }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.9 }}
           onClick={handleMoodCheck}
-          className="fixed bottom-32 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center z-40"
+          className="fixed bottom-28 right-5 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/25 flex items-center justify-center z-40 active:shadow-lg"
         >
-          <Plus className="w-7 h-7" />
+          <Plus className="w-6 h-6" />
         </motion.button>
       </main>
 

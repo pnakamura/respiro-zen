@@ -79,46 +79,34 @@ export function QuickActionCard({
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay, type: 'spring', stiffness: 400, damping: 25 }}
-      whileHover={{ y: -4, scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
+      whileTap={{ scale: 0.95 }}
       onClick={onClick}
       className={cn(
-        'relative flex flex-col items-center justify-center p-5 rounded-2xl',
-        'border transition-all duration-300',
+        'relative flex flex-col items-center justify-center p-4 rounded-2xl',
+        'border transition-all duration-200',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
-        'min-h-[120px] w-full',
+        'min-h-[90px] w-full active:bg-opacity-80',
         colors.bg,
         colors.border,
-        'hover:shadow-lg',
-        colors.shadow
+        'shadow-sm'
       )}
     >
-      {/* Icon/Emoji */}
-      <div className="mb-2">
+      {/* Icon/Emoji - slightly smaller for compact design */}
+      <div className="mb-1.5">
         {emoji ? (
-          <span className="text-4xl">{emoji}</span>
+          <span className="text-3xl">{emoji}</span>
         ) : (
-          <Icon className={cn('w-8 h-8', colors.text)} strokeWidth={1.5} />
+          <Icon className={cn('w-7 h-7', colors.text)} strokeWidth={1.5} />
         )}
       </div>
 
-      {/* Label */}
-      <span className="text-sm font-semibold text-foreground">{label}</span>
+      {/* Label - more prominent */}
+      <span className="text-sm font-semibold text-foreground leading-tight text-center">{label}</span>
 
-      {/* Description */}
+      {/* Description - optional, smaller */}
       {description && (
-        <span className="text-xs text-muted-foreground mt-1">{description}</span>
+        <span className="text-[10px] text-muted-foreground mt-0.5 text-center line-clamp-1">{description}</span>
       )}
-
-      {/* Subtle glow effect */}
-      <div
-        className={cn(
-          'absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300',
-          'group-hover:opacity-100',
-          colors.bg
-        )}
-        style={{ filter: 'blur(20px)', zIndex: -1 }}
-      />
     </motion.button>
   );
 }

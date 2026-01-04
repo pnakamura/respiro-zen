@@ -56,51 +56,50 @@ export function DailyGuidanceCard({ onGuideClick }: DailyGuidanceCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, type: 'spring', stiffness: 400, damping: 25 }}
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 border border-primary/20 p-5"
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10 border border-primary/20 p-4"
     >
       {/* Decorative background */}
-      <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
-      <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-secondary/10 rounded-full blur-2xl" />
+      <div className="absolute -right-6 -top-6 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
+      <div className="absolute -left-3 -bottom-3 w-20 h-20 bg-secondary/10 rounded-full blur-2xl" />
 
       <div className="relative">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-2.5">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.4, type: 'spring' }}
-            className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"
+            className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center shrink-0"
           >
-            <span className="text-2xl">{todayMessage.emoji}</span>
+            <span className="text-xl">{todayMessage.emoji}</span>
           </motion.div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium text-primary uppercase tracking-wide">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3 text-primary shrink-0" />
+              <span className="text-[10px] font-medium text-primary uppercase tracking-wide">
                 Guia do dia
               </span>
             </div>
-            <h3 className="text-base font-bold text-foreground mt-0.5">
+            <h3 className="text-sm font-bold text-foreground truncate">
               {todayMessage.title}
             </h3>
           </div>
         </div>
 
         {/* Message */}
-        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+        <p className="text-xs text-muted-foreground leading-relaxed mb-3">
           {todayMessage.message}
         </p>
 
         {/* CTA Button */}
         {onGuideClick && (
           <motion.button
-            whileHover={{ x: 4 }}
             whileTap={{ scale: 0.98 }}
             onClick={onGuideClick}
-            className="flex items-center gap-1 text-sm font-semibold text-primary"
+            className="flex items-center gap-1 text-xs font-semibold text-primary"
           >
             Falar com seu guia
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </motion.button>
         )}
       </div>

@@ -143,7 +143,7 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+          className="fixed inset-0 z-50 flex items-end justify-center"
         >
           {/* Backdrop */}
           <motion.div
@@ -154,21 +154,26 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
             className="absolute inset-0 bg-background/80 backdrop-blur-sm"
           />
 
-          {/* Modal */}
+          {/* Modal - Bottom Sheet style for mobile */}
           <motion.div
-            initial={{ y: '100%', opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '100%', opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card rounded-t-3xl sm:rounded-3xl shadow-xl border border-border/50"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 350 }}
+            className="relative w-full max-h-[92vh] overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50"
           >
-            {/* Header */}
-            <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-border/50 bg-card/95 backdrop-blur-sm rounded-t-3xl">
+            {/* Drag indicator */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+            </div>
+
+            {/* Header - more compact */}
+            <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-3 border-b border-border/30 bg-card">
               <div>
-                <h2 className="text-lg font-bold text-foreground">
+                <h2 className="text-base font-bold text-foreground">
                   {step === 'select' ? 'Como você está?' : 'Ajuste a intensidade'}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {step === 'select'
                     ? 'Selecione até 3 emoções'
                     : 'Defina o quanto você sente cada emoção'}
@@ -176,14 +181,14 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
               </div>
               <button
                 onClick={resetAndClose}
-                className="p-2 rounded-full hover:bg-muted transition-colors"
+                className="p-2 -mr-1 rounded-full hover:bg-muted transition-colors active:scale-95"
               >
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
-            {/* Content */}
-            <div className="p-5 space-y-5">
+            {/* Content - scrollable */}
+            <div className="overflow-y-auto max-h-[calc(92vh-180px)] px-5 py-4 space-y-4">
               {step === 'select' ? (
                 <>
                   <PlutchikWheel
@@ -198,14 +203,14 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
                       value={freeText}
                       onChange={e => setFreeText(e.target.value)}
                       placeholder="Ou descreva como você se sente..."
-                      className="pl-11 h-12 rounded-xl bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground text-sm"
+                      className="pl-11 h-11 rounded-xl bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground text-sm"
                     />
                   </div>
                 </>
               ) : (
                 <>
                   {/* Intensity Sliders */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {selectedEmotions.map(selected => {
                       const emotion = primaryEmotions.find(e => e.id === selected.id);
                       if (!emotion) return null;
@@ -222,15 +227,15 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
 
                   {/* Detected Dyads */}
                   {detectedDyads.length > 0 && (
-                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                    <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20">
                       <p className="text-xs font-medium text-muted-foreground mb-2">
                         Emoções combinadas detectadas
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {detectedDyads.map(dyad => (
                           <span
                             key={dyad.result}
-                            className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-semibold"
+                            className="px-2.5 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold"
                           >
                             {dyad.label}
                           </span>
@@ -241,16 +246,16 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
 
                   {/* Treatment Preview */}
                   {recommendedTreatment && (
-                    <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10">
+                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Sparkles className="w-5 h-5 text-primary" />
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                          <Sparkles className="w-4 h-4 text-primary" />
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            Recomendação para você
+                        <div className="min-w-0">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                            Recomendação
                           </p>
-                          <p className="text-sm font-semibold text-foreground">
+                          <p className="text-sm font-semibold text-foreground truncate">
                             {recommendedTreatment.techniques[0]?.name}
                           </p>
                         </div>
@@ -261,12 +266,12 @@ export function MoodCheckModal({ isOpen, onClose }: MoodCheckModalProps) {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="sticky bottom-0 p-5 border-t border-border/50 bg-card/95 backdrop-blur-sm space-y-3">
+            {/* Footer - safe area aware */}
+            <div className="sticky bottom-0 px-5 pt-3 pb-5 border-t border-border/30 bg-card safe-bottom space-y-2">
               <Button
                 onClick={handleContinue}
                 disabled={selectedEmotions.length === 0 && !freeText.trim()}
-                className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base"
               >
                 <span>
                   {step === 'select'

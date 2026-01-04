@@ -86,17 +86,17 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex flex-col bg-background"
       >
-        {/* Header */}
+        {/* Header - more compact */}
         <motion.header 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="flex items-center justify-between p-4 border-b border-border/50"
+          className="flex items-center justify-between px-5 py-3 border-b border-border/30 safe-top"
         >
           <div>
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-lg font-bold text-foreground">
               Técnicas de Respiração
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Escolha como deseja se sentir
             </p>
           </div>
@@ -104,14 +104,14 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="rounded-full"
+            className="rounded-full w-9 h-9"
           >
             <X className="w-5 h-5" />
           </Button>
         </motion.header>
 
-        {/* Filters */}
-        <div className="px-4 py-3 flex gap-2 overflow-x-auto">
+        {/* Filters - horizontal scroll */}
+        <div className="px-5 py-2.5 flex gap-2 overflow-x-auto scrollbar-none">
           {(['all', 'calming', 'energizing', 'balancing'] as FilterType[]).map((filterType) => {
             const isActive = filter === filterType;
             const label = filterType === 'all' ? 'Todas' : arousalLabels[filterType].label;
@@ -123,13 +123,13 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setFilter(filterType)}
                 className={cn(
-                  'px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 whitespace-nowrap transition-all',
+                  'px-3.5 py-2 rounded-full text-sm font-medium flex items-center gap-1.5 whitespace-nowrap transition-all shrink-0',
                   isActive 
-                    ? 'bg-primary text-primary-foreground shadow-md' 
-                    : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                    ? 'bg-primary text-primary-foreground shadow-sm' 
+                    : 'bg-muted/50 text-muted-foreground active:bg-muted'
                 )}
               >
-                <span>{emoji}</span>
+                <span className="text-sm">{emoji}</span>
                 <span>{label}</span>
               </motion.button>
             );
@@ -137,19 +137,19 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
         </div>
 
         {/* Technique List */}
-        <div className="flex-1 overflow-auto px-4 pb-6">
+        <div className="flex-1 overflow-auto px-5 pb-4">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-full gap-4">
               <Loader2 className="w-8 h-8 animate-spin text-calm" />
-              <p className="text-muted-foreground">Carregando técnicas...</p>
+              <p className="text-muted-foreground text-sm">Carregando técnicas...</p>
             </div>
           ) : filteredTechniques.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
-              <Wind className="w-16 h-16 text-muted-foreground/50" />
-              <p className="text-muted-foreground">Nenhuma técnica disponível</p>
+            <div className="flex flex-col items-center justify-center h-64 gap-3">
+              <Wind className="w-14 h-14 text-muted-foreground/40" />
+              <p className="text-muted-foreground text-sm">Nenhuma técnica disponível</p>
             </div>
           ) : (
-            <div className="space-y-3 pt-2">
+            <div className="space-y-2.5 pt-1">
               {filteredTechniques.map((technique, index) => {
                 const arousal = getArousalState(technique);
                 const { emoji, color, bg } = arousalLabels[arousal];
@@ -159,19 +159,18 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                     key={technique.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: index * 0.04 }}
                     onClick={() => onSelect(technique)}
                     className={cn(
-                      'w-full p-4 rounded-2xl text-left',
-                      'bg-card border border-border/50',
-                      'hover:shadow-lg hover:border-border transition-all duration-300',
-                      'active:scale-[0.98]'
+                      'w-full p-3.5 rounded-2xl text-left',
+                      'bg-card border border-border/40',
+                      'active:scale-[0.98] transition-transform duration-150'
                     )}
                   >
-                    <div className="flex items-start gap-4">
-                      {/* Icon */}
+                    <div className="flex items-start gap-3">
+                      {/* Icon - slightly smaller */}
                       <div className={cn(
-                        'w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0',
+                        'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0',
                         bg
                       )}>
                         {technique.icon || emoji}
@@ -179,28 +178,28 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                       
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground truncate">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="font-semibold text-sm text-foreground truncate">
                             {technique.label}
                           </h3>
-                          <span className={cn('text-xs font-medium px-2 py-0.5 rounded-full', bg, color)}>
+                          <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0', bg, color)}>
                             {arousalLabels[arousal].label}
                           </span>
                         </div>
                         
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">
                           {technique.description}
                         </p>
                         
                         {/* Meta info */}
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Wind className="w-3 h-3" />
                             {getPatternDisplay(technique)}
                           </span>
                           <span className="flex items-center gap-1">
                             <Repeat className="w-3 h-3" />
-                            {technique.cycles} ciclos
+                            {technique.cycles}x
                           </span>
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
@@ -216,18 +215,17 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
           )}
         </div>
 
-        {/* Bottom */}
+        {/* Bottom - safe area */}
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="p-4 safe-bottom border-t border-border/50"
+          className="px-5 py-3 safe-bottom border-t border-border/30"
         >
           <Button
             onClick={onClose}
             variant="outline"
-            size="lg"
-            className="w-full rounded-full"
+            className="w-full h-11 rounded-xl"
           >
             Voltar
           </Button>
