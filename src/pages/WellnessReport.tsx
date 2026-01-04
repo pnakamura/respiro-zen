@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useWellnessReport, Period } from "@/hooks/useWellnessReport";
+import { getDemoWellnessReport } from "@/hooks/useDemoData";
 import { ReportHeader } from "@/components/report/ReportHeader";
 import { WellnessScoreCard } from "@/components/report/WellnessScoreCard";
 import { DataSummaryCards } from "@/components/report/DataSummaryCards";
@@ -13,11 +14,24 @@ import { RecommendationsSection } from "@/components/report/RecommendationsSecti
 import { AchievementsSection } from "@/components/report/AchievementsSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BottomNavigation } from "@/components/BottomNavigation";
+import { DemoBanner } from "@/components/insights/DemoBanner";
 
 const WellnessReport: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [period, setPeriod] = useState<Period>('7d');
-  const { data: report, isLoading, error, refetch } = useWellnessReport(period);
+  
+  const isDemoMode = searchParams.get('demo') === 'true';
+  const { data: realReport, isLoading: realLoading, error, refetch } = useWellnessReport(period);
+  
+  const demoReport = getDemoWellnessReport();
+  const report = isDemoMode ? demoReport : realReport;
+  const isLoading = isDemoMode ? false : realLoading;
+
+  const handleExitDemo = () => {
+    setSearchParams({});
+    navigate('/insights');
+  };
 
   const handlePeriodChange = (newPeriod: Period) => {
     setPeriod(newPeriod);
@@ -40,6 +54,9 @@ const WellnessReport: React.FC = () => {
       </div>
 
       <div className="px-5 py-5 space-y-5">
+        {/* Demo Banner */}
+        {isDemoMode && <DemoBanner onExitDemo={handleExitDemo} />}
+
         {/* Loading State */}
         <AnimatePresence mode="wait">
           {isLoading && (

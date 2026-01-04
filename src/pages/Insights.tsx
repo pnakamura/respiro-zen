@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { TrendingUp, Calendar, Sparkles, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useInsightsData } from '@/hooks/useInsightsData';
+import { useDemoInsightsData } from '@/hooks/useDemoData';
 import { EmptyInsightsState } from '@/components/insights/EmptyInsightsState';
+import { DemoBanner } from '@/components/insights/DemoBanner';
 import { InsightsStats } from '@/components/insights/InsightsStats';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -14,8 +16,22 @@ type Period = '7d' | '30d' | '90d';
 
 export default function Insights() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [period, setPeriod] = useState<Period>('7d');
-  const { chartData, patterns, stats, isLoading, isEmpty } = useInsightsData(period);
+  
+  const isDemoMode = searchParams.get('demo') === 'true';
+  const realData = useInsightsData(period);
+  const demoData = useDemoInsightsData();
+  
+  const { chartData, patterns, stats, isLoading, isEmpty } = isDemoMode ? demoData : realData;
+
+  const handleEnterDemo = () => {
+    setSearchParams({ demo: 'true' });
+  };
+
+  const handleExitDemo = () => {
+    setSearchParams({});
+  };
 
   return (
     <div className="min-h-[100dvh] flex flex-col pb-28">
@@ -55,14 +71,17 @@ export default function Insights() {
 
       {/* Main Content */}
       <main className="flex-1 px-6 space-y-5">
+        {/* Demo Banner */}
+        {isDemoMode && <DemoBanner onExitDemo={handleExitDemo} />}
+
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-64 w-full rounded-2xl" />
             <Skeleton className="h-20 w-full rounded-2xl" />
             <Skeleton className="h-20 w-full rounded-2xl" />
           </div>
-        ) : isEmpty ? (
-          <EmptyInsightsState />
+        ) : isEmpty && !isDemoMode ? (
+          <EmptyInsightsState onEnterDemo={handleEnterDemo} />
         ) : (
           <>
             {/* Stats Summary */}
@@ -165,7 +184,7 @@ export default function Insights() {
               transition={{ delay: 0.4 }}
             >
               <Button
-                onClick={() => navigate('/report')}
+                onClick={() => navigate(isDemoMode ? '/report?demo=true' : '/report')}
                 className="w-full h-14 rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold text-base shadow-lg"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
