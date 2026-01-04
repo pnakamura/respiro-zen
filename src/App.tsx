@@ -15,6 +15,7 @@ import EmotionResult from "./pages/EmotionResult";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Journeys from "./pages/Journeys";
+import WellnessReport from "./pages/WellnessReport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App: React.FC = () => (
             <Route path="/emotion-result" element={<EmotionResult />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/journeys" element={<Journeys />} />
+            <Route path="/report" element={<WellnessReport />} />
             <Route path="/admin/*" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
