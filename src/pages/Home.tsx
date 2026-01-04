@@ -103,28 +103,28 @@ export default function Home() {
         <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
       </div>
 
-      {/* Header - more compact for mobile */}
+      {/* Header - improved for mobile */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative pt-6 px-5 pb-3"
+        className="relative pt-6 px-5 pb-4"
       >
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring' }}
-              className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center border border-primary/20"
+              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center border border-primary/20 shadow-lg shadow-primary/10"
             >
-              <Heart className="w-5 h-5 text-primary" fill="currentColor" />
+              <Heart className="w-7 h-7 text-primary" fill="currentColor" />
             </motion.div>
             <div>
               <motion.p 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-base font-bold text-foreground"
+                className="text-xl font-bold text-foreground"
               >
                 {greeting}{firstName ? `, ${firstName}` : ''}!
               </motion.p>
@@ -132,7 +132,7 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.15 }}
-                className="text-xs text-muted-foreground"
+                className="text-sm text-muted-foreground"
               >
                 {formattedDate}
               </motion.p>
@@ -141,7 +141,7 @@ export default function Home() {
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.3, type: 'spring' }}
             className="flex items-center gap-2"
           >
             {!usuario ? (
@@ -149,9 +149,9 @@ export default function Home() {
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/auth')}
-                className="gap-1.5 h-9"
+                className="gap-2 h-11 px-4 text-sm font-semibold"
               >
-                <LogIn className="w-4 h-4" />
+                <LogIn className="w-5 h-5" />
                 Entrar
               </Button>
             ) : usuario.tipo_usuario === 'socio' && (
@@ -159,9 +159,9 @@ export default function Home() {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => navigate('/admin')}
-                className="w-9 h-9 rounded-full bg-card border border-border/50 shadow-sm"
+                className="w-11 h-11 rounded-xl bg-card border border-border/50 shadow-md"
               >
-                <Settings className="w-4 h-4 text-primary" />
+                <Settings className="w-5 h-5 text-primary" />
               </Button>
             )}
           </motion.div>
@@ -169,7 +169,7 @@ export default function Home() {
       </motion.header>
 
       {/* Main Content */}
-      <main className="flex-1 px-5 space-y-4 relative">
+      <main className="flex-1 px-5 space-y-5 relative">
         {/* Active Journey Banner */}
         {activeJourney && (
           <ActiveJourneyBanner
@@ -192,17 +192,17 @@ export default function Home() {
           isLoading={isLoadingStats}
         />
 
-        {/* Quick Actions Grid - optimized 3-column for mobile */}
+        {/* Quick Actions Grid - 2x3 with Journeys included */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-xs font-semibold text-muted-foreground mb-2.5 flex items-center gap-2 uppercase tracking-wide">
-            <span className="w-1 h-1 rounded-full bg-primary" />
+          <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2 uppercase tracking-wide">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             Ações rápidas
           </h2>
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 gap-3">
             <QuickActionCard
               emoji="😊"
               icon={Smile}
@@ -228,12 +228,20 @@ export default function Home() {
               delay={0.2}
             />
             <QuickActionCard
+              emoji="🧭"
+              icon={Compass}
+              label="Jornadas"
+              color="journey"
+              onClick={handleJourneys}
+              delay={0.25}
+            />
+            <QuickActionCard
               emoji="📔"
               icon={BookOpen}
               label="Diário"
               color="trust"
               onClick={handleJournal}
-              delay={0.25}
+              delay={0.3}
             />
             <QuickActionCard
               emoji="🍽️"
@@ -241,14 +249,6 @@ export default function Home() {
               label="Nutrição"
               color="nutrition"
               onClick={handleNutrition}
-              delay={0.3}
-            />
-            <QuickActionCard
-              emoji="📊"
-              icon={BarChart3}
-              label="Insights"
-              color="accent"
-              onClick={handleInsights}
               delay={0.35}
             />
           </div>

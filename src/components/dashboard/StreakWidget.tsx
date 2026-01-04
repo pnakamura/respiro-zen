@@ -47,24 +47,24 @@ export function StreakWidget({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15, type: 'spring', stiffness: 400, damping: 25 }}
-      className="rounded-2xl bg-card border border-border/50 p-3.5 shadow-sm"
+      transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 20 }}
+      className="rounded-2xl bg-card border border-border/50 p-4 shadow-md"
     >
-      <div className="flex items-center gap-3">
-        {/* Plant/Streak Visual - slightly smaller */}
+      <div className="flex items-center gap-4">
+        {/* Plant/Streak Visual - larger */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: 0.25, type: 'spring' }}
+          transition={{ delay: 0.25, type: 'spring', stiffness: 200 }}
           className={cn(
-            'w-14 h-14 rounded-xl flex items-center justify-center shrink-0',
-            'bg-gradient-to-br from-primary/20 to-secondary/10'
+            'w-16 h-16 rounded-2xl flex items-center justify-center shrink-0',
+            'bg-gradient-to-br from-primary/20 to-secondary/10 shadow-lg shadow-primary/10'
           )}
         >
           <motion.span
-            className="text-3xl"
+            className="text-4xl"
             animate={{ 
-              y: [0, -3, 0],
+              y: [0, -4, 0],
               rotate: [-2, 2, -2],
             }}
             transition={{ 
@@ -79,40 +79,40 @@ export function StreakWidget({
 
         {/* Stats */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex items-center gap-2 mb-1">
             <Flame className={cn(
-              'w-4 h-4 shrink-0',
+              'w-5 h-5 shrink-0',
               currentStreak > 0 ? 'text-secondary' : 'text-muted-foreground'
             )} />
-            <span className="text-xl font-bold text-foreground">
+            <span className="text-2xl font-bold text-foreground">
               {currentStreak} {currentStreak === 1 ? 'dia' : 'dias'}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground truncate">
+          <p className="text-sm text-muted-foreground truncate">
             {plantStage.label}
           </p>
         </div>
 
         {/* Mini Stats - stacked vertically */}
-        <div className="flex flex-col gap-0.5 items-end shrink-0">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Award className="w-3 h-3" />
+        <div className="flex flex-col gap-1 items-end shrink-0">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Award className="w-4 h-4" />
             <span>Nv. {level}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <TrendingUp className="w-3 h-3" />
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <TrendingUp className="w-4 h-4" />
             <span>Max: {bestStreak}</span>
           </div>
         </div>
       </div>
 
-      {/* Progress to next level - thinner */}
-      <div className="mt-2.5">
-        <div className="flex items-center justify-between text-[10px] mb-1">
+      {/* Progress to next level */}
+      <div className="mt-3">
+        <div className="flex items-center justify-between text-xs mb-1.5">
           <span className="text-muted-foreground">Progresso do nível</span>
-          <span className="font-medium text-primary">{totalPoints} pts</span>
+          <span className="font-semibold text-primary">{totalPoints} pts</span>
         </div>
-        <div className="h-1 bg-muted rounded-full overflow-hidden">
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min((totalPoints % 100), 100)}%` }}

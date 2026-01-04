@@ -7,59 +7,65 @@ interface QuickActionCardProps {
   emoji?: string;
   label: string;
   description?: string;
-  color: 'primary' | 'secondary' | 'accent' | 'joy' | 'trust' | 'calm' | 'meditate' | 'nutrition';
+  color: 'primary' | 'secondary' | 'accent' | 'joy' | 'trust' | 'calm' | 'meditate' | 'nutrition' | 'journey';
   onClick: () => void;
   delay?: number;
 }
 
 const colorClasses = {
   primary: {
-    bg: 'bg-primary/10 dark:bg-primary/20',
+    bg: 'bg-primary/12 dark:bg-primary/20',
     text: 'text-primary',
     border: 'border-primary/20',
-    shadow: 'hover:shadow-primary/20',
+    glow: 'shadow-[0_4px_20px_hsl(var(--primary)/0.15)]',
   },
   secondary: {
-    bg: 'bg-secondary/10 dark:bg-secondary/20',
+    bg: 'bg-secondary/12 dark:bg-secondary/20',
     text: 'text-secondary',
     border: 'border-secondary/20',
-    shadow: 'hover:shadow-secondary/20',
+    glow: 'shadow-[0_4px_20px_hsl(var(--secondary)/0.15)]',
   },
   accent: {
-    bg: 'bg-accent/10 dark:bg-accent/20',
+    bg: 'bg-accent/12 dark:bg-accent/20',
     text: 'text-accent',
     border: 'border-accent/20',
-    shadow: 'hover:shadow-accent/20',
+    glow: 'shadow-[0_4px_20px_hsl(var(--accent)/0.15)]',
   },
   joy: {
-    bg: 'bg-[hsl(48_95%_55%/0.15)]',
-    text: 'text-[hsl(48_95%_45%)]',
-    border: 'border-[hsl(48_95%_55%/0.3)]',
-    shadow: 'hover:shadow-[hsl(48_95%_55%/0.2)]',
+    bg: 'bg-[hsl(var(--joy)/0.15)]',
+    text: 'text-[hsl(var(--joy))]',
+    border: 'border-[hsl(var(--joy)/0.25)]',
+    glow: 'shadow-[0_4px_20px_hsl(var(--joy)/0.2)]',
   },
   trust: {
-    bg: 'bg-[hsl(145_50%_45%/0.15)]',
-    text: 'text-[hsl(145_50%_40%)]',
-    border: 'border-[hsl(145_50%_45%/0.3)]',
-    shadow: 'hover:shadow-[hsl(145_50%_45%/0.2)]',
+    bg: 'bg-[hsl(var(--trust)/0.15)]',
+    text: 'text-[hsl(var(--trust))]',
+    border: 'border-[hsl(var(--trust)/0.25)]',
+    glow: 'shadow-[0_4px_20px_hsl(var(--trust)/0.2)]',
   },
   calm: {
-    bg: 'bg-[hsl(168_65%_38%/0.15)]',
-    text: 'text-[hsl(168_65%_38%)]',
-    border: 'border-[hsl(168_65%_38%/0.3)]',
-    shadow: 'hover:shadow-[hsl(168_65%_38%/0.2)]',
+    bg: 'bg-[hsl(var(--calm)/0.15)]',
+    text: 'text-[hsl(var(--calm))]',
+    border: 'border-[hsl(var(--calm)/0.25)]',
+    glow: 'shadow-[0_4px_20px_hsl(var(--calm)/0.2)]',
   },
   meditate: {
     bg: 'bg-[hsl(var(--meditate)/0.15)]',
     text: 'text-[hsl(var(--meditate))]',
-    border: 'border-[hsl(var(--meditate)/0.3)]',
-    shadow: 'hover:shadow-[hsl(var(--meditate)/0.2)]',
+    border: 'border-[hsl(var(--meditate)/0.25)]',
+    glow: 'shadow-[0_4px_20px_hsl(var(--meditate)/0.2)]',
   },
   nutrition: {
     bg: 'bg-[hsl(var(--nutrition)/0.15)]',
     text: 'text-[hsl(var(--nutrition))]',
-    border: 'border-[hsl(var(--nutrition)/0.3)]',
-    shadow: 'hover:shadow-[hsl(var(--nutrition)/0.2)]',
+    border: 'border-[hsl(var(--nutrition)/0.25)]',
+    glow: 'shadow-[0_4px_20px_hsl(var(--nutrition)/0.2)]',
+  },
+  journey: {
+    bg: 'bg-[hsl(var(--surprise)/0.15)]',
+    text: 'text-[hsl(var(--surprise))]',
+    border: 'border-[hsl(var(--surprise)/0.25)]',
+    glow: 'shadow-[0_4px_20px_hsl(var(--surprise)/0.2)]',
   },
 };
 
@@ -78,34 +84,39 @@ export function QuickActionCard({
     <motion.button
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay, type: 'spring', stiffness: 400, damping: 25 }}
+      transition={{ delay, type: 'spring', stiffness: 200, damping: 20 }}
+      whileHover={{ scale: 1.03, y: -2 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
       className={cn(
-        'relative flex flex-col items-center justify-center p-4 rounded-2xl',
-        'border transition-all duration-200',
+        'relative flex flex-col items-center justify-center p-5 rounded-2xl',
+        'border transition-all duration-300',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
-        'min-h-[90px] w-full active:bg-opacity-80',
+        'min-h-[110px] w-full',
         colors.bg,
         colors.border,
-        'shadow-sm'
+        colors.glow
       )}
     >
-      {/* Icon/Emoji - slightly smaller for compact design */}
-      <div className="mb-1.5">
+      {/* Icon/Emoji - larger for mobile */}
+      <motion.div 
+        className="mb-2"
+        animate={{ y: [0, -3, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+      >
         {emoji ? (
-          <span className="text-3xl">{emoji}</span>
+          <span className="text-4xl">{emoji}</span>
         ) : (
-          <Icon className={cn('w-7 h-7', colors.text)} strokeWidth={1.5} />
+          <Icon className={cn('w-8 h-8', colors.text)} strokeWidth={1.5} />
         )}
-      </div>
+      </motion.div>
 
-      {/* Label - more prominent */}
-      <span className="text-sm font-semibold text-foreground leading-tight text-center">{label}</span>
+      {/* Label - larger and bolder */}
+      <span className="text-base font-semibold text-foreground leading-tight text-center">{label}</span>
 
-      {/* Description - optional, smaller */}
+      {/* Description - optional */}
       {description && (
-        <span className="text-[10px] text-muted-foreground mt-0.5 text-center line-clamp-1">{description}</span>
+        <span className="text-xs text-muted-foreground mt-1 text-center line-clamp-1">{description}</span>
       )}
     </motion.button>
   );
