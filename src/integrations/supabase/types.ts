@@ -463,6 +463,73 @@ export type Database = {
           },
         ]
       }
+      guide_conversations: {
+        Row: {
+          created_at: string | null
+          guide_id: string
+          id: string
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          guide_id: string
+          id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          guide_id?: string
+          id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_conversations_guide_id_fkey"
+            columns: ["guide_id"]
+            isOneToOne: false
+            referencedRelation: "spiritual_guides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guide_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guide_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "guide_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       informacoes_nutricionais: {
         Row: {
           calorias: number | null
@@ -1399,6 +1466,89 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spiritual_guides: {
+        Row: {
+          approach: string
+          avatar_emoji: string | null
+          created_at: string | null
+          description: string
+          display_order: number | null
+          example_messages: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          personality_traits: Json | null
+          suggested_questions: Json | null
+          system_prompt: string
+          topics: Json | null
+          updated_at: string | null
+          welcome_message: string | null
+        }
+        Insert: {
+          approach: string
+          avatar_emoji?: string | null
+          created_at?: string | null
+          description: string
+          display_order?: number | null
+          example_messages?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          personality_traits?: Json | null
+          suggested_questions?: Json | null
+          system_prompt: string
+          topics?: Json | null
+          updated_at?: string | null
+          welcome_message?: string | null
+        }
+        Update: {
+          approach?: string
+          avatar_emoji?: string | null
+          created_at?: string | null
+          description?: string
+          display_order?: number | null
+          example_messages?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          personality_traits?: Json | null
+          suggested_questions?: Json | null
+          system_prompt?: string
+          topics?: Json | null
+          updated_at?: string | null
+          welcome_message?: string | null
+        }
+        Relationships: []
+      }
+      user_guide_preferences: {
+        Row: {
+          created_at: string | null
+          preferred_guide_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          preferred_guide_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          preferred_guide_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_guide_preferences_preferred_guide_id_fkey"
+            columns: ["preferred_guide_id"]
+            isOneToOne: false
+            referencedRelation: "spiritual_guides"
             referencedColumns: ["id"]
           },
         ]
