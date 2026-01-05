@@ -51,6 +51,9 @@ const categories = [
   { value: 'energia', label: 'Energia' },
   { value: 'gratidão', label: 'Gratidão' },
   { value: 'produtividade', label: 'Produtividade' },
+  { value: 'autocuidado', label: 'Autocuidado' },
+  { value: 'sono', label: 'Sono' },
+  { value: 'respiração', label: 'Respiração' },
 ];
 
 export function JourneyForm() {
