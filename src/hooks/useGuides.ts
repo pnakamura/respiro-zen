@@ -91,6 +91,38 @@ export function useUserGuidePreference() {
   });
 }
 
+export function usePreferredGuide() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['preferred-guide-details', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      // First get the preference
+      const { data: pref, error: prefError } = await supabase
+        .from('user_guide_preferences')
+        .select('preferred_guide_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (prefError) throw prefError;
+      if (!pref?.preferred_guide_id) return null;
+
+      // Then get the guide details
+      const { data: guide, error: guideError } = await supabase
+        .from('spiritual_guides')
+        .select('id, name, avatar_emoji')
+        .eq('id', pref.preferred_guide_id)
+        .single();
+
+      if (guideError) throw guideError;
+      return guide as { id: string; name: string; avatar_emoji: string };
+    },
+    enabled: !!user,
+  });
+}
+
 export function useSetPreferredGuide() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight } from 'lucide-react';
 import { useMemo } from 'react';
+import { usePreferredGuide } from '@/hooks/useGuides';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DailyGuidanceCardProps {
   onGuideClick?: () => void;
@@ -45,11 +47,17 @@ const dailyMessages = [
 ];
 
 export function DailyGuidanceCard({ onGuideClick }: DailyGuidanceCardProps) {
+  const { user } = useAuth();
+  const { data: preferredGuide } = usePreferredGuide();
+  
   // Get message based on day of week
   const todayMessage = useMemo(() => {
     const dayOfWeek = new Date().getDay();
     return dailyMessages[dayOfWeek];
   }, []);
+
+  // Use preferred guide's emoji if available
+  const displayEmoji = preferredGuide?.avatar_emoji || todayMessage.emoji;
 
   return (
     <motion.div
@@ -71,7 +79,7 @@ export function DailyGuidanceCard({ onGuideClick }: DailyGuidanceCardProps) {
             transition={{ delay: 0.4, type: 'spring', stiffness: 200 }}
             className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 shadow-lg shadow-primary/10"
           >
-            <span className="text-2xl">{todayMessage.emoji}</span>
+            <span className="text-2xl">{displayEmoji}</span>
           </motion.div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -99,7 +107,7 @@ export function DailyGuidanceCard({ onGuideClick }: DailyGuidanceCardProps) {
             onClick={onGuideClick}
             className="flex items-center gap-1.5 text-sm font-semibold text-primary"
           >
-            Falar com seu guia
+            {preferredGuide ? `Falar com ${preferredGuide.name}` : 'Falar com seu guia'}
             <ChevronRight className="w-4 h-4" />
           </motion.button>
         )}
