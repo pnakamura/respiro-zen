@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Wind } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Email inválido');
@@ -75,12 +75,16 @@ const Auth: React.FC = () => {
     <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4 bg-gradient-to-b from-background to-muted/30">
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            <Wind className="h-10 w-10 text-primary" />
-            <h1 className="text-3xl font-bold text-foreground">Ethra</h1>
+        <div className="text-center space-y-3">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <img 
+              src="/favicon.png" 
+              alt="ETHRA Logo" 
+              className="h-20 w-20 object-contain"
+            />
+            <h1 className="text-3xl font-bold text-foreground">ETHRA</h1>
           </div>
-          <p className="text-muted-foreground">Respire. Relaxe. Renove.</p>
+          <p className="text-muted-foreground">Meditação & Bem-Estar</p>
         </div>
 
         <Card className="border-border/50 shadow-lg backdrop-blur-sm bg-card/80">
