@@ -256,7 +256,7 @@ export default function Home() {
 
         {/* Daily Guidance Card */}
         <DailyGuidanceCard 
-          onGuideClick={() => toast.info('Seu guia pessoal em breve! 🌟')}
+          onGuideClick={() => navigate('/guide')}
         />
 
         {/* Floating Action Button - repositioned for thumb zone */}
