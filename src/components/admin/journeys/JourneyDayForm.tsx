@@ -381,8 +381,8 @@ export function JourneyDayForm() {
                   <FormItem>
                     <FormLabel>Técnica de Respiração (opcional)</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value || ''}
+                      onValueChange={(value) => field.onChange(value === 'none' ? '' : value)} 
+                      value={field.value || 'none'}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -390,7 +390,7 @@ export function JourneyDayForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma</SelectItem>
+                        <SelectItem value="none">Nenhuma</SelectItem>
                         {breathingTechniques?.map(tech => (
                           <SelectItem key={tech.id} value={tech.id}>
                             {tech.icon} {tech.label}
@@ -409,8 +409,8 @@ export function JourneyDayForm() {
                   <FormItem>
                     <FormLabel>Meditação (opcional)</FormLabel>
                     <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value || ''}
+                      onValueChange={(value) => field.onChange(value === 'none' ? '' : value)} 
+                      value={field.value || 'none'}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -418,7 +418,7 @@ export function JourneyDayForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma</SelectItem>
+                        <SelectItem value="none">Nenhuma</SelectItem>
                         {meditationTracks?.map(track => (
                           <SelectItem key={track.id} value={track.id}>
                             {track.title}
