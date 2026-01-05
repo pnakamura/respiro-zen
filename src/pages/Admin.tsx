@@ -9,6 +9,8 @@ import { JourneyList } from '@/components/admin/journeys/JourneyList';
 import { JourneyForm } from '@/components/admin/journeys/JourneyForm';
 import { JourneyDaysList } from '@/components/admin/journeys/JourneyDaysList';
 import { JourneyDayForm } from '@/components/admin/journeys/JourneyDayForm';
+import { GuideList } from '@/components/admin/guides/GuideList';
+import { GuideForm } from '@/components/admin/guides/GuideForm';
 
 export default function Admin() {
   return (
@@ -24,6 +26,8 @@ export default function Admin() {
           <Route path="journeys/:id" element={<JourneyForm />} />
           <Route path="journeys/:journeyId/days" element={<JourneyDaysList />} />
           <Route path="journeys/:journeyId/days/:dayId" element={<JourneyDayForm />} />
+          <Route path="guides" element={<GuideList />} />
+          <Route path="guides/:id" element={<GuideForm />} />
         </Route>
       </Routes>
     </AdminGuard>

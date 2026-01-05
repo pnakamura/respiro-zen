@@ -10,13 +10,15 @@ import {
   Menu, 
   X, 
   Settings,
-  ChevronLeft
+  ChevronLeft,
+  MessageCircle
 } from 'lucide-react';
 
 const navItems = [
   { label: 'Respirações', href: '/admin/breathing', icon: Wind },
   { label: 'Meditações', href: '/admin/meditation', icon: Music },
   { label: 'Jornadas', href: '/admin/journeys', icon: Compass },
+  { label: 'Guias', href: '/admin/guides', icon: MessageCircle },
 ];
 
 export function AdminLayout() {

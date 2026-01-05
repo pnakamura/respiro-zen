@@ -2,3 +2,6 @@ project_id = "jjpajouvaovffcfjjqkf"
 
 [functions.generate-wellness-report]
 verify_jwt = false
+
+[functions.guide-chat]
+verify_jwt = false
