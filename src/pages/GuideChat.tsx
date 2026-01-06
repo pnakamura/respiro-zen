@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, RefreshCw, Users } from 'lucide-react';
@@ -10,9 +10,11 @@ import { SuggestedQuestions } from '@/components/guide/SuggestedQuestions';
 import { useGuideChat } from '@/hooks/useGuideChat';
 import { useGuide, useUserGuidePreference, useGuides } from '@/hooks/useGuides';
 import { useAuth } from '@/contexts/AuthContext';
-import { useThinkingDelay, getRandomThinkingPhrase } from '@/hooks/useThinkingDelay';
+import { getRandomThinkingPhrase } from '@/hooks/useThinkingDelay';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BottomNavigation } from '@/components/BottomNavigation';
+
+type ChatPhase = 'idle' | 'reading' | 'thinking' | 'transitioning' | 'responding';
 
 export default function GuideChat() {
   const navigate = useNavigate();
@@ -22,7 +24,9 @@ export default function GuideChat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [thinkingPhrase, setThinkingPhrase] = useState('');
-  const [showTypingIndicator, setShowTypingIndicator] = useState(false);
+  const [phase, setPhase] = useState<ChatPhase>('idle');
+  const [canRevealAssistant, setCanRevealAssistant] = useState(true);
+  const phraseIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get guide ID from location state or user preference
   const locationGuideId = location.state?.guideId;
@@ -32,15 +36,24 @@ export default function GuideChat() {
   const guideId = locationGuideId || preferredGuideId || guides?.[0]?.id;
   const { data: guide, isLoading: loadingGuide } = useGuide(guideId || null);
 
+  // Callback when stream starts - this triggers the transition phase
+  const handleStreamStart = useCallback(() => {
+    setPhase('transitioning');
+    // Keep typing indicator visible during transition
+    // The indicator's onExitComplete will handle revealing the assistant
+  }, []);
+
   const {
     messages,
     isLoading: isSending,
+    isStreaming,
     sendMessage,
     clearMessages,
     setMessages,
-  } = useGuideChat({ guideId: guideId || '' });
-
-  const { startThinking, stopThinking } = useThinkingDelay();
+  } = useGuideChat({ 
+    guideId: guideId || '',
+    onStreamStart: handleStreamStart,
+  });
 
   // Redirect to guide selection if no guide selected and not loading
   useEffect(() => {
@@ -52,12 +65,12 @@ export default function GuideChat() {
   // Scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, showTypingIndicator]);
+  }, [messages, phase]);
 
   // Add welcome message when guide loads
   useEffect(() => {
     if (guide?.welcome_message && messages.length === 0) {
-      // Longer delay for welcome message - guide is "preparing" (800-1200ms)
+      // Longer delay for welcome message - guide is "preparing" (1000-1600ms)
       const timeout = setTimeout(() => {
         setMessages([{
           id: 'welcome',
@@ -65,45 +78,82 @@ export default function GuideChat() {
           content: guide.welcome_message,
           createdAt: new Date(),
         }]);
-      }, 800 + Math.random() * 400);
+      }, 1000 + Math.random() * 600);
       return () => clearTimeout(timeout);
     }
   }, [guide, messages.length, setMessages]);
 
-  // Handle thinking indicator with human-like delay
+  // Handle phase transitions
   useEffect(() => {
-    if (isSending && messages[messages.length - 1]?.role === 'user') {
-      const userMessage = messages[messages.length - 1].content;
-      
-      // Initial phrase
+    // When user sends a message, start reading phase
+    if (isSending && messages[messages.length - 1]?.role === 'user' && phase === 'idle') {
+      setCanRevealAssistant(false);
+      setPhase('reading');
       setThinkingPhrase(getRandomThinkingPhrase());
-      
-      // Longer initial delay - guide is "reading" the message (800-1400ms)
-      const readingDelay = 800 + Math.random() * 600;
-      const showTimeout = setTimeout(() => {
-        setShowTypingIndicator(true);
+    }
+  }, [isSending, messages, phase]);
+
+  // Reading phase -> Thinking phase
+  useEffect(() => {
+    if (phase === 'reading') {
+      // Reading delay: 1200-2000ms
+      const readingDelay = 1200 + Math.random() * 800;
+      const timeout = setTimeout(() => {
+        setPhase('thinking');
       }, readingDelay);
-      
-      // Change phrase more slowly - every 3.5 seconds
-      const phraseInterval = setInterval(() => {
+      return () => clearTimeout(timeout);
+    }
+  }, [phase]);
+
+  // Thinking phase - rotate phrases
+  useEffect(() => {
+    if (phase === 'thinking') {
+      // Change phrase every 4 seconds
+      phraseIntervalRef.current = setInterval(() => {
         setThinkingPhrase(getRandomThinkingPhrase());
-      }, 3500);
+      }, 4000);
       
       return () => {
-        clearTimeout(showTimeout);
-        clearInterval(phraseInterval);
+        if (phraseIntervalRef.current) {
+          clearInterval(phraseIntervalRef.current);
+          phraseIntervalRef.current = null;
+        }
       };
-    } else if (!isSending && showTypingIndicator) {
-      // Keep typing indicator visible for a bit longer when response starts (500ms overlap)
-      const hideTimeout = setTimeout(() => {
-        setShowTypingIndicator(false);
-      }, 500);
-      return () => clearTimeout(hideTimeout);
     }
-  }, [isSending, messages, showTypingIndicator]);
+  }, [phase]);
+
+  // Handle transitioning phase
+  useEffect(() => {
+    if (phase === 'transitioning') {
+      // Clear phrase interval
+      if (phraseIntervalRef.current) {
+        clearInterval(phraseIntervalRef.current);
+        phraseIntervalRef.current = null;
+      }
+    }
+  }, [phase]);
+
+  // Handle responding phase completion
+  useEffect(() => {
+    if (!isSending && !isStreaming && phase === 'responding') {
+      setPhase('idle');
+    }
+  }, [isSending, isStreaming, phase]);
+
+  // Handle typing indicator exit complete
+  const handleTypingIndicatorExitComplete = useCallback(() => {
+    if (phase === 'transitioning') {
+      // Wait a bit more before revealing the assistant message
+      setTimeout(() => {
+        setCanRevealAssistant(true);
+        setPhase('responding');
+      }, 150);
+    }
+  }, [phase]);
 
   const handleSend = () => {
     if (!inputValue.trim() || isSending) return;
+    setPhase('idle'); // Reset phase before sending
     sendMessage(inputValue);
     setInputValue('');
   };
@@ -116,13 +166,18 @@ export default function GuideChat() {
   };
 
   const handleSuggestedQuestion = (question: string) => {
+    setPhase('idle');
     sendMessage(question);
   };
 
   const handleNewConversation = () => {
     clearMessages();
-    stopThinking();
-    setShowTypingIndicator(false);
+    setPhase('idle');
+    setCanRevealAssistant(true);
+    if (phraseIntervalRef.current) {
+      clearInterval(phraseIntervalRef.current);
+      phraseIntervalRef.current = null;
+    }
     
     if (guide?.welcome_message) {
       setTimeout(() => {
@@ -132,7 +187,7 @@ export default function GuideChat() {
           content: guide.welcome_message,
           createdAt: new Date(),
         }]);
-      }, 300);
+      }, 400);
     }
   };
 
@@ -146,9 +201,39 @@ export default function GuideChat() {
     ? guide.suggested_questions 
     : [];
 
-  // Check if the last assistant message is currently streaming
-  const lastMessage = messages[messages.length - 1];
-  const isStreaming = isSending && lastMessage?.role === 'assistant';
+  // Determine which messages to show
+  const visibleMessages = messages.filter((msg, index) => {
+    // Always show user messages
+    if (msg.role === 'user') return true;
+    
+    // For the last assistant message during transition, check if we can reveal
+    if (msg.role === 'assistant' && index === messages.length - 1) {
+      // If we're in transitioning phase, don't show yet
+      if (phase === 'transitioning' || (phase === 'responding' && !canRevealAssistant)) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+
+  // Show typing indicator during reading, thinking, and transitioning phases
+  const showTypingIndicator = phase === 'reading' || phase === 'thinking' || phase === 'transitioning';
+
+  // Get header status text
+  const getStatusText = () => {
+    switch (phase) {
+      case 'reading':
+        return 'lendo...';
+      case 'thinking':
+        return 'refletindo...';
+      case 'transitioning':
+      case 'responding':
+        return 'digitando...';
+      default:
+        return guide?.approach || '';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -192,19 +277,25 @@ export default function GuideChat() {
             <div className="flex-1 flex items-center gap-3">
               <motion.div 
                 className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl"
-                animate={isSending ? { 
+                animate={phase !== 'idle' ? { 
                   scale: [1, 1.05, 1],
                   boxShadow: ['0 0 0 hsl(var(--primary)/0)', '0 0 15px hsl(var(--primary)/0.2)', '0 0 0 hsl(var(--primary)/0)'],
                 } : {}}
-                transition={{ duration: 2, repeat: isSending ? Infinity : 0 }}
+                transition={{ duration: 2, repeat: phase !== 'idle' ? Infinity : 0 }}
               >
                 {guide.avatar_emoji}
               </motion.div>
               <div>
                 <h1 className="font-semibold text-foreground">{guide.name}</h1>
-                <p className="text-xs text-muted-foreground">
-                  {isSending ? 'digitando...' : guide.approach}
-                </p>
+                <motion.p 
+                  key={getStatusText()}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-xs text-muted-foreground"
+                >
+                  {getStatusText()}
+                </motion.p>
               </div>
             </div>
           ) : null}
@@ -236,19 +327,19 @@ export default function GuideChat() {
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-48">
         <div className="max-w-2xl mx-auto space-y-4">
           <AnimatePresence mode="popLayout">
-            {messages.map((message, index) => (
+            {visibleMessages.map((message, index) => (
               <MessageBubble
                 key={message.id}
                 message={message}
                 guideEmoji={guide?.avatar_emoji}
                 guideName={guide?.name}
-                isStreaming={isStreaming && index === messages.length - 1}
+                isStreaming={isStreaming && message.role === 'assistant' && index === visibleMessages.length - 1}
               />
             ))}
           </AnimatePresence>
 
-          {/* Typing indicator with thinking phrase */}
-          <AnimatePresence>
+          {/* Typing indicator with synchronized exit */}
+          <AnimatePresence onExitComplete={handleTypingIndicatorExitComplete}>
             {showTypingIndicator && (
               <TypingIndicator 
                 guideEmoji={guide?.avatar_emoji} 
@@ -258,11 +349,11 @@ export default function GuideChat() {
           </AnimatePresence>
 
           {/* Suggested questions - only show if no user messages yet */}
-          {messages.length <= 1 && !isSending && suggestedQuestions.length > 0 && (
+          {messages.length <= 1 && phase === 'idle' && suggestedQuestions.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.4 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
               className="pt-4"
             >
               <SuggestedQuestions

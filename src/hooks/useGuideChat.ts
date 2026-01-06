@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useStreamingPacer } from './useStreamingPacer';
 
 export interface ChatMessage {
   id: string;
@@ -12,18 +13,26 @@ export interface ChatMessage {
 interface UseGuideChatOptions {
   guideId: string;
   onMessageComplete?: (message: ChatMessage) => void;
+  onStreamStart?: () => void;
 }
 
-export function useGuideChat({ guideId, onMessageComplete }: UseGuideChatOptions) {
+export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseGuideChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const assistantMessageIdRef = useRef<string | null>(null);
+  const streamStartedRef = useRef(false);
+
+  const pacer = useStreamingPacer();
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
 
     setIsLoading(true);
+    setIsStreaming(false);
+    streamStartedRef.current = false;
 
     // Add user message immediately
     const userMessage: ChatMessage = {
@@ -84,21 +93,47 @@ export function useGuideChat({ guideId, onMessageComplete }: UseGuideChatOptions
         throw new Error('No response body');
       }
 
-      // Create assistant message placeholder
+      // Create assistant message placeholder (but don't add to messages yet)
       const assistantMessageId = crypto.randomUUID();
-      let assistantContent = '';
+      assistantMessageIdRef.current = assistantMessageId;
 
-      setMessages(prev => [...prev, {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: '',
-        createdAt: new Date(),
-      }]);
+      // Initialize paced streaming
+      pacer.start({
+        onUpdate: (displayedText) => {
+          setMessages(prev => {
+            const hasAssistant = prev.some(m => m.id === assistantMessageId);
+            if (!hasAssistant) {
+              // First update - add the assistant message
+              if (!streamStartedRef.current) {
+                streamStartedRef.current = true;
+                setIsStreaming(true);
+                onStreamStart?.();
+              }
+              return [...prev, {
+                id: assistantMessageId,
+                role: 'assistant' as const,
+                content: displayedText,
+                createdAt: new Date(),
+              }];
+            }
+            // Subsequent updates
+            return prev.map(msg => 
+              msg.id === assistantMessageId 
+                ? { ...msg, content: displayedText }
+                : msg
+            );
+          });
+        },
+        onComplete: () => {
+          setIsStreaming(false);
+        },
+      });
 
       // Stream the response
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let fullContent = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -124,13 +159,9 @@ export function useGuideChat({ guideId, onMessageComplete }: UseGuideChatOptions
             const deltaContent = parsed.choices?.[0]?.delta?.content;
             
             if (deltaContent) {
-              assistantContent += deltaContent;
-              
-              setMessages(prev => prev.map(msg => 
-                msg.id === assistantMessageId 
-                  ? { ...msg, content: assistantContent }
-                  : msg
-              ));
+              fullContent += deltaContent;
+              // Feed to pacer instead of updating directly
+              pacer.addToBuffer(deltaContent);
             }
           } catch {
             // Incomplete JSON, put back in buffer
@@ -140,19 +171,31 @@ export function useGuideChat({ guideId, onMessageComplete }: UseGuideChatOptions
         }
       }
 
+      // Wait a bit for pacer to finish, then flush if needed
+      await new Promise(resolve => setTimeout(resolve, 200));
+      pacer.flush();
+
       // Final message
       const finalMessage: ChatMessage = {
         id: assistantMessageId,
         role: 'assistant',
-        content: assistantContent,
+        content: fullContent,
         createdAt: new Date(),
       };
+
+      // Ensure final content is set
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId 
+          ? { ...msg, content: fullContent }
+          : msg
+      ));
 
       onMessageComplete?.(finalMessage);
 
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
         console.log('Request aborted');
+        pacer.stop();
         return;
       }
 
@@ -167,22 +210,26 @@ export function useGuideChat({ guideId, onMessageComplete }: UseGuideChatOptions
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
       abortControllerRef.current = null;
     }
-  }, [guideId, conversationId, isLoading, onMessageComplete]);
+  }, [guideId, conversationId, isLoading, onMessageComplete, onStreamStart, pacer]);
 
   const cancelRequest = useCallback(() => {
     abortControllerRef.current?.abort();
-  }, []);
+    pacer.stop();
+  }, [pacer]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
     setConversationId(null);
-  }, []);
+    pacer.stop();
+  }, [pacer]);
 
   return {
     messages,
     isLoading,
+    isStreaming,
     conversationId,
     sendMessage,
     cancelRequest,
