@@ -12,9 +12,10 @@ type DbMeditationTrack = Tables<'meditation_tracks'>;
 interface MeditationPlayerProps {
   onClose: () => void;
   onComplete: (durationSeconds: number) => void;
+  initialTrackId?: string;
 }
 
-export function MeditationPlayer({ onClose, onComplete }: MeditationPlayerProps) {
+export function MeditationPlayer({ onClose, onComplete, initialTrackId }: MeditationPlayerProps) {
   const { data: tracks, isLoading } = useMeditationTracks();
   const { data: categories } = useMeditationCategories();
   const [selectedTrack, setSelectedTrack] = useState<DbMeditationTrack | null>(null);
@@ -38,6 +39,16 @@ export function MeditationPlayer({ onClose, onComplete }: MeditationPlayerProps)
       audioRef.current.volume = volume;
     }
   }, [volume]);
+
+  // Auto-select initial track when provided
+  useEffect(() => {
+    if (initialTrackId && tracks && !selectedTrack) {
+      const initialTrack = tracks.find(t => t.id === initialTrackId);
+      if (initialTrack && getAudioUrl(initialTrack)) {
+        handleTrackSelect(initialTrack);
+      }
+    }
+  }, [initialTrackId, tracks]);
 
   const getCategoryName = (categoryId: string | null) => {
     if (!categoryId || !categories) return 'Meditação';
