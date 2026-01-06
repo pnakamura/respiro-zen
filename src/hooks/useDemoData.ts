@@ -1,86 +1,124 @@
 import { WellnessReport } from './useWellnessReport';
-
-export interface DemoChartDataPoint {
-  day: string;
-  date: string;
-  alegria: number;
-  tristeza: number;
-  calma: number;
-}
-
-export interface DemoPattern {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-}
-
-export interface DemoInsightsStats {
-  emotionCheckins: number;
-  breathingSessions: number;
-  breathingMinutes: number;
-  waterLiters: number;
-  activeDays: number;
-}
+import { 
+  Period, 
+  ChartDataPoint, 
+  Pattern, 
+  InsightsStats, 
+  WeeklySummary, 
+  EmotionRadarData, 
+  DyadOccurrence 
+} from './useInsightsData';
 
 export interface DemoInsightsData {
-  chartData: DemoChartDataPoint[];
-  patterns: DemoPattern[];
-  stats: DemoInsightsStats;
+  chartData: ChartDataPoint[];
+  radarData: EmotionRadarData[];
+  dyadOccurrences: DyadOccurrence[];
+  patterns: Pattern[];
+  stats: InsightsStats;
+  weeklySummary: WeeklySummary;
   isLoading: boolean;
   isEmpty: boolean;
 }
 
-function getDemoChartData(): DemoChartDataPoint[] {
+function getDemoChartData(): ChartDataPoint[] {
   return [
-    { day: 'Seg', date: '2024-01-01', alegria: 3, tristeza: 2, calma: 4 },
-    { day: 'Ter', date: '2024-01-02', alegria: 4, tristeza: 1, calma: 4 },
-    { day: 'Qua', date: '2024-01-03', alegria: 2, tristeza: 3, calma: 3 },
-    { day: 'Qui', date: '2024-01-04', alegria: 5, tristeza: 1, calma: 4 },
-    { day: 'Sex', date: '2024-01-05', alegria: 3, tristeza: 2, calma: 3 },
-    { day: 'Sáb', date: '2024-01-06', alegria: 4, tristeza: 1, calma: 5 },
-    { day: 'Dom', date: '2024-01-07', alegria: 5, tristeza: 1, calma: 4 },
+    { day: 'Seg', date: '2024-01-01', positivo: 3.5, negativo: 1.2, intensidadeMedia: 3.2 },
+    { day: 'Ter', date: '2024-01-02', positivo: 4.0, negativo: 0.8, intensidadeMedia: 3.5 },
+    { day: 'Qua', date: '2024-01-03', positivo: 2.5, negativo: 2.0, intensidadeMedia: 3.0 },
+    { day: 'Qui', date: '2024-01-04', positivo: 4.5, negativo: 0.5, intensidadeMedia: 3.8 },
+    { day: 'Sex', date: '2024-01-05', positivo: 3.8, negativo: 1.0, intensidadeMedia: 3.4 },
+    { day: 'Sáb', date: '2024-01-06', positivo: 4.2, negativo: 0.6, intensidadeMedia: 3.6 },
+    { day: 'Dom', date: '2024-01-07', positivo: 4.8, negativo: 0.4, intensidadeMedia: 4.0 },
   ];
 }
 
-function getDemoPatterns(): DemoPattern[] {
+function getDemoRadarData(): EmotionRadarData[] {
+  return [
+    { emotion: 'joy', label: 'Alegria', value: 4.2, color: 'hsl(48, 95%, 55%)', icon: '😊' },
+    { emotion: 'trust', label: 'Confiança', value: 3.5, color: 'hsl(145, 50%, 45%)', icon: '🤝' },
+    { emotion: 'fear', label: 'Medo', value: 1.2, color: 'hsl(155, 60%, 30%)', icon: '😨' },
+    { emotion: 'surprise', label: 'Surpresa', value: 2.8, color: 'hsl(185, 70%, 50%)', icon: '😲' },
+    { emotion: 'sadness', label: 'Tristeza', value: 1.5, color: 'hsl(225, 65%, 55%)', icon: '😢' },
+    { emotion: 'disgust', label: 'Aversão', value: 0.8, color: 'hsl(280, 50%, 55%)', icon: '🤢' },
+    { emotion: 'anger', label: 'Raiva', value: 0.5, color: 'hsl(15, 85%, 55%)', icon: '😠' },
+    { emotion: 'anticipation', label: 'Antecipação', value: 3.8, color: 'hsl(28, 90%, 55%)', icon: '🔮' },
+  ];
+}
+
+function getDemoDyadOccurrences(): DyadOccurrence[] {
+  return [
+    { dyad: 'love', label: 'Amor', count: 5, date: '2024-01-07', description: 'União de alegria e confiança' },
+    { dyad: 'optimism', label: 'Otimismo', count: 4, date: '2024-01-06', description: 'Expectativa positiva' },
+    { dyad: 'hope', label: 'Esperança', count: 3, date: '2024-01-05', description: 'Expectativa confiante' },
+    { dyad: 'curiosity', label: 'Curiosidade', count: 2, date: '2024-01-04', description: 'Abertura ao inesperado' },
+  ];
+}
+
+function getDemoPatterns(): Pattern[] {
   return [
     {
-      id: 'morning_positive',
-      icon: '🌅',
-      title: 'Manhãs mais positivas',
-      description: 'Seus registros mostram 60% mais emoções positivas no período da manhã.',
-    },
-    {
-      id: 'breathing_helps',
+      id: 'breathing_correlation',
       icon: '🧘',
-      title: 'Respiração ajuda seu humor',
-      description: 'Após sessões de respiração, seu humor melhora em média 2 pontos.',
+      title: 'Respiração melhora seu humor',
+      description: '45 min de prática em 8 sessões. Dias com respiração mostram emoções mais equilibradas.',
+      type: 'positive',
     },
     {
-      id: 'hydration_consistent',
+      id: 'dominant_emotion',
+      icon: '😊',
+      title: 'Alegria predominante',
+      description: 'Alegria foi sua emoção mais registrada com 8 ocorrências.',
+      type: 'positive',
+    },
+    {
+      id: 'weekday_pattern',
+      icon: '📅',
+      title: 'Domingo é seu melhor dia',
+      description: 'Seus melhores registros são Domingo, enquanto Quarta tende a ser mais desafiador.',
+      type: 'neutral',
+    },
+    {
+      id: 'hydration_habit',
       icon: '💧',
-      title: 'Hidratação consistente',
-      description: 'Você manteve uma média de 1.8L de água por dia esta semana.',
+      title: 'Hidratação excelente',
+      description: 'Média de 1.8L/dia em 7 dias registrados.',
+      type: 'positive',
     },
   ];
 }
 
-function getDemoStats(): DemoInsightsStats {
+function getDemoStats(): InsightsStats {
   return {
     emotionCheckins: 12,
     breathingSessions: 8,
     breathingMinutes: 45,
     waterLiters: 12.6,
     activeDays: 7,
+    dominantEmotion: { id: 'joy', label: 'Alegria', icon: '😊', count: 8 },
+    frequentDyad: { label: 'Amor', count: 5 },
+    moodVariation: 'stable',
+    checkinStreak: 5,
+  };
+}
+
+function getDemoWeeklySummary(): WeeklySummary {
+  return {
+    emoji: '🌟',
+    headline: 'Semana excelente!',
+    score: 78,
+    comparison: 'up',
+    comparisonPercentage: 12,
   };
 }
 
 export function useDemoInsightsData(): DemoInsightsData {
   return {
     chartData: getDemoChartData(),
+    radarData: getDemoRadarData(),
+    dyadOccurrences: getDemoDyadOccurrences(),
     patterns: getDemoPatterns(),
     stats: getDemoStats(),
+    weeklySummary: getDemoWeeklySummary(),
     isLoading: false,
     isEmpty: false,
   };
