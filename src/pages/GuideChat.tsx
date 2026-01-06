@@ -40,7 +40,7 @@ export default function GuideChat() {
   // Redirect to guide selection if no guide selected and not loading
   useEffect(() => {
     if (!loadingPreference && !locationGuideId && !preferredGuideId && guides?.length) {
-      navigate('/guide/select');
+      navigate('/guide/select', { replace: true });
     }
   }, [loadingPreference, locationGuideId, preferredGuideId, guides, navigate]);
 

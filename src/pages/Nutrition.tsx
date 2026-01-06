@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Plus, Utensils, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { safeGoBack } from '@/lib/navigation';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { NutritionSummary } from '@/components/nutrition/NutritionSummary';
 import { WaterTracker } from '@/components/nutrition/WaterTracker';
@@ -77,7 +78,7 @@ export default function Nutrition() {
       >
         <div className="flex items-center gap-4 mb-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => safeGoBack(navigate, '/')}
             className="w-10 h-10 rounded-full bg-card border border-border/50 flex items-center justify-center"
           >
             <ArrowLeft className="w-5 h-5 text-foreground" />

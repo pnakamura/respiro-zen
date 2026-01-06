@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { GuideCard } from '@/components/guide/GuideCard';
 import { useGuides, useSetPreferredGuide, type SpiritualGuide } from '@/hooks/useGuides';
 import { Skeleton } from '@/components/ui/skeleton';
+import { safeGoBack } from '@/lib/navigation';
 
 export default function GuideSelect() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export default function GuideSelect() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => safeGoBack(navigate, '/')}
             className="rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />

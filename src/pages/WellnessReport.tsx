@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { safeGoBack } from "@/lib/navigation";
 import { useWellnessReport, Period } from "@/hooks/useWellnessReport";
 import { getDemoWellnessReport } from "@/hooks/useDemoData";
 import { ReportHeader } from "@/components/report/ReportHeader";
@@ -44,7 +45,7 @@ const WellnessReport: React.FC = () => {
         <div className="flex items-center gap-4">
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => navigate(-1)}
+            onClick={() => safeGoBack(navigate, '/')}
             className="p-2 -ml-2 rounded-full hover:bg-secondary/50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-foreground" />

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Bold, Italic, List, Sparkles, Save, Mic, Loader2, BookOpen, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { safeGoBack } from '@/lib/navigation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { BottomNavigation } from '@/components/BottomNavigation';
@@ -104,7 +105,7 @@ export default function Journal() {
       >
         <div className="flex items-center justify-between px-4 py-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => safeGoBack(navigate, '/')}
             className="p-2 -ml-2 rounded-full hover:bg-muted/50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-foreground" />
