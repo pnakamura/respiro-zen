@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
+import Onboarding from "./pages/Onboarding";
 import Nutrition from "./pages/Nutrition";
 import Journal from "./pages/Journal";
 import Insights from "./pages/Insights";
@@ -31,6 +32,7 @@ const App: React.FC = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/nutrition" element={<Nutrition />} />
             <Route path="/legacy" element={<Index />} />
             <Route path="/journal" element={<Journal />} />
