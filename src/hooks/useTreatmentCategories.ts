@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useBreathingTechniques } from './useBreathingTechniques';
+import { useMeditationTracks, useMeditationCategories } from './useMeditationTracks';
 import type { BreathingTechnique as DBBreathingTechnique } from '@/types/admin';
 
 // Types for treatment system
@@ -53,22 +54,13 @@ const emotionToCategory: Record<string, 'hyperarousal' | 'hypoarousal' | 'balanc
   meditate: 'balance',
 };
 
-// Static meditation data (these could also come from DB in the future)
-const meditationsByCategory: Record<string, MeditationType[]> = {
-  hyperarousal: [
-    { id: 'rain', name: 'Meditação RAIN', description: 'Reconhecer, Aceitar, Investigar, Nutrir - para emoções difíceis', duration: '10-15 min' },
-    { id: 'metta', name: 'Loving-Kindness (Metta)', description: 'Cultivar compaixão por si e pelos outros', duration: '10-20 min' },
-    { id: 'body-scan', name: 'Body Scan', description: 'Atenção progressiva às sensações corporais', duration: '15-30 min' },
-  ],
-  hypoarousal: [
-    { id: 'letting-go', name: 'Letting Go (Hawkins)', description: 'Técnica de liberar emoções sem resistência', duration: '5-15 min' },
-    { id: 'body-scan', name: 'Body Scan', description: 'Atenção progressiva às sensações corporais', duration: '15-30 min' },
-    { id: 'mindfulness', name: 'Mindfulness', description: 'Atenção plena ao momento presente', duration: '10-20 min' },
-  ],
-  balance: [
-    { id: 'mindfulness', name: 'Mindfulness', description: 'Atenção plena ao momento presente', duration: '10-20 min' },
-    { id: 'metta', name: 'Loving-Kindness (Metta)', description: 'Cultivar compaixão por si e pelos outros', duration: '10-20 min' },
-  ],
+// Mapping meditation categories to treatment types
+const meditationCategoryToTreatment: Record<string, 'hyperarousal' | 'hypoarousal' | 'balance'> = {
+  'relaxamento': 'hyperarousal',
+  'sono': 'hyperarousal',
+  'foco': 'hypoarousal',
+  'natureza': 'balance',
+  'guiada': 'balance',
 };
 
 // Emotions mapped to each category (for Plutchik detection)
@@ -101,8 +93,51 @@ function dbTechniqueToTreatment(dbTechnique: DBBreathingTechnique): BreathingTec
   };
 }
 
+// Convert DB meditation to treatment meditation format
+function dbMeditationToTreatment(dbMeditation: {
+  id: string;
+  title: string;
+  description: string | null;
+  duration_display: string;
+}): MeditationType {
+  return {
+    id: dbMeditation.id,
+    name: dbMeditation.title,
+    description: dbMeditation.description || '',
+    duration: dbMeditation.duration_display,
+  };
+}
+
 export function useTreatmentCategories() {
-  const { data: dbTechniques, isLoading } = useBreathingTechniques();
+  const { data: dbTechniques, isLoading: isLoadingTechniques } = useBreathingTechniques();
+  const { data: dbMeditations, isLoading: isLoadingMeditations } = useMeditationTracks();
+  const { data: meditationCategories } = useMeditationCategories();
+
+  // Build meditation category name lookup
+  const categoryNameById = useMemo(() => {
+    const map: Record<string, string> = {};
+    meditationCategories?.forEach(cat => {
+      map[cat.id] = cat.name.toLowerCase();
+    });
+    return map;
+  }, [meditationCategories]);
+
+  // Group meditations by treatment category
+  const meditationsByCategory = useMemo(() => {
+    const result: Record<string, MeditationType[]> = {
+      hyperarousal: [],
+      hypoarousal: [],
+      balance: [],
+    };
+
+    dbMeditations?.forEach(med => {
+      const categoryName = med.category_id ? categoryNameById[med.category_id] : '';
+      const treatmentType = meditationCategoryToTreatment[categoryName] || 'balance';
+      result[treatmentType].push(dbMeditationToTreatment(med));
+    });
+
+    return result;
+  }, [dbMeditations, categoryNameById]);
 
   const treatmentCategories = useMemo<TreatmentCategory[]>(() => {
     if (!dbTechniques || dbTechniques.length === 0) {
@@ -150,7 +185,9 @@ export function useTreatmentCategories() {
         meditations: meditationsByCategory.balance,
       },
     ];
-  }, [dbTechniques]);
+  }, [dbTechniques, meditationsByCategory]);
+
+  const isLoading = isLoadingTechniques || isLoadingMeditations;
 
   // Get recommended treatment based on emotions
   const getRecommendedTreatment = useMemo(() => {
