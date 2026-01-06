@@ -9,8 +9,8 @@ const corsHeaders = {
 interface EmotionEntry {
   id: string;
   created_at: string;
-  selected_emotions: Array<{ id: string; name: string; intensity: number }>;
-  detected_dyads: Array<{ name: string }>;
+  selected_emotions: Array<{ id: string; name?: string; intensity: number }>;
+  detected_dyads: Array<{ result: string; label: string; description: string }>;
   free_text: string | null;
 }
 
@@ -306,7 +306,9 @@ function processEmotions(emotions: EmotionEntry[]) {
 
     if (Array.isArray(entry.detected_dyads)) {
       entry.detected_dyads.forEach((d: any) => {
-        if (d.name) dyadSet.add(d.name);
+        // Support both old format (d.name) and new format (d.label)
+        const dyadName = d.label || d.name;
+        if (dyadName) dyadSet.add(dyadName);
       });
     }
   });

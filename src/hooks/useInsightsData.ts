@@ -5,7 +5,7 @@ import { subDays, format, startOfDay, parseISO, getDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { primaryEmotions, primaryDyads, secondaryDyads, tertiaryDyads } from '@/data/plutchik-emotions';
 
-export type Period = '7d' | '30d' | '60d';
+export type Period = '7d' | '30d' | '90d';
 
 interface SelectedEmotion {
   id: string;
@@ -71,7 +71,7 @@ function getPeriodDays(period: Period): number {
   switch (period) {
     case '7d': return 7;
     case '30d': return 30;
-    case '60d': return 60;
+    case '90d': return 90;
   }
 }
 
@@ -320,16 +320,23 @@ function generatePatterns(
 function calculateWeeklySummary(
   emotionCounts: Record<string, { count: number; totalIntensity: number }>,
   stats: InsightsStats,
-  moodVariation: 'stable' | 'variable' | 'highly_variable'
+  moodVariation: 'stable' | 'variable' | 'highly_variable',
+  periodDays: number
 ): WeeklySummary {
-  const positiveCount = POSITIVE_EMOTION_IDS.reduce((sum, id) => sum + emotionCounts[id]?.count || 0, 0);
-  const negativeCount = NEGATIVE_EMOTION_IDS.reduce((sum, id) => sum + emotionCounts[id]?.count || 0, 0);
+  const positiveCount = POSITIVE_EMOTION_IDS.reduce((sum, id) => sum + (emotionCounts[id]?.count ?? 0), 0);
+  const negativeCount = NEGATIVE_EMOTION_IDS.reduce((sum, id) => sum + (emotionCounts[id]?.count ?? 0), 0);
   const totalCount = positiveCount + negativeCount;
 
   const positiveRatio = totalCount > 0 ? positiveCount / totalCount : 0.5;
-  const activityScore = Math.min((stats.activeDays / 7) * 100, 100);
-  const breathingScore = Math.min((stats.breathingMinutes / 30) * 100, 100);
-  const hydrationScore = Math.min((stats.waterLiters / 14) * 100, 100);
+  
+  // Normalized targets based on period
+  const targetActiveDays = Math.min(periodDays, 7);
+  const targetBreathingMinutes = periodDays <= 7 ? 30 : periodDays <= 30 ? 90 : 180;
+  const targetWaterLiters = periodDays <= 7 ? 14 : periodDays <= 30 ? 60 : 180;
+  
+  const activityScore = Math.min((stats.activeDays / targetActiveDays) * 100, 100);
+  const breathingScore = Math.min((stats.breathingMinutes / targetBreathingMinutes) * 100, 100);
+  const hydrationScore = Math.min((stats.waterLiters / targetWaterLiters) * 100, 100);
 
   const score = Math.round(
     positiveRatio * 40 +
@@ -339,11 +346,11 @@ function calculateWeeklySummary(
   );
 
   let emoji = '😊';
-  let headline = 'Uma semana equilibrada';
+  let headline = 'Período equilibrado';
 
   if (score >= 80) {
     emoji = '🌟';
-    headline = 'Semana excelente!';
+    headline = 'Excelente!';
   } else if (score >= 60) {
     emoji = '😊';
     headline = 'Bom progresso';
@@ -357,18 +364,22 @@ function calculateWeeklySummary(
 
   if (moodVariation === 'highly_variable') {
     emoji = '🎢';
-    headline = 'Semana intensa';
+    headline = 'Período intenso';
   } else if (moodVariation === 'stable' && positiveRatio > 0.6) {
     emoji = '☀️';
     headline = 'Estabilidade positiva';
   }
 
+  // Score comparison - compare against a baseline of 50
+  const baseline = 50;
+  const difference = score - baseline;
+
   return {
     emoji,
     headline,
     score,
-    comparison: score >= 60 ? 'up' : score >= 40 ? 'stable' : 'down',
-    comparisonPercentage: Math.abs(score - 60),
+    comparison: difference > 5 ? 'up' : difference < -5 ? 'down' : 'stable',
+    comparisonPercentage: Math.abs(difference),
   };
 }
 
@@ -435,12 +446,14 @@ export function useInsightsData(period: Period) {
   // Get dyad occurrences
   const dyadOccurrences = getDyadOccurrences(emotionEntries);
 
-  // Radar chart data - 8 Plutchik emotions
+  // Radar chart data - 8 Plutchik emotions using normalized frequency
+  const totalEmotionCount = Object.values(emotionCounts).reduce((sum, e) => sum + e.count, 0);
   const radarData: EmotionRadarData[] = primaryEmotions.map(emotion => ({
     emotion: emotion.id,
     label: emotion.label,
-    value: emotionCounts[emotion.id]?.count > 0 
-      ? emotionCounts[emotion.id].totalIntensity / emotionCounts[emotion.id].count 
+    // Use normalized frequency (0-5 scale) for better comparison
+    value: totalEmotionCount > 0 
+      ? Math.min(5, (emotionCounts[emotion.id]?.count ?? 0) / totalEmotionCount * 10) 
       : 0,
     color: emotion.color,
     icon: emotion.icon,
@@ -539,7 +552,7 @@ export function useInsightsData(period: Period) {
   const patterns = generatePatterns(emotionEntries, breathingSessions, hydrationEntries, emotionCounts, dyadOccurrences);
 
   // Weekly summary
-  const weeklySummary = calculateWeeklySummary(emotionCounts, stats, moodVariation);
+  const weeklySummary = calculateWeeklySummary(emotionCounts, stats, moodVariation, periodDays);
 
   const isLoading = loadingEmotions || loadingBreathing || loadingHydration;
   const isEmpty = emotionEntries.length === 0 && breathingSessions.length === 0 && hydrationEntries.length === 0;

@@ -63,9 +63,9 @@ export default function Insights() {
           </div>
         </div>
 
-        {/* Period Selector - Updated to 7d, 30d, 60d */}
+        {/* Period Selector - 7d, 30d, 90d */}
         <div className="flex gap-1 p-1 bg-muted/50 rounded-2xl">
-          {(['7d', '30d', '60d'] as Period[]).map((p) => (
+          {(['7d', '30d', '90d'] as Period[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
@@ -75,7 +75,7 @@ export default function Insights() {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : '60 dias'}
+              {p === '7d' ? '7 dias' : p === '30d' ? '30 dias' : '90 dias'}
             </button>
           ))}
         </div>

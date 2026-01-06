@@ -33,15 +33,16 @@ function getDemoChartData(): ChartDataPoint[] {
 }
 
 function getDemoRadarData(): EmotionRadarData[] {
+  // Using exact colors from plutchik-emotions.ts
   return [
-    { emotion: 'joy', label: 'Alegria', value: 4.2, color: 'hsl(48, 95%, 55%)', icon: '😊' },
-    { emotion: 'trust', label: 'Confiança', value: 3.5, color: 'hsl(145, 50%, 45%)', icon: '🤝' },
-    { emotion: 'fear', label: 'Medo', value: 1.2, color: 'hsl(155, 60%, 30%)', icon: '😨' },
-    { emotion: 'surprise', label: 'Surpresa', value: 2.8, color: 'hsl(185, 70%, 50%)', icon: '😲' },
-    { emotion: 'sadness', label: 'Tristeza', value: 1.5, color: 'hsl(225, 65%, 55%)', icon: '😢' },
-    { emotion: 'disgust', label: 'Aversão', value: 0.8, color: 'hsl(280, 50%, 55%)', icon: '🤢' },
-    { emotion: 'anger', label: 'Raiva', value: 0.5, color: 'hsl(15, 85%, 55%)', icon: '😠' },
-    { emotion: 'anticipation', label: 'Antecipação', value: 3.8, color: 'hsl(28, 90%, 55%)', icon: '🔮' },
+    { emotion: 'joy', label: 'Alegria', value: 4.2, color: 'hsl(45, 100%, 50%)', icon: '😊' },
+    { emotion: 'trust', label: 'Confiança', value: 3.5, color: 'hsl(120, 60%, 60%)', icon: '🤝' },
+    { emotion: 'fear', label: 'Medo', value: 1.2, color: 'hsl(120, 100%, 25%)', icon: '😨' },
+    { emotion: 'surprise', label: 'Surpresa', value: 2.8, color: 'hsl(180, 100%, 40%)', icon: '😲' },
+    { emotion: 'sadness', label: 'Tristeza', value: 1.5, color: 'hsl(220, 70%, 50%)', icon: '😢' },
+    { emotion: 'disgust', label: 'Aversão', value: 0.8, color: 'hsl(270, 50%, 60%)', icon: '🤢' },
+    { emotion: 'anger', label: 'Raiva', value: 0.5, color: 'hsl(15, 100%, 50%)', icon: '😠' },
+    { emotion: 'anticipation', label: 'Antecipação', value: 3.8, color: 'hsl(30, 100%, 50%)', icon: '🔮' },
   ];
 }
 
