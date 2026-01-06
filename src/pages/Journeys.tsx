@@ -52,6 +52,7 @@ export default function Journeys() {
   const [showMeditation, setShowMeditation] = useState(false);
   const [selectedTechnique, setSelectedTechnique] = useState<BreathingTechnique | null>(null);
   const [breathingStartTime, setBreathingStartTime] = useState<number>(0);
+  const [selectedMeditationId, setSelectedMeditationId] = useState<string | null>(null);
 
   const { data: selectedJourneyDays } = useJourneyDays(selectedJourney?.id);
 
@@ -120,7 +121,8 @@ export default function Journeys() {
     }
   };
 
-  const handleOpenMeditation = (_meditationId: string) => {
+  const handleOpenMeditation = (meditationId: string) => {
+    setSelectedMeditationId(meditationId);
     setShowDayContent(false);
     setShowMeditation(true);
   };
@@ -141,6 +143,7 @@ export default function Journeys() {
 
   const handleMeditationComplete = () => {
     setShowMeditation(false);
+    setSelectedMeditationId(null);
     toast.success('Meditação concluída!');
   };
 
@@ -333,8 +336,12 @@ export default function Journeys() {
       <AnimatePresence>
         {showMeditation && (
           <MeditationPlayer
-            onClose={() => setShowMeditation(false)}
+            onClose={() => {
+              setShowMeditation(false);
+              setSelectedMeditationId(null);
+            }}
             onComplete={handleMeditationComplete}
+            initialTrackId={selectedMeditationId || undefined}
           />
         )}
       </AnimatePresence>
