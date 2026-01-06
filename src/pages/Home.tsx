@@ -251,6 +251,14 @@ export default function Home() {
               onClick={handleNutrition}
               delay={0.35}
             />
+            <QuickActionCard
+              emoji="📊"
+              icon={BarChart3}
+              label="Insights"
+              color="secondary"
+              onClick={handleInsights}
+              delay={0.4}
+            />
           </div>
         </motion.div>
 
