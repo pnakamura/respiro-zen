@@ -36,11 +36,13 @@ export default function GuideChat() {
   const guideId = locationGuideId || preferredGuideId || guides?.[0]?.id;
   const { data: guide, isLoading: loadingGuide } = useGuide(guideId || null);
 
-  // Callback when stream starts - this triggers the transition phase
+  // Callback when stream starts - delay before triggering transition phase
   const handleStreamStart = useCallback(() => {
-    setPhase('transitioning');
-    // Keep typing indicator visible during transition
-    // The indicator's onExitComplete will handle revealing the assistant
+    // Keep indicator visible for 400-600ms more before starting exit
+    const transitionDelay = 400 + Math.random() * 200;
+    setTimeout(() => {
+      setPhase('transitioning');
+    }, transitionDelay);
   }, []);
 
   const {
@@ -122,7 +124,7 @@ export default function GuideChat() {
     }
   }, [phase]);
 
-  // Handle transitioning phase
+  // Handle transitioning phase + safety timeout
   useEffect(() => {
     if (phase === 'transitioning') {
       // Clear phrase interval
@@ -130,6 +132,15 @@ export default function GuideChat() {
         clearInterval(phraseIntervalRef.current);
         phraseIntervalRef.current = null;
       }
+      
+      // Safety timeout - if transition takes too long, force reveal
+      const safetyTimeout = setTimeout(() => {
+        console.warn('Safety timeout: forcing assistant reveal');
+        setCanRevealAssistant(true);
+        setPhase('responding');
+      }, 1500);
+      
+      return () => clearTimeout(safetyTimeout);
     }
   }, [phase]);
 
@@ -140,14 +151,11 @@ export default function GuideChat() {
     }
   }, [isSending, isStreaming, phase]);
 
-  // Handle typing indicator exit complete
+  // Handle typing indicator exit complete - immediately reveal assistant
   const handleTypingIndicatorExitComplete = useCallback(() => {
+    setCanRevealAssistant(true);
     if (phase === 'transitioning') {
-      // Wait a bit more before revealing the assistant message
-      setTimeout(() => {
-        setCanRevealAssistant(true);
-        setPhase('responding');
-      }, 150);
+      setPhase('responding');
     }
   }, [phase]);
 
@@ -218,7 +226,8 @@ export default function GuideChat() {
   });
 
   // Show typing indicator during reading, thinking, and transitioning phases
-  const showTypingIndicator = phase === 'reading' || phase === 'thinking' || phase === 'transitioning';
+  // Show typing indicator only during reading and thinking - NOT transitioning (so it exits)
+  const showTypingIndicator = phase === 'reading' || phase === 'thinking';
 
   // Get header status text
   const getStatusText = () => {
