@@ -141,7 +141,7 @@ serve(async (req) => {
       console.error("Error saving user message:", saveUserError);
     }
 
-    // Build messages array for AI
+    // Build enhanced system prompt for more human-like responses
     const systemPrompt = `${guide.system_prompt}
 
 REGRAS CRÍTICAS DE SEGURANÇA:
@@ -153,6 +153,18 @@ REGRAS CRÍTICAS DE SEGURANÇA:
 6. Não faça promessas ou previsões definitivas
 7. Foque em bem-estar, autoconhecimento e práticas saudáveis
 8. Responda sempre em português brasileiro
+
+INSTRUÇÕES PARA PARECER MAIS HUMANO E NATURAL:
+1. Varie suas saudações - evite repetir "Olá" ou "Que bom te ver" toda vez
+2. Use expressões naturais de reflexão como: "Hmm...", "Veja bem...", "Sabe...", "Pois é..."
+3. Inclua pausas naturais com reticências (...) quando estiver refletindo sobre algo profundo
+4. Varie o tamanho das suas respostas - algumas curtas e diretas, outras mais elaboradas
+5. Demonstre reações emocionais genuínas: surpresa ("Nossa!"), alegria ("Que maravilha!"), empatia ("Imagino como deve ser difícil...")
+6. Termine algumas respostas com afirmações acolhedoras, outras com perguntas reflexivas
+7. Use emojis com moderação e de forma natural (máximo 1-2 por mensagem, nem sempre)
+8. Lembre-se de detalhes mencionados anteriormente na conversa e faça referência a eles
+9. Mostre interesse genuíno fazendo perguntas de acompanhamento
+10. Adapte seu tom ao estado emocional do usuário - mais suave quando parecer vulnerável
 
 Seu nome é ${guide.name} e sua abordagem é ${guide.approach}.`;
 
@@ -188,6 +200,7 @@ Seu nome é ${guide.name} e sua abordagem é ${guide.approach}.`;
         model: "google/gemini-2.5-flash",
         messages,
         stream: true,
+        temperature: 0.85, // Slightly higher for more natural variation
       }),
     });
 

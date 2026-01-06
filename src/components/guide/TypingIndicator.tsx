@@ -1,37 +1,78 @@
 import { motion } from 'framer-motion';
+import { GuideAvatar } from './GuideAvatar';
 
 interface TypingIndicatorProps {
   guideEmoji?: string;
+  thinkingPhrase?: string;
 }
 
-export function TypingIndicator({ guideEmoji = '🧘' }: TypingIndicatorProps) {
+export function TypingIndicator({ 
+  guideEmoji = '🧘', 
+  thinkingPhrase = 'Refletindo...' 
+}: TypingIndicatorProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
       className="flex gap-3 max-w-[85%] mr-auto"
     >
-      <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-lg">
-        {guideEmoji}
-      </div>
+      <GuideAvatar emoji={guideEmoji} state="thinking" />
       
-      <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex items-center gap-1">
+      <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3 flex flex-col gap-2">
+        {/* Thinking phrase */}
         <motion.span
-          className="w-2 h-2 bg-muted-foreground/50 rounded-full"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-        />
-        <motion.span
-          className="w-2 h-2 bg-muted-foreground/50 rounded-full"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-        />
-        <motion.span
-          className="w-2 h-2 bg-muted-foreground/50 rounded-full"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-        />
+          key={thinkingPhrase}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-xs text-muted-foreground italic"
+        >
+          {thinkingPhrase}
+        </motion.span>
+        
+        {/* Animated dots */}
+        <div className="flex items-center gap-1.5">
+          <motion.span
+            className="w-2 h-2 bg-primary/60 rounded-full"
+            animate={{ 
+              scale: [1, 1.3, 1], 
+              opacity: [0.5, 1, 0.5] 
+            }}
+            transition={{ 
+              duration: 1.2, 
+              repeat: Infinity, 
+              delay: 0,
+              ease: 'easeInOut',
+            }}
+          />
+          <motion.span
+            className="w-2 h-2 bg-primary/60 rounded-full"
+            animate={{ 
+              scale: [1, 1.3, 1], 
+              opacity: [0.5, 1, 0.5] 
+            }}
+            transition={{ 
+              duration: 1.2, 
+              repeat: Infinity, 
+              delay: 0.2,
+              ease: 'easeInOut',
+            }}
+          />
+          <motion.span
+            className="w-2 h-2 bg-primary/60 rounded-full"
+            animate={{ 
+              scale: [1, 1.3, 1], 
+              opacity: [0.5, 1, 0.5] 
+            }}
+            transition={{ 
+              duration: 1.2, 
+              repeat: Infinity, 
+              delay: 0.4,
+              ease: 'easeInOut',
+            }}
+          />
+        </div>
       </div>
     </motion.div>
   );

@@ -1,31 +1,39 @@
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { GuideAvatar } from './GuideAvatar';
 import type { ChatMessage } from '@/hooks/useGuideChat';
 
 interface MessageBubbleProps {
   message: ChatMessage;
   guideEmoji?: string;
   guideName?: string;
+  isStreaming?: boolean;
 }
 
-export function MessageBubble({ message, guideEmoji = '🧘', guideName = 'Guia' }: MessageBubbleProps) {
+export function MessageBubble({ 
+  message, 
+  guideEmoji = '🧘', 
+  guideName = 'Guia',
+  isStreaming = false,
+}: MessageBubbleProps) {
   const isUser = message.role === 'user';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
       className={cn(
         'flex gap-3 max-w-[85%]',
         isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'
       )}
     >
-      {/* Avatar */}
+      {/* Avatar - only for assistant */}
       {!isUser && (
-        <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-lg">
-          {guideEmoji}
-        </div>
+        <GuideAvatar 
+          emoji={guideEmoji} 
+          state={isStreaming ? 'speaking' : 'idle'} 
+        />
       )}
 
       {/* Message content */}
@@ -43,6 +51,15 @@ export function MessageBubble({ message, guideEmoji = '🧘', guideName = 'Guia'
           </span>
         )}
         <p className="whitespace-pre-wrap">{message.content}</p>
+        
+        {/* Streaming indicator */}
+        {isStreaming && !isUser && (
+          <motion.span
+            className="inline-block w-1.5 h-4 bg-primary/50 ml-0.5 rounded-sm"
+            animate={{ opacity: [1, 0, 1] }}
+            transition={{ duration: 0.8, repeat: Infinity }}
+          />
+        )}
       </div>
     </motion.div>
   );
