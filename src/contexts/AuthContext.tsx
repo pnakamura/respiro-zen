@@ -113,8 +113,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Always clear local state first, regardless of Supabase response
+    setUser(null);
+    setSession(null);
     setUsuario(null);
+    
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      // Ignore errors - session is already invalid or expired
+      console.log('Sign out completed (session may have been expired)');
+    }
   };
 
   return (
