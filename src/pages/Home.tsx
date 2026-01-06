@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -30,6 +30,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
 import { useGamificationStats } from '@/hooks/useGamificationStats';
 import { useActiveUserJourney } from '@/hooks/useUserJourney';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { toast } from 'sonner';
 import type { EmotionType } from '@/types/breathing';
 
@@ -38,9 +39,10 @@ type BreathingTechnique = NonNullable<ReturnType<typeof useBreathingTechniques>[
 
 export default function Home() {
   const navigate = useNavigate();
-  const { usuario } = useAuth();
+  const { usuario, loading: authLoading } = useAuth();
   const { data: gamificationStats, isLoading: isLoadingStats } = useGamificationStats();
   const { data: activeJourney } = useActiveUserJourney();
+  const { isComplete: onboardingComplete, isLoading: onboardingLoading } = useOnboarding();
   
   const [showMoodModal, setShowMoodModal] = useState(false);
   const [showBreathingSelector, setShowBreathingSelector] = useState(false);
@@ -48,6 +50,13 @@ export default function Home() {
   const [showMeditation, setShowMeditation] = useState(false);
   const [showMealModal, setShowMealModal] = useState(false);
   const [selectedTechnique, setSelectedTechnique] = useState<BreathingTechnique | null>(null);
+  
+  // Redirect to onboarding if not logged in and not completed
+  useEffect(() => {
+    if (!authLoading && !onboardingLoading && !usuario && !onboardingComplete) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [authLoading, onboardingLoading, usuario, onboardingComplete, navigate]);
   
   const firstName = usuario?.nome_completo?.split(' ')[0];
   
