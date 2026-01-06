@@ -18,10 +18,10 @@ export function getRandomThinkingPhrase(): string {
  * Calculates a human-like thinking time based on message complexity
  */
 export function calculateThinkingTime(userMessage: string): number {
-  const baseTime = 1200; // 1.2 seconds minimum
-  const perCharTime = 15; // ms per character
-  const maxTime = 4500; // 4.5 seconds maximum
-  const randomVariation = Math.random() * 600 - 300; // +/- 300ms
+  const baseTime = 2500; // 2.5 seconds minimum - more time to "process"
+  const perCharTime = 30; // 30ms per character - slower, more thoughtful
+  const maxTime = 10000; // 10 seconds maximum - allows for deep reflection
+  const randomVariation = Math.random() * 1000 - 500; // +/- 500ms
   
   const messageLength = userMessage.length;
   
@@ -33,7 +33,8 @@ export function calculateThinkingTime(userMessage: string): number {
   const deepIndicators = [
     'sinto', 'ansioso', 'triste', 'medo', 'ajuda', 'difícil', 
     'angústia', 'sozinho', 'perdido', 'sentido', 'vida', 'morte',
-    'propósito', 'amor', 'relacionamento', 'dor'
+    'propósito', 'amor', 'relacionamento', 'dor', 'sofrimento',
+    'depressão', 'ansiedade', 'pânico', 'desespero', 'esperança'
   ];
   
   const hasDeepContent = deepIndicators.some(
@@ -41,7 +42,12 @@ export function calculateThinkingTime(userMessage: string): number {
   );
   
   if (hasDeepContent) {
-    calculatedTime += 800; // Extra reflection time for emotional content
+    calculatedTime += 1500; // Extra reflection time for emotional content
+  }
+  
+  // First messages get extra time (guide is "getting to know" the user)
+  if (messageLength < 50) {
+    calculatedTime += 800;
   }
   
   return Math.min(Math.max(calculatedTime, baseTime), maxTime);

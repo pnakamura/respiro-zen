@@ -57,7 +57,7 @@ export default function GuideChat() {
   // Add welcome message when guide loads
   useEffect(() => {
     if (guide?.welcome_message && messages.length === 0) {
-      // Delay welcome message slightly for natural feel
+      // Longer delay for welcome message - guide is "preparing" (800-1200ms)
       const timeout = setTimeout(() => {
         setMessages([{
           id: 'welcome',
@@ -65,7 +65,7 @@ export default function GuideChat() {
           content: guide.welcome_message,
           createdAt: new Date(),
         }]);
-      }, 400);
+      }, 800 + Math.random() * 400);
       return () => clearTimeout(timeout);
     }
   }, [guide, messages.length, setMessages]);
@@ -78,25 +78,29 @@ export default function GuideChat() {
       // Initial phrase
       setThinkingPhrase(getRandomThinkingPhrase());
       
-      // Show typing indicator after brief delay
-      const showDelay = 300 + Math.random() * 400;
+      // Longer initial delay - guide is "reading" the message (800-1400ms)
+      const readingDelay = 800 + Math.random() * 600;
       const showTimeout = setTimeout(() => {
         setShowTypingIndicator(true);
-      }, showDelay);
+      }, readingDelay);
       
-      // Change phrase periodically
+      // Change phrase more slowly - every 3.5 seconds
       const phraseInterval = setInterval(() => {
         setThinkingPhrase(getRandomThinkingPhrase());
-      }, 2500);
+      }, 3500);
       
       return () => {
         clearTimeout(showTimeout);
         clearInterval(phraseInterval);
       };
-    } else {
-      setShowTypingIndicator(false);
+    } else if (!isSending && showTypingIndicator) {
+      // Keep typing indicator visible for a bit longer when response starts (500ms overlap)
+      const hideTimeout = setTimeout(() => {
+        setShowTypingIndicator(false);
+      }, 500);
+      return () => clearTimeout(hideTimeout);
     }
-  }, [isSending, messages]);
+  }, [isSending, messages, showTypingIndicator]);
 
   const handleSend = () => {
     if (!inputValue.trim() || isSending) return;

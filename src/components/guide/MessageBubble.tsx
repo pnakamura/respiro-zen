@@ -20,9 +20,9 @@ export function MessageBubble({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
+      initial={{ opacity: 0, y: 15, scale: 0.95, filter: 'blur(2px)' }}
+      animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}
       className={cn(
         'flex gap-3 max-w-[85%]',
         isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'
