@@ -36,10 +36,13 @@ export default function GuideChat() {
   const guideId = locationGuideId || preferredGuideId || guides?.[0]?.id;
   const { data: guide, isLoading: loadingGuide } = useGuide(guideId || null);
 
-  // Callback when stream starts - delay before triggering transition phase
-  const handleStreamStart = useCallback(() => {
-    // Keep indicator visible for 600-1000ms more before starting exit
-    const transitionDelay = 600 + Math.random() * 400;
+  // Callback when stream starts - delay proportional to estimated response length
+  const handleStreamStart = useCallback((estimatedLength: number = 0) => {
+    // Base delay + proportional to estimated response size (up to 1200ms extra)
+    const baseDelay = 600;
+    const proportionalDelay = Math.min(estimatedLength * 1.5, 1200);
+    const transitionDelay = baseDelay + proportionalDelay + Math.random() * 400;
+    
     setTimeout(() => {
       setPhase('transitioning');
     }, transitionDelay);
@@ -344,7 +347,7 @@ export default function GuideChat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-48">
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-56">
         <div className="max-w-2xl mx-auto space-y-4">
           <AnimatePresence mode="popLayout">
             {visibleMessages.map((message, index) => (
@@ -389,7 +392,7 @@ export default function GuideChat() {
       </div>
 
       {/* Input */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 glass border-t border-border/50">
+      <div className="fixed bottom-[88px] left-0 right-0 p-4 pb-safe glass border-t border-border/50">
         <div className="max-w-2xl mx-auto flex gap-2">
           <Textarea
             ref={inputRef}

@@ -13,7 +13,7 @@ export interface ChatMessage {
 interface UseGuideChatOptions {
   guideId: string;
   onMessageComplete?: (message: ChatMessage) => void;
-  onStreamStart?: () => void;
+  onStreamStart?: (estimatedLength: number) => void;
 }
 
 export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseGuideChatOptions) {
@@ -111,7 +111,9 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
               if (!streamStartedRef.current) {
                 streamStartedRef.current = true;
                 setIsStreaming(true);
-                onStreamStart?.();
+                // Estimate total length as 5x the first chunk for proportional delay
+                const estimatedLength = displayedText.length * 5;
+                onStreamStart?.(estimatedLength);
               }
               return [...prev, {
                 id: assistantMessageId,

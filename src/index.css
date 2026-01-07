@@ -339,6 +339,10 @@
     padding-top: max(env(safe-area-inset-top, 16px), 16px);
   }
 
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
   /* Plutchik Wheel Styles */
   .wheel-segment {
     @apply transition-all duration-300 cursor-pointer;
