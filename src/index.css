@@ -195,6 +195,25 @@
     --sidebar-accent-foreground: 220 15% 90%;
     --sidebar-border: 222 15% 16%;
     --sidebar-ring: 168 60% 50%;
+
+    /* === GLOW EFFECTS === */
+    --glow-primary: 0 0 20px hsl(168 60% 50% / 0.4);
+    --glow-primary-strong: 0 0 40px hsl(168 60% 50% / 0.6);
+    --glow-secondary: 0 0 20px hsl(12 75% 58% / 0.4);
+    --glow-accent: 0 0 20px hsl(210 50% 50% / 0.4);
+    --glow-purple: 0 0 20px hsl(270 60% 60% / 0.4);
+    --glow-joy: 0 0 15px hsl(48 90% 55% / 0.5);
+    --glow-trust: 0 0 15px hsl(145 45% 48% / 0.5);
+    --glow-calm: 0 0 15px hsl(168 60% 50% / 0.5);
+    
+    /* Text Glow */
+    --text-glow-primary: 0 0 12px hsl(168 60% 50% / 0.6);
+    --text-glow-secondary: 0 0 12px hsl(12 75% 58% / 0.5);
+    --text-glow-accent: 0 0 12px hsl(210 50% 50% / 0.5);
+    
+    /* Border Glow */
+    --border-glow: 0 0 10px hsl(168 60% 50% / 0.3);
+    --border-glow-hover: 0 0 16px hsl(168 60% 50% / 0.5);
   }
 }
 
@@ -420,6 +439,104 @@
   @keyframes skeleton-loading {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+  }
+
+  /* === DARK MODE GLOW EFFECTS === */
+  
+  /* Text Glow */
+  .dark .text-glow {
+    text-shadow: var(--text-glow-primary);
+  }
+  
+  .dark .text-glow-secondary {
+    text-shadow: var(--text-glow-secondary);
+  }
+  
+  .dark .text-glow-strong {
+    text-shadow: 0 0 20px hsl(168 60% 50% / 0.8);
+  }
+  
+  /* Border Glow */
+  .dark .border-glow {
+    box-shadow: var(--border-glow);
+    border-color: hsl(168 60% 50% / 0.25);
+  }
+  
+  .dark .border-glow:hover {
+    box-shadow: var(--border-glow-hover);
+    border-color: hsl(168 60% 50% / 0.4);
+  }
+  
+  /* Card Glow */
+  .dark .card-glow {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  
+  .dark .card-glow:hover {
+    box-shadow: var(--glow-primary);
+    border-color: hsl(168 60% 50% / 0.3);
+  }
+  
+  /* Icon Glow */
+  .dark .icon-glow {
+    filter: drop-shadow(0 0 6px hsl(168 60% 50% / 0.6));
+  }
+  
+  .dark .icon-glow-secondary {
+    filter: drop-shadow(0 0 6px hsl(12 75% 58% / 0.6));
+  }
+  
+  /* Button Glow Primary */
+  .dark .btn-glow-primary {
+    box-shadow: 0 0 18px hsl(168 60% 50% / 0.35);
+  }
+  
+  .dark .btn-glow-primary:hover {
+    box-shadow: 0 0 28px hsl(168 60% 50% / 0.55);
+  }
+  
+  /* Navigation Glow */
+  .dark .nav-glow-active {
+    box-shadow: 0 0 12px hsl(168 60% 50% / 0.4);
+  }
+  
+  /* Input Glow Focus */
+  .dark .input-glow:focus {
+    box-shadow: 0 0 0 3px hsl(168 60% 50% / 0.15), 0 0 15px hsl(168 60% 50% / 0.2);
+    border-color: hsl(168 60% 50% / 0.5);
+  }
+  
+  /* Badge Glow */
+  .dark .badge-glow {
+    box-shadow: 0 0 10px hsl(168 60% 50% / 0.4);
+  }
+  
+  /* Animated Glow Pulse */
+  .dark .animate-glow-pulse {
+    animation: glow-pulse-dark 2.5s ease-in-out infinite;
+  }
+  
+  @keyframes glow-pulse-dark {
+    0%, 100% {
+      box-shadow: 0 0 15px hsl(168 60% 50% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(168 60% 50% / 0.5);
+    }
+  }
+  
+  /* Text Glow Pulse Animation */
+  .dark .animate-text-glow {
+    animation: text-glow-pulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes text-glow-pulse {
+    0%, 100% {
+      text-shadow: 0 0 8px hsl(168 60% 50% / 0.5);
+    }
+    50% {
+      text-shadow: 0 0 18px hsl(168 60% 50% / 0.8);
+    }
   }
 }
 
