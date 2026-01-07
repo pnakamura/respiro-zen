@@ -28,7 +28,11 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
   const pacer = useStreamingPacer();
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || isLoading) return;
+    // Block if already loading OR streaming (prevents concurrent messages)
+    if (!content.trim() || isLoading || isStreaming) return;
+
+    // Stop any existing pacer before starting new message
+    pacer.stop();
 
     setIsLoading(true);
     setIsStreaming(false);
@@ -213,7 +217,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
       setIsStreaming(false);
       abortControllerRef.current = null;
     }
-  }, [guideId, conversationId, isLoading, onMessageComplete, onStreamStart, pacer]);
+  }, [guideId, conversationId, isLoading, isStreaming, onMessageComplete, onStreamStart, pacer]);
 
   const cancelRequest = useCallback(() => {
     abortControllerRef.current?.abort();
