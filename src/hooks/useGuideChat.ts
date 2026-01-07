@@ -49,26 +49,34 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   
+  // All refs - call unconditionally
   const abortControllerRef = useRef<AbortController | null>(null);
   const assistantMessageIdRef = useRef<string | null>(null);
   const streamStartedRef = useRef(false);
   const historyLoadedRef = useRef(false);
-  const conversationIdRef = useRef<string | null>(null); // Sync ref for immediate access
+  const conversationIdRef = useRef<string | null>(null);
   const initializedGuideIdRef = useRef<string | null>(null);
   
+  // Custom hook - must be called unconditionally
   const pacer = useStreamingPacer();
 
-  // Load stored conversationId when guideId first becomes available
+  // Load stored conversationId when guideId becomes available
+  // Using a separate effect for initialization to avoid race conditions
   useEffect(() => {
-    if (guideId && guideId !== initializedGuideIdRef.current) {
-      initializedGuideIdRef.current = guideId;
-      const storedId = getStoredConversationId(guideId);
-      if (storedId) {
-        conversationIdRef.current = storedId;
-        setConversationId(storedId);
-      }
-      setIsInitialized(true);
+    // Skip if no guideId or already initialized for this guide
+    if (!guideId || guideId === initializedGuideIdRef.current) {
+      return;
     }
+    
+    initializedGuideIdRef.current = guideId;
+    const storedId = getStoredConversationId(guideId);
+    
+    if (storedId) {
+      conversationIdRef.current = storedId;
+      setConversationId(storedId);
+    }
+    
+    setIsInitialized(true);
   }, [guideId]);
 
   // Keep ref in sync with state
