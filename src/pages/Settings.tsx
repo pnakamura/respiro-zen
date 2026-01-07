@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, Moon, Sun, Monitor, Bell, BellOff, Lock, Info, ChevronRight, Palette, Shield } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Lock, Info, ChevronRight, Palette, Shield, Smartphone, Download, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
-import { Switch } from '@/components/ui/switch';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 type ThemeOption = 'light' | 'dark' | 'system';
 
@@ -13,7 +13,7 @@ export default function Settings() {
   const navigate = useNavigate();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+  const { isInstallable, isInstalled, isIOS, promptInstall } = usePWAInstall();
 
   useEffect(() => {
     setMounted(true);
@@ -96,43 +96,65 @@ export default function Settings() {
           </div>
         </motion.section>
 
-        {/* Notifications Section */}
+        {/* App Installation Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
           <div className="flex items-center gap-2 mb-3 px-1">
-            <Bell className="w-4 h-4 text-primary dark:icon-glow" />
+            <Smartphone className="w-4 h-4 text-primary dark:icon-glow" />
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider dark:text-glow">
-              Notificações
+              Aplicativo
             </h2>
           </div>
           
-          <div className="card-elevated divide-y divide-border/50 overflow-hidden dark:border-glow dark:card-glow">
-            <div className="flex items-center justify-between p-4">
+          <div className="card-elevated p-4 dark:border-glow dark:card-glow">
+            {isInstalled ? (
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
-                  {notifications ? (
-                    <Bell className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <BellOff className="w-4 h-4 text-muted-foreground" />
-                  )}
+                <div className="w-9 h-9 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-foreground block">
-                    Lembretes Diários
-                  </span>
+                  <span className="text-sm font-medium text-foreground block">Aplicativo Instalado</span>
                   <span className="text-xs text-muted-foreground">
-                    Receba lembretes de bem-estar
+                    ETHRA está na sua tela inicial
                   </span>
                 </div>
               </div>
-              <Switch
-                checked={notifications}
-                onCheckedChange={setNotifications}
-              />
-            </div>
+            ) : isIOS ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
+                    <Download className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">Instalar no iPhone/iPad</span>
+                </div>
+                <ol className="text-xs text-muted-foreground space-y-1 pl-12">
+                  <li>1. Toque em ⬆️ (Compartilhar)</li>
+                  <li>2. Toque em "Adicionar à Tela de Início"</li>
+                </ol>
+              </div>
+            ) : (
+              <button
+                onClick={promptInstall}
+                disabled={!isInstallable}
+                className="w-full flex items-center justify-between hover:bg-muted/30 transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Download className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-medium text-foreground block">Instalar Aplicativo</span>
+                    <span className="text-xs text-muted-foreground">
+                      {isInstallable ? 'Acesse direto da sua tela inicial' : 'Disponível via navegador compatível'}
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </button>
+            )}
           </div>
         </motion.section>
 
