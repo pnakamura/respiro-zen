@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useStreamingPacer } from './useStreamingPacer';
@@ -16,16 +16,82 @@ interface UseGuideChatOptions {
   onStreamStart?: (estimatedLength: number) => void;
 }
 
+// Persist conversation ID per guide in localStorage
+const getStoredConversationId = (guideId: string): string | null => {
+  try {
+    return localStorage.getItem(`guide_conversation_${guideId}`);
+  } catch {
+    return null;
+  }
+};
+
+const storeConversationId = (guideId: string, conversationId: string) => {
+  try {
+    localStorage.setItem(`guide_conversation_${guideId}`, conversationId);
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+const removeStoredConversationId = (guideId: string) => {
+  try {
+    localStorage.removeItem(`guide_conversation_${guideId}`);
+  } catch {
+    // Ignore storage errors
+  }
+};
+
 export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseGuideChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(() => 
+    guideId ? getStoredConversationId(guideId) : null
+  );
   const abortControllerRef = useRef<AbortController | null>(null);
   const assistantMessageIdRef = useRef<string | null>(null);
   const streamStartedRef = useRef(false);
 
   const pacer = useStreamingPacer();
+  const historyLoadedRef = useRef(false);
+
+  // Persist conversationId to localStorage when it changes
+  useEffect(() => {
+    if (conversationId && guideId) {
+      storeConversationId(guideId, conversationId);
+    }
+  }, [conversationId, guideId]);
+
+  // Load conversation history when hook initializes with existing conversationId
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!conversationId || historyLoadedRef.current || messages.length > 0) return;
+      
+      historyLoadedRef.current = true;
+      
+      const { data, error } = await supabase
+        .from('guide_messages')
+        .select('id, role, content, created_at')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+      
+      if (error) {
+        console.error('Failed to load conversation history:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        setMessages(data.map(msg => ({
+          id: msg.id,
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+          createdAt: new Date(msg.created_at || Date.now()),
+        })));
+      }
+    };
+    
+    loadHistory();
+  }, [conversationId, messages.length]);
 
   const sendMessage = useCallback(async (content: string) => {
     // Block if already loading OR streaming (prevents concurrent messages)
@@ -229,8 +295,13 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
   const clearMessages = useCallback(() => {
     setMessages([]);
     setConversationId(null);
+    historyLoadedRef.current = false;
     pacer.stop();
-  }, [pacer]);
+    // Clear from localStorage too
+    if (guideId) {
+      removeStoredConversationId(guideId);
+    }
+  }, [pacer, guideId]);
 
   return {
     messages,

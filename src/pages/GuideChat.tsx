@@ -347,7 +347,7 @@ export default function GuideChat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-56">
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-64">
         <div className="max-w-2xl mx-auto space-y-4">
           <AnimatePresence mode="popLayout">
             {visibleMessages.map((message, index) => (
@@ -392,7 +392,7 @@ export default function GuideChat() {
       </div>
 
       {/* Input */}
-      <div className="fixed bottom-[88px] left-0 right-0 p-4 pb-safe glass border-t border-border/50">
+      <div className="fixed bottom-[100px] left-0 right-0 p-4 pb-safe glass border-t border-border/50">
         <div className="max-w-2xl mx-auto flex gap-2">
           <Textarea
             ref={inputRef}
