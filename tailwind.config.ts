@@ -178,7 +178,23 @@ export default {
           "0%": { transform: "scale(0.8)", opacity: "0" },
           "60%": { transform: "scale(1.05)" },
           "100%": { transform: "scale(1)", opacity: "1" }
-        }
+        },
+        "glow-pulse-teal": {
+          "0%, 100%": { 
+            boxShadow: "0 0 20px hsl(168 60% 50% / 0.3)",
+          },
+          "50%": { 
+            boxShadow: "0 0 40px hsl(168 60% 50% / 0.6)",
+          }
+        },
+        "border-glow-pulse": {
+          "0%, 100%": { 
+            boxShadow: "0 0 8px hsl(168 60% 50% / 0.3)",
+          },
+          "50%": { 
+            boxShadow: "0 0 18px hsl(168 60% 50% / 0.5)",
+          }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -196,6 +212,8 @@ export default {
         "glow-pulse-purple": "glow-pulse-purple 3s ease-in-out infinite",
         "float-subtle": "float-subtle 3s ease-in-out infinite",
         "scale-bounce": "scale-bounce 0.4s ease-out",
+        "glow-pulse-teal": "glow-pulse-teal 2.5s ease-in-out infinite",
+        "border-glow-pulse": "border-glow-pulse 2s ease-in-out infinite",
       },
       backdropBlur: {
         xs: '2px',

@@ -14,6 +14,7 @@ import Journal from "./pages/Journal";
 import Insights from "./pages/Insights";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Privacy from "./pages/Privacy";
 import EmotionResult from "./pages/EmotionResult";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -42,6 +43,7 @@ const App: React.FC = () => (
               <Route path="/insights" element={<Insights />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/privacy" element={<Privacy />} />
               <Route path="/emotion-result" element={<EmotionResult />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/journeys" element={<Journeys />} />
