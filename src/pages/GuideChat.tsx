@@ -170,8 +170,8 @@ export default function GuideChat() {
   }, [phase]);
 
   const handleSend = () => {
-    if (!inputValue.trim() || isSending) return;
-    setPhase('idle'); // Reset phase before sending
+    if (!inputValue.trim() || isSending || isStreaming) return;
+    // Don't reset phase here - let the state machine flow naturally
     sendMessage(inputValue);
     setInputValue('');
   };
@@ -184,7 +184,8 @@ export default function GuideChat() {
   };
 
   const handleSuggestedQuestion = (question: string) => {
-    setPhase('idle');
+    if (isSending || isStreaming) return;
+    // Don't reset phase here - let the state machine flow naturally
     sendMessage(question);
   };
 
@@ -219,15 +220,15 @@ export default function GuideChat() {
     ? guide.suggested_questions 
     : [];
 
-  // Determine which messages to show
+  // Determine which messages to show - hide last assistant until canRevealAssistant is true
   const visibleMessages = messages.filter((msg, index) => {
     // Always show user messages
     if (msg.role === 'user') return true;
     
-    // For the last assistant message during transition, check if we can reveal
+    // For the last assistant message, only show when canRevealAssistant is true
+    // This ensures the message never appears before TypingIndicator exits
     if (msg.role === 'assistant' && index === messages.length - 1) {
-      // If we're in transitioning phase, don't show yet
-      if (phase === 'transitioning' || (phase === 'responding' && !canRevealAssistant)) {
+      if (!canRevealAssistant) {
         return false;
       }
     }
@@ -397,11 +398,11 @@ export default function GuideChat() {
             onKeyDown={handleKeyDown}
             placeholder="Digite sua mensagem..."
             className="min-h-[48px] max-h-32 resize-none rounded-xl bg-background"
-            disabled={isSending || !guideId}
+            disabled={isSending || isStreaming || !guideId}
           />
           <Button
             onClick={handleSend}
-            disabled={!inputValue.trim() || isSending || !guideId}
+            disabled={!inputValue.trim() || isSending || isStreaming || !guideId}
             size="icon"
             className="h-12 w-12 rounded-xl flex-shrink-0"
           >
