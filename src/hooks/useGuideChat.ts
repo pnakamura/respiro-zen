@@ -42,18 +42,28 @@ const removeStoredConversationId = (guideId: string) => {
 };
 
 export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseGuideChatOptions) {
+  // All hooks must be called unconditionally and in same order
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(() => 
-    guideId ? getStoredConversationId(guideId) : null
-  );
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const assistantMessageIdRef = useRef<string | null>(null);
   const streamStartedRef = useRef(false);
-
-  const pacer = useStreamingPacer();
   const historyLoadedRef = useRef(false);
+  const pacer = useStreamingPacer();
+  const initializedGuideIdRef = useRef<string | null>(null);
+
+  // Load stored conversationId when guideId first becomes available
+  useEffect(() => {
+    if (guideId && guideId !== initializedGuideIdRef.current) {
+      initializedGuideIdRef.current = guideId;
+      const storedId = getStoredConversationId(guideId);
+      if (storedId) {
+        setConversationId(storedId);
+      }
+    }
+  }, [guideId]);
 
   // Persist conversationId to localStorage when it changes
   useEffect(() => {
