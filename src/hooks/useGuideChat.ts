@@ -46,13 +46,17 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  
   const abortControllerRef = useRef<AbortController | null>(null);
   const assistantMessageIdRef = useRef<string | null>(null);
   const streamStartedRef = useRef(false);
   const historyLoadedRef = useRef(false);
-  const pacer = useStreamingPacer();
+  const conversationIdRef = useRef<string | null>(null); // Sync ref for immediate access
   const initializedGuideIdRef = useRef<string | null>(null);
+  
+  const pacer = useStreamingPacer();
 
   // Load stored conversationId when guideId first becomes available
   useEffect(() => {
@@ -60,10 +64,17 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
       initializedGuideIdRef.current = guideId;
       const storedId = getStoredConversationId(guideId);
       if (storedId) {
+        conversationIdRef.current = storedId;
         setConversationId(storedId);
       }
+      setIsInitialized(true);
     }
   }, [guideId]);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
 
   // Persist conversationId to localStorage when it changes
   useEffect(() => {
@@ -104,8 +115,8 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
   }, [conversationId, messages.length]);
 
   const sendMessage = useCallback(async (content: string) => {
-    // Block if already loading OR streaming (prevents concurrent messages)
-    if (!content.trim() || isLoading || isStreaming) return;
+    // Block if not initialized, already loading OR streaming (prevents concurrent messages)
+    if (!content.trim() || !isInitialized || isLoading || isStreaming) return;
 
     // Stop any existing pacer before starting new message
     pacer.stop();
@@ -144,7 +155,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
           body: JSON.stringify({
             guideId,
             message: content.trim(),
-            conversationId,
+            conversationId: conversationIdRef.current, // Use ref for sync access
           }),
           signal: abortControllerRef.current.signal,
         }
@@ -152,7 +163,8 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
 
       // Get conversation ID from response header
       const newConversationId = response.headers.get('X-Conversation-Id');
-      if (newConversationId && !conversationId) {
+      if (newConversationId && !conversationIdRef.current) {
+        conversationIdRef.current = newConversationId;
         setConversationId(newConversationId);
       }
 
@@ -295,7 +307,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
       setIsStreaming(false);
       abortControllerRef.current = null;
     }
-  }, [guideId, conversationId, isLoading, isStreaming, onMessageComplete, onStreamStart, pacer]);
+  }, [guideId, isInitialized, isLoading, isStreaming, onMessageComplete, onStreamStart, pacer]);
 
   const cancelRequest = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -304,6 +316,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
 
   const clearMessages = useCallback(() => {
     setMessages([]);
+    conversationIdRef.current = null;
     setConversationId(null);
     historyLoadedRef.current = false;
     pacer.stop();
@@ -317,6 +330,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
     messages,
     isLoading,
     isStreaming,
+    isInitialized,
     conversationId,
     sendMessage,
     cancelRequest,
