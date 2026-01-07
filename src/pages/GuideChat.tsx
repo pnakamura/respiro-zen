@@ -48,6 +48,9 @@ export default function GuideChat() {
     }, transitionDelay);
   }, []);
 
+  // Use stable guideId - never change from empty to non-empty (prevents hooks reorder)
+  const stableGuideId = guideId || '';
+  
   const {
     messages,
     isLoading: isSending,
@@ -56,7 +59,7 @@ export default function GuideChat() {
     clearMessages,
     setMessages,
   } = useGuideChat({ 
-    guideId: guideId || '',
+    guideId: stableGuideId,
     onStreamStart: handleStreamStart,
   });
 
