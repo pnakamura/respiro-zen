@@ -72,7 +72,7 @@ const Index = () => {
                 transition={{ delay: 0.3 }}
                 className="mt-6 text-3xl font-bold text-foreground"
               >
-                Respira
+                ETHRA
               </motion.h1>
               
               <motion.p
@@ -81,7 +81,7 @@ const Index = () => {
                 transition={{ delay: 0.5 }}
                 className="mt-2 text-muted-foreground"
               >
-                Encontre sua paz interior
+                Meditação & Bem-Estar
               </motion.p>
 
               <motion.div
