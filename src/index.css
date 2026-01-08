@@ -40,6 +40,13 @@
 
     --radius: 1rem;
 
+    /* Landing Page - Zen Theme */
+    --landing-bg: 240 10% 98%;
+    --landing-lavender: 240 67% 94%;
+    --landing-sage: 145 40% 55%;
+    --landing-serene: 210 50% 60%;
+    --landing-text: 220 25% 20%;
+
     /* Emotion Palette - Rich & Expressive */
     --calm: 168 65% 40%;
     --calm-light: 168 50% 92%;

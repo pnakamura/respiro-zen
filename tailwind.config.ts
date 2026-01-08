@@ -80,6 +80,14 @@ export default {
         disgust: "hsl(var(--disgust))",
         anger: "hsl(var(--anger))",
         anticipation: "hsl(var(--anticipation))",
+        // Landing page colors
+        landing: {
+          bg: "hsl(var(--landing-bg))",
+          lavender: "hsl(var(--landing-lavender))",
+          sage: "hsl(var(--landing-sage))",
+          serene: "hsl(var(--landing-serene))",
+          text: "hsl(var(--landing-text))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

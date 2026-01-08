@@ -10,6 +10,7 @@ import { initAccessibility } from "@/hooks/useAccessibility";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Onboarding from "./pages/Onboarding";
+import Landing from "./pages/Landing";
 import Nutrition from "./pages/Nutrition";
 import Journal from "./pages/Journal";
 import Insights from "./pages/Insights";
@@ -41,6 +42,7 @@ const App: React.FC = () => (
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/landing" element={<Landing />} />
               <Route path="/nutrition" element={<Nutrition />} />
               <Route path="/legacy" element={<Index />} />
               <Route path="/journal" element={<Journal />} />

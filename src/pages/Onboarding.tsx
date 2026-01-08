@@ -165,7 +165,7 @@ export default function Onboarding() {
 
   const handleSkipToAuth = () => {
     completeOnboarding();
-    navigate('/auth');
+    navigate('/landing');
   };
 
   const recommendations = getRecommendations(preferences.goals);
