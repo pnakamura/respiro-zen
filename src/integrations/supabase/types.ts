@@ -1524,6 +1524,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_accessibility_settings: {
+        Row: {
+          created_at: string
+          font_scale: string
+          high_contrast: boolean
+          reduce_motion: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          font_scale?: string
+          high_contrast?: boolean
+          reduce_motion?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          font_scale?: string
+          high_contrast?: boolean
+          reduce_motion?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_guide_preferences: {
         Row: {
           created_at: string | null
