@@ -1,28 +1,49 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Moon, Brain, Heart } from 'lucide-react';
+import { MessageCircleHeart, Route, Wind, Brain, BookHeart, Sparkles } from 'lucide-react';
 
 const features = [
   {
-    icon: Moon,
-    title: 'Durma Melhor',
-    description: 'Histórias relaxantes e frequências sonoras cientificamente projetadas para um sono profundo e restaurador.',
-    gradient: 'from-indigo-400 to-purple-500',
-    bgLight: 'bg-indigo-50',
+    icon: MessageCircleHeart,
+    title: 'Guias Personalizados',
+    description: 'Converse com guias espirituais de diferentes abordagens: Budista, Neurociência, Esotérica. Você escolhe quem te acompanha.',
+    gradient: 'from-violet-400 to-purple-500',
+    bgLight: 'bg-violet-50',
+  },
+  {
+    icon: Route,
+    title: 'Jornadas Temáticas',
+    description: 'Trilhas de 7 a 21 dias sobre temas como Estoicismo, MBSR, Chakras e Breathwork. Evolua no seu ritmo.',
+    gradient: 'from-teal-400 to-emerald-500',
+    bgLight: 'bg-teal-50',
+  },
+  {
+    icon: Wind,
+    title: 'Respiração Inteligente',
+    description: 'Técnicas como 4-7-8, Box Breathing e Wim Hof adaptadas ao seu estado emocional do momento.',
+    gradient: 'from-sky-400 to-blue-500',
+    bgLight: 'bg-sky-50',
   },
   {
     icon: Brain,
-    title: 'Foco Total',
-    description: 'Sessões curtas de 5-15 minutos para aumentar sua produtividade e clareza mental durante o dia.',
+    title: 'Roda das Emoções',
+    description: 'Mapeie seus sentimentos com a Roda de Plutchik e receba práticas personalizadas para cada estado.',
     gradient: 'from-amber-400 to-orange-500',
     bgLight: 'bg-amber-50',
   },
   {
-    icon: Heart,
-    title: 'Controle da Ansiedade',
-    description: 'Técnicas de respiração guiada para acalmar crises de ansiedade e recuperar o equilíbrio emocional.',
+    icon: BookHeart,
+    title: 'Diário & Nutrição Consciente',
+    description: 'Registre reflexões e conecte alimentação com emoções. Entenda padrões de fome emocional.',
     gradient: 'from-rose-400 to-pink-500',
     bgLight: 'bg-rose-50',
+  },
+  {
+    icon: Sparkles,
+    title: 'Relatórios com IA',
+    description: 'Análises semanais geradas por inteligência artificial sobre seu progresso emocional e conquistas.',
+    gradient: 'from-indigo-400 to-purple-500',
+    bgLight: 'bg-indigo-50',
   },
 ];
 
@@ -48,7 +69,7 @@ export const FeaturesSection: React.FC = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
