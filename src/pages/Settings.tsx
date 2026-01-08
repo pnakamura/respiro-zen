@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
-import { ArrowLeft, Moon, Sun, Monitor, Lock, Info, ChevronRight, Palette, Shield, Smartphone, Download, Check } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Monitor, Lock, Info, ChevronRight, Palette, Shield, Smartphone, Download, Check, Eye, Type, ZoomIn, Maximize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useAccessibility, FontScale } from '@/hooks/useAccessibility';
 
 type ThemeOption = 'light' | 'dark' | 'system';
 
@@ -14,6 +15,7 @@ export default function Settings() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { isInstallable, isInstalled, isIOS, promptInstall } = usePWAInstall();
+  const { fontScale, setFontScale, mounted: accessibilityMounted } = useAccessibility();
 
   useEffect(() => {
     setMounted(true);
@@ -23,6 +25,12 @@ export default function Settings() {
     { value: 'light', label: 'Claro', icon: Sun },
     { value: 'dark', label: 'Escuro', icon: Moon },
     { value: 'system', label: 'Sistema', icon: Monitor },
+  ];
+
+  const fontScaleOptions: { value: FontScale; label: string; icon: React.ElementType }[] = [
+    { value: 'normal', label: 'Normal', icon: Type },
+    { value: 'large', label: 'Grande', icon: ZoomIn },
+    { value: 'xlarge', label: 'Extra Grande', icon: Maximize2 },
   ];
 
   const currentTheme = (theme as ThemeOption) || 'system';
@@ -96,6 +104,62 @@ export default function Settings() {
           </div>
         </motion.section>
 
+        {/* Accessibility Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <Eye className="w-4 h-4 text-primary dark:icon-glow" />
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider dark:text-glow">
+              Acessibilidade
+            </h2>
+          </div>
+          
+          <div className="card-elevated p-4 space-y-4 dark:border-glow dark:card-glow">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">Tamanho do Texto</span>
+              {accessibilityMounted && (
+                <span className="text-xs text-muted-foreground">
+                  {fontScale === 'normal' ? '100%' : fontScale === 'large' ? '115%' : '130%'}
+                </span>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-3 gap-2">
+              {fontScaleOptions.map((option) => {
+                const Icon = option.icon;
+                const isSelected = fontScale === option.value;
+                
+                return (
+                  <button
+                    key={option.value}
+                    onClick={() => setFontScale(option.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-200",
+                      isSelected 
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 dark:shadow-primary/40 dark:btn-glow-primary" 
+                        : "bg-muted hover:bg-muted/80 text-muted-foreground dark:hover:border-glow"
+                    )}
+                  >
+                    <Icon className={cn("w-5 h-5", isSelected && "dark:icon-glow")} />
+                    <span className="text-xs font-medium">{option.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Preview */}
+            <div className="mt-4 p-3 rounded-xl bg-muted/50 border border-border/50">
+              <p className="text-xs text-muted-foreground mb-1">Pré-visualização:</p>
+              <p className="text-sm text-foreground leading-relaxed">
+                Este é um exemplo de como o texto aparecerá no aplicativo. Ajuste o tamanho para melhor conforto visual.
+              </p>
+            </div>
+          </div>
+        </motion.section>
+
         {/* App Installation Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -162,7 +226,7 @@ export default function Settings() {
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.35 }}
         >
           <div className="flex items-center gap-2 mb-3 px-1">
             <Lock className="w-4 h-4 text-primary dark:icon-glow" />
@@ -208,7 +272,7 @@ export default function Settings() {
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.45 }}
         >
           <div className="flex items-center gap-2 mb-3 px-1">
             <Info className="w-4 h-4 text-primary dark:icon-glow" />

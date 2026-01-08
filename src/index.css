@@ -227,6 +227,15 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Accessibility - Font Scaling */
+  html.font-scale-large {
+    font-size: 115%;
+  }
+
+  html.font-scale-xlarge {
+    font-size: 130%;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Plus Jakarta Sans', sans-serif;
