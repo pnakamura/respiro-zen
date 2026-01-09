@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useMeditationTracks, useMeditationCategories } from '@/hooks/useMeditationTracks';
 import { cn } from '@/lib/utils';
-import { Tables } from '@/integrations/supabase/types';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { useFavoriteMeditations } from '@/hooks/useFavorites';
 
-type DbMeditationTrack = Tables<'meditation_tracks'>;
+// Usar tipo inferido do hook para compatibilidade
+type MeditationTrack = NonNullable<ReturnType<typeof useMeditationTracks>['data']>[number];
 
 interface MeditationPlayerProps {
   onClose: () => void;
@@ -21,7 +21,7 @@ export function MeditationPlayer({ onClose, onComplete, initialTrackId }: Medita
   const { data: tracks, isLoading } = useMeditationTracks();
   const { data: categories } = useMeditationCategories();
   const { data: favorites } = useFavoriteMeditations();
-  const [selectedTrack, setSelectedTrack] = useState<DbMeditationTrack | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<MeditationTrack | null>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -60,12 +60,12 @@ export function MeditationPlayer({ onClose, onComplete, initialTrackId }: Medita
     return category?.name || 'Meditação';
   };
 
-  const getAudioUrl = (track: DbMeditationTrack) => {
+  const getAudioUrl = (track: MeditationTrack) => {
     // Prefer narration audio, fallback to background audio
     return track.narration_audio_url || track.background_audio_url;
   };
 
-  const handleTrackSelect = (track: DbMeditationTrack) => {
+  const handleTrackSelect = (track: MeditationTrack) => {
     const audioUrl = getAudioUrl(track);
     if (!audioUrl) {
       console.error('No audio URL available for track:', track.title);

@@ -11,7 +11,8 @@ import {
   X, 
   Settings,
   ChevronLeft,
-  MessageCircle
+  MessageCircle,
+  Lock
 } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { label: 'Meditações', href: '/admin/meditation', icon: Music },
   { label: 'Jornadas', href: '/admin/journeys', icon: Compass },
   { label: 'Guias', href: '/admin/guides', icon: MessageCircle },
+  { label: 'Acessos', href: '/admin/access', icon: Lock },
 ];
 
 export function AdminLayout() {

@@ -135,6 +135,7 @@ export type Database = {
       }
       breathing_techniques: {
         Row: {
+          access_level: string | null
           background_audio_url: string | null
           bg_class: string | null
           color_class: string | null
@@ -161,6 +162,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          access_level?: string | null
           background_audio_url?: string | null
           bg_class?: string | null
           color_class?: string | null
@@ -187,6 +189,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          access_level?: string | null
           background_audio_url?: string | null
           bg_class?: string | null
           color_class?: string | null
@@ -349,6 +352,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      feature_access_levels: {
+        Row: {
+          category: string
+          created_at: string | null
+          feature_description: string | null
+          feature_key: string
+          feature_name: string
+          id: string
+          is_active: boolean | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          feature_description?: string | null
+          feature_key: string
+          feature_name: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          feature_description?: string | null
+          feature_key?: string
+          feature_name?: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Relationships: []
       }
       gamification_achievements: {
         Row: {
@@ -884,6 +917,7 @@ export type Database = {
       }
       meditation_tracks: {
         Row: {
+          access_level: string | null
           background_audio_url: string | null
           category_id: string | null
           created_at: string | null
@@ -903,6 +937,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          access_level?: string | null
           background_audio_url?: string | null
           category_id?: string | null
           created_at?: string | null
@@ -922,6 +957,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          access_level?: string | null
           background_audio_url?: string | null
           category_id?: string | null
           created_at?: string | null
@@ -1132,6 +1168,48 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_feature_access: {
+        Row: {
+          access_level: string | null
+          created_at: string | null
+          feature_key: string | null
+          id: string
+          plan_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_level?: string | null
+          created_at?: string | null
+          feature_key?: string | null
+          id?: string
+          plan_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_level?: string | null
+          created_at?: string | null
+          feature_key?: string | null
+          id?: string
+          plan_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_feature_access_feature_key_fkey"
+            columns: ["feature_key"]
+            isOneToOne: false
+            referencedRelation: "feature_access_levels"
+            referencedColumns: ["feature_key"]
+          },
+          {
+            foreignKeyName: "plan_feature_access_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "planos"
             referencedColumns: ["id"]
           },
         ]
@@ -1629,6 +1707,47 @@ export type Database = {
           },
         ]
       }
+      user_feature_overrides: {
+        Row: {
+          access_level: string
+          created_at: string | null
+          expires_at: string | null
+          feature_key: string | null
+          granted_by: string | null
+          id: string
+          reason: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_level: string
+          created_at?: string | null
+          expires_at?: string | null
+          feature_key?: string | null
+          granted_by?: string | null
+          id?: string
+          reason?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_level?: string
+          created_at?: string | null
+          expires_at?: string | null
+          feature_key?: string | null
+          granted_by?: string | null
+          id?: string
+          reason?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feature_overrides_feature_key_fkey"
+            columns: ["feature_key"]
+            isOneToOne: false
+            referencedRelation: "feature_access_levels"
+            referencedColumns: ["feature_key"]
+          },
+        ]
+      }
       user_guide_preferences: {
         Row: {
           created_at: string | null
@@ -1704,6 +1823,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       usuarios: {
         Row: {
@@ -1918,6 +2058,18 @@ export type Database = {
         Args: { target_user_type: string }
         Returns: boolean
       }
+      check_content_access: {
+        Args: {
+          p_content_id: string
+          p_content_type: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      check_feature_access: {
+        Args: { p_feature_key: string; p_user_id: string }
+        Returns: string
+      }
       check_rate_limit: {
         Args: {
           p_max_attempts?: number
@@ -2046,6 +2198,13 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_admin: { Args: { user_id?: string }; Returns: boolean }
       is_current_user: { Args: { user_id: string }; Returns: boolean }
       is_socio: { Args: { user_id?: string }; Returns: boolean }
@@ -2083,6 +2242,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       tipo_ciclo_faturamento: "mensal" | "trimestral" | "semestral" | "anual"
       tipo_intensidade_exercicio: "leve" | "moderada" | "intensa"
       tipo_lembrete: "água" | "refeição" | "exercício" | "peso"
@@ -2231,6 +2391,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       tipo_ciclo_faturamento: ["mensal", "trimestral", "semestral", "anual"],
       tipo_intensidade_exercicio: ["leve", "moderada", "intensa"],
       tipo_lembrete: ["água", "refeição", "exercício", "peso"],
