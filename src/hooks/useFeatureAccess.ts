@@ -115,15 +115,30 @@ export function useContentAccess(
 
       const userAccessLevel = (accessData as AccessLevel) || 'none';
       
-      // Mapear níveis de acesso
+      // Hierarquia de conteúdo para verificação cumulativa
+      const contentHierarchy: Record<ContentAccessLevel, number> = {
+        free: 0,
+        basic: 1,
+        premium: 2,
+        exclusive: 3,
+      };
+
+      // Lógica de acesso cumulativo:
+      // - limited: acessa free + basic (níveis 0 e 1)
+      // - full: acessa tudo (free + basic + premium + exclusive)
       let canAccess = false;
+      
       if (userAccessLevel === 'full') {
+        // Full acessa todos os níveis
         canAccess = true;
       } else if (userAccessLevel === 'limited') {
-        canAccess = contentLevel === 'basic';
+        // Limited acessa free e basic (hierarquia <= 1)
+        canAccess = contentHierarchy[contentLevel] <= 1;
       } else if (userAccessLevel === 'preview') {
-        canAccess = false; // Preview só permite ver, não acessar
+        // Preview só visualiza, não acessa
+        canAccess = false;
       }
+      // none: não acessa nada além de free (já tratado acima)
 
       return { canAccess, contentLevel, userAccessLevel };
     },
