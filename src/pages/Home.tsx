@@ -13,6 +13,7 @@ import {
   Utensils,
   Compass,
   LogIn,
+  LogOut,
   Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,7 +40,7 @@ type BreathingTechnique = NonNullable<ReturnType<typeof useBreathingTechniques>[
 
 export default function Home() {
   const navigate = useNavigate();
-  const { usuario, loading: authLoading } = useAuth();
+  const { usuario, loading: authLoading, signOut } = useAuth();
   const { data: gamificationStats, isLoading: isLoadingStats } = useGamificationStats();
   const { data: activeJourney } = useActiveUserJourney();
   const { isComplete: onboardingComplete, isLoading: onboardingLoading } = useOnboarding();
@@ -165,15 +166,31 @@ export default function Home() {
                 <LogIn className="w-5 h-5" />
                 Entrar
               </Button>
-            ) : usuario.tipo_usuario === 'socio' && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => navigate('/admin')}
-                className="w-11 h-11 rounded-xl bg-card border border-border/50 shadow-md"
-              >
-                <Settings className="w-5 h-5 text-primary" />
-              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                {usuario.tipo_usuario === 'socio' && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => navigate('/admin')}
+                    className="w-11 h-11 rounded-xl bg-card border border-border/50 shadow-md"
+                  >
+                    <Settings className="w-5 h-5 text-primary" />
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={async () => {
+                    await signOut();
+                    navigate('/');
+                  }}
+                  className="gap-2 h-11 px-4 text-sm font-semibold text-destructive border-destructive/50 hover:bg-destructive/10"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sair
+                </Button>
+              </div>
             )}
           </motion.div>
         </div>
