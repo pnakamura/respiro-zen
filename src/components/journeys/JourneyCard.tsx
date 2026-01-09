@@ -106,7 +106,7 @@ export function JourneyCard({ journey, onClick, progress, isCompleted, delay = 0
                     className="h-full rounded-full bg-primary"
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1">{Math.round(progress)}% concluído</p>
+                <p className="text-[0.625rem] text-muted-foreground mt-1">{Math.round(progress)}% concluído</p>
               </div>
             )}
           </div>

@@ -80,10 +80,10 @@ export function JourneyDetails({
             className="absolute bottom-0 left-0 right-0 max-h-[90vh] bg-card rounded-t-3xl overflow-hidden"
           >
             {/* Header with gradient */}
-            <div className={cn('relative h-32 bg-gradient-to-br', gradientClass)}>
+            <div className={cn('relative h-[8rem] bg-gradient-to-br', gradientClass)}>
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-background/20 backdrop-blur flex items-center justify-center"
+                className="absolute top-4 right-4 w-[2rem] h-[2rem] rounded-full bg-background/20 backdrop-blur flex items-center justify-center"
               >
                 <X className="w-5 h-5 text-primary-foreground" />
               </button>
@@ -172,7 +172,7 @@ export function JourneyDetails({
                         key={day.id}
                         className="flex items-center gap-3 p-3 rounded-xl bg-muted/30"
                       >
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
+                        <div className="w-[2rem] h-[2rem] rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
                           {day.day_number}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -194,12 +194,12 @@ export function JourneyDetails({
                         </div>
                         <div className="flex gap-1.5 flex-shrink-0">
                           {day.suggested_breathing_id && (
-                            <span className="w-6 h-6 rounded-full bg-calm/20 flex items-center justify-center" title="Inclui respiração">
+                            <span className="w-[1.5rem] h-[1.5rem] rounded-full bg-calm/20 flex items-center justify-center" title="Inclui respiração">
                               <Wind className="w-3.5 h-3.5 text-calm" />
                             </span>
                           )}
                           {day.suggested_meditation_id && (
-                            <span className="w-6 h-6 rounded-full bg-trust/20 flex items-center justify-center" title="Inclui meditação">
+                            <span className="w-[1.5rem] h-[1.5rem] rounded-full bg-trust/20 flex items-center justify-center" title="Inclui meditação">
                               <Music className="w-3.5 h-3.5 text-trust" />
                             </span>
                           )}

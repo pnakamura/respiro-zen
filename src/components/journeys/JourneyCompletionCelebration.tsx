@@ -86,7 +86,7 @@ export function JourneyCompletionCelebration({
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.7, type: 'spring' }}
-                className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-energy flex items-center justify-center"
+                className="absolute -top-2 -right-2 w-[2.5rem] h-[2.5rem] rounded-full bg-energy flex items-center justify-center"
               >
                 <Trophy className="w-5 h-5 text-primary-foreground" />
               </motion.div>
