@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Compass, ChevronLeft, Sparkles } from 'lucide-react';
+import { Compass, ChevronLeft, Sparkles, ArrowRight, BookOpen, Target, CheckCircle2, HelpCircle } from 'lucide-react';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { JourneyCard } from '@/components/journeys/JourneyCard';
 import { JourneyDetails } from '@/components/journeys/JourneyDetails';
@@ -10,6 +10,7 @@ import { JourneyProgress } from '@/components/journeys/JourneyProgress';
 import { JourneyCompletionCelebration } from '@/components/journeys/JourneyCompletionCelebration';
 import { BreathPacer } from '@/components/BreathPacer';
 import { MeditationPlayer } from '@/components/MeditationPlayer';
+import { ContextualHelp } from '@/components/ui/ContextualHelp';
 import { useJourneys, useJourneyDays, type Journey } from '@/hooks/useJourneys';
 import { 
   useActiveUserJourney, 
@@ -23,6 +24,7 @@ import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
 import { useCreateBreathingSession } from '@/hooks/useBreathingSessions';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import type { BreathingTechnique } from '@/types/admin';
 
@@ -147,20 +149,10 @@ export default function Journeys() {
     toast.success('Meditação concluída!');
   };
 
-  const getJourneyProgress = (journeyId: string) => {
-    const userJourney = userJourneys?.find(uj => uj.journey_id === journeyId);
-    if (!userJourney) return undefined;
-    const journey = journeys?.find(j => j.id === journeyId);
-    if (!journey) return undefined;
-    return ((userJourney.current_day - 1) / journey.duration_days) * 100;
-  };
-
-  const isJourneyCompleted = (journeyId: string) => {
-    const userJourney = userJourneys?.find(uj => uj.journey_id === journeyId);
-    return !!userJourney?.completed_at;
-  };
-
   const currentDay = activeJourneyDays?.find(d => d.day_number === currentViewingDay);
+
+  // Get recommended journeys for users without active journey
+  const recommendedJourneys = journeys?.slice(0, 3) || [];
 
   return (
     <div className="min-h-[100dvh] flex flex-col pb-28">
@@ -190,31 +182,41 @@ export default function Journeys() {
             </h1>
             <p className="text-sm text-muted-foreground">Trilhas de transformação pessoal</p>
           </div>
+          <ContextualHelp helpKey="journeys-how-it-works" size="md" />
         </div>
       </motion.header>
 
       {/* Main Content */}
       <main className="flex-1 px-6 space-y-6 relative">
         {/* Active Journey Section */}
-        {activeJourney && activeJourneyDays && (
+        {activeJourney && activeJourneyDays ? (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
           >
-            <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              Sua Jornada Ativa
-            </h2>
-            
+            {/* How it works hint */}
+            <div className="rounded-xl bg-primary/5 border border-primary/10 p-3 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Target className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-foreground font-medium">Toque no dia atual</p>
+                <p className="text-xs text-muted-foreground">Leia o ensinamento, faça a prática e conclua o dia</p>
+              </div>
+            </div>
+
+            {/* Active Journey Card */}
             <div className="rounded-2xl bg-card border border-border/50 p-4 space-y-4">
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{activeJourney.journey.icon}</span>
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold">{activeJourney.journey.title}</h3>
                   <p className="text-sm text-muted-foreground">
                     Dia {activeJourney.current_day} de {activeJourney.journey.duration_days}
                   </p>
                 </div>
+                <ContextualHelp helpKey="journey-progress" size="sm" variant="subtle" />
               </div>
 
               <JourneyProgress
@@ -225,50 +227,97 @@ export default function Journeys() {
                 themeColor={activeJourney.journey.theme_color}
               />
             </div>
+
+            {/* Explore other journeys link */}
+            <Link
+              to="/journeys/explore"
+              className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/30 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Compass className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">Explorar outras jornadas</span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+            </Link>
+          </motion.section>
+        ) : (
+          /* No Active Journey - Show Onboarding */
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            {/* How it works */}
+            <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/5 border border-primary/10 p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-primary" />
+                <h2 className="font-semibold text-foreground">Como funciona</h2>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 text-xs font-bold text-primary">1</div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Escolha uma jornada</p>
+                    <p className="text-xs text-muted-foreground">Explore trilhas de autoconhecimento e bem-estar</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 text-xs font-bold text-primary">2</div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Complete um dia por vez</p>
+                    <p className="text-xs text-muted-foreground">Cada dia tem ensinamentos e práticas guiadas</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 text-xs font-bold text-primary">3</div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Transforme-se gradualmente</p>
+                    <p className="text-xs text-muted-foreground">Pequenas práticas diárias geram grandes mudanças</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommended Journeys */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Recomendadas para você
+                </h2>
+              </div>
+
+              {isLoadingJourneys ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map(i => (
+                    <Skeleton key={i} className="h-24 rounded-2xl" />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recommendedJourneys.map((journey, idx) => (
+                    <JourneyCard
+                      key={journey.id}
+                      journey={journey}
+                      onClick={() => handleJourneyClick(journey)}
+                      delay={idx * 0.05}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* View all button */}
+            <Link to="/journeys/explore" className="block">
+              <Button variant="outline" className="w-full gap-2">
+                <Compass className="w-4 h-4" />
+                Ver todas as jornadas
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </motion.section>
         )}
-
-        {/* Available Journeys */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-            <span className="w-1 h-1 rounded-full bg-primary" />
-            {activeJourney ? 'Outras Jornadas' : 'Jornadas Disponíveis'}
-          </h2>
-
-          {isLoadingJourneys ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <Skeleton key={i} className="h-24 rounded-2xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {journeys
-                ?.filter(j => j.id !== activeJourney?.journey_id)
-                .map((journey, idx) => (
-                  <JourneyCard
-                    key={journey.id}
-                    journey={journey}
-                    onClick={() => handleJourneyClick(journey)}
-                    progress={getJourneyProgress(journey.id)}
-                    isCompleted={isJourneyCompleted(journey.id)}
-                    delay={idx * 0.05}
-                  />
-                ))}
-            </div>
-          )}
-
-          {!isLoadingJourneys && journeys?.length === 0 && (
-            <div className="text-center py-12">
-              <Compass className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">Nenhuma jornada disponível</p>
-            </div>
-          )}
-        </motion.section>
       </main>
 
       <BottomNavigation />

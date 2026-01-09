@@ -1,8 +1,14 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, X, Lightbulb, Sparkles } from 'lucide-react';
-import { helpContent, HelpContent } from '@/data/help-content';
+import { HelpCircle, Lightbulb, Sparkles } from 'lucide-react';
+import { helpContent } from '@/data/help-content';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { useState } from 'react';
 
 interface ContextualHelpProps {
   helpKey: string;
@@ -37,15 +43,13 @@ export function ContextualHelp({
 
   return (
     <>
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+      <button
         onClick={(e) => {
           e.stopPropagation();
           setIsOpen(true);
         }}
         className={cn(
-          'rounded-full flex items-center justify-center transition-colors',
+          'rounded-full flex items-center justify-center transition-all active:scale-95',
           buttonSizes[size],
           variant === 'default' 
             ? 'bg-primary/10 hover:bg-primary/20 text-primary' 
@@ -55,86 +59,57 @@ export function ContextualHelp({
         aria-label={`Ajuda sobre ${content.title}`}
       >
         <HelpCircle className={iconSizes[size]} />
-      </motion.button>
+      </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
-            />
-            
-            {/* Modal */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-              className="fixed left-4 right-4 top-1/2 -translate-y-1/2 z-[60] max-w-sm mx-auto"
-            >
-              <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
-                {/* Header */}
-                <div className="bg-gradient-to-r from-primary/20 to-secondary/20 p-4 flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                      <Lightbulb className="w-5 h-5 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg text-foreground">{content.title}</h3>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setIsOpen(false)}
-                    className="w-8 h-8 rounded-full bg-background/50 flex items-center justify-center hover:bg-background transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </motion.button>
-                </div>
-
-                {/* Content */}
-                <div className="p-4 space-y-4">
-                  <p className="text-foreground/80 leading-relaxed">
-                    {content.description}
-                  </p>
-
-                  {content.example && (
-                    <div className="bg-muted/50 rounded-xl p-3">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">Exemplo:</p>
-                      <p className="text-sm text-foreground">{content.example}</p>
-                    </div>
-                  )}
-
-                  {content.tip && (
-                    <div className="flex items-start gap-2 bg-secondary/10 rounded-xl p-3">
-                      <Sparkles className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-                      <p className="text-sm text-secondary-foreground">
-                        <span className="font-medium">Dica:</span> {content.tip}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-4 pb-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setIsOpen(false)}
-                    className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm"
-                  >
-                    Entendi!
-                  </motion.button>
-                </div>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-sm mx-4 p-0 gap-0 rounded-2xl border-border overflow-hidden max-h-[80dvh] flex flex-col">
+          {/* Header */}
+          <DialogHeader className="bg-gradient-to-r from-primary/15 to-secondary/15 p-4 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Lightbulb className="w-5 h-5 text-primary" />
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              <DialogTitle className="font-bold text-lg text-foreground">
+                {content.title}
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+
+          {/* Content */}
+          <div className="p-4 space-y-4 overflow-y-auto flex-1">
+            <p className="text-foreground leading-relaxed">
+              {content.description}
+            </p>
+
+            {content.example && (
+              <div className="bg-muted/40 border border-border/50 rounded-xl p-3">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">Exemplo:</p>
+                <p className="text-sm text-foreground">{content.example}</p>
+              </div>
+            )}
+
+            {content.tip && (
+              <div className="flex items-start gap-2 bg-primary/10 border border-primary/20 rounded-xl p-3">
+                <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-sm text-foreground">
+                  <span className="font-semibold">Dica:</span> {content.tip}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-4 pb-4 pt-2 flex-shrink-0 pb-[calc(16px+env(safe-area-inset-bottom))]">
+            <DialogClose asChild>
+              <button
+                className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm active:scale-[0.98] transition-transform"
+              >
+                Entendi!
+              </button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

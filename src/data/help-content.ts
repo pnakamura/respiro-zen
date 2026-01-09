@@ -111,10 +111,17 @@ export const helpContent: Record<string, HelpContent> = {
   },
 
   // Journeys
+  'journeys-how-it-works': {
+    title: 'Como Funcionam as Jornadas',
+    description: 'Jornadas são trilhas de transformação pessoal com duração de vários dias. Cada dia traz um ensinamento, práticas sugeridas (respiração ou meditação) e um desafio opcional.',
+    example: 'MBSR (21 dias): baseado no protocolo de Mindfulness para redução de estresse.',
+    tip: 'Complete um dia por vez. Não pule dias — cada ensinamento prepara você para o próximo.'
+  },
   'journey-progress': {
-    title: 'Progresso da Jornada',
-    description: 'Acompanhe quantos dias você completou na sua jornada ativa e o que falta para concluir.',
-    tip: 'Complete pelo menos uma atividade por dia para manter o momentum.'
+    title: 'Seu Progresso',
+    description: 'O grid mostra todos os dias da jornada. Dias concluídos ficam marcados (✓), o dia atual pulsa suavemente (▶), e dias futuros estão bloqueados (🔒).',
+    example: 'Toque no dia atual para abrir o conteúdo e começar a prática.',
+    tip: 'Você pode revisitar dias anteriores tocando neles a qualquer momento.'
   },
   'journey-day': {
     title: 'Conteúdo do Dia',

@@ -68,7 +68,7 @@ export function JourneyDayContent({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-background"
+          className="fixed inset-0 z-[110] bg-background"
         >
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -128,7 +128,7 @@ export function JourneyDayContent({
                       exit={{ height: 0, opacity: 0 }}
                       className="px-4 pb-4"
                     >
-                      <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                      <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-[15px]">
                         {day.teaching_text}
                       </p>
                     </motion.div>
@@ -179,7 +179,7 @@ export function JourneyDayContent({
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">{day.challenge_description}</p>
+                  <p className="text-sm text-foreground/80">{day.challenge_description}</p>
                 </div>
               )}
 
