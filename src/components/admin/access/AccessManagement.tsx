@@ -5,11 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { Package, Users, FileText, Sparkles, Shield, Check, X } from 'lucide-react';
+import { Package, Users, FileText, Sparkles, Shield, Check, X, Info, HelpCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type AccessLevel = 'none' | 'preview' | 'limited' | 'full';
 
@@ -36,11 +37,11 @@ interface PlanFeatureAccess {
   access_level: AccessLevel;
 }
 
-const accessLevelLabels: Record<AccessLevel, { label: string; color: string }> = {
-  none: { label: 'Bloqueado', color: 'bg-destructive/10 text-destructive' },
-  preview: { label: 'Prévia', color: 'bg-amber-500/10 text-amber-500' },
-  limited: { label: 'Limitado', color: 'bg-blue-500/10 text-blue-500' },
-  full: { label: 'Completo', color: 'bg-green-500/10 text-green-500' },
+const accessLevelLabels: Record<AccessLevel, { label: string; color: string; description: string }> = {
+  none: { label: 'Bloqueado', color: 'bg-destructive/10 text-destructive', description: 'Usuário não vê esta funcionalidade' },
+  preview: { label: 'Prévia', color: 'bg-amber-500/10 text-amber-500', description: 'Usuário vê mas não pode usar (mostra cadeado)' },
+  limited: { label: 'Limitado', color: 'bg-blue-500/10 text-blue-500', description: 'Acessa apenas conteúdos gratuitos e básicos' },
+  full: { label: 'Completo', color: 'bg-green-500/10 text-green-500', description: 'Acesso total a todos os conteúdos' },
 };
 
 const categoryIcons: Record<string, typeof Package> = {
@@ -146,11 +147,37 @@ export function AccessManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Gestão de Acessos</h1>
+        <h1 className="text-2xl font-bold text-foreground">Gestão de Acessos por Plano</h1>
         <p className="text-muted-foreground">
           Configure quais funcionalidades estão disponíveis para cada plano
         </p>
       </div>
+
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>Como funciona</AlertTitle>
+        <AlertDescription className="mt-2 space-y-2">
+          <p>
+            Aqui você define <strong>quais tipos de conteúdo</strong> cada plano pode acessar. 
+            Para definir se um item específico (meditação, respiração, jornada) é gratuito ou premium, 
+            edite diretamente o item na sua página de edição.
+          </p>
+          <div className="flex flex-wrap gap-3 mt-3">
+            <TooltipProvider>
+              {Object.entries(accessLevelLabels).map(([level, { label, color, description }]) => (
+                <Tooltip key={level}>
+                  <TooltipTrigger>
+                    <Badge className={`${color} cursor-help`}>{label}</Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">{description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </TooltipProvider>
+          </div>
+        </AlertDescription>
+      </Alert>
 
       <Tabs defaultValue="plans" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2">

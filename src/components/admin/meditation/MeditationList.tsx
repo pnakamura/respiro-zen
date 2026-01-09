@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { AccessLevelBadge } from '@/components/admin/AccessLevelSelect';
 
 export function MeditationList() {
   const { data: tracks, isLoading } = useMeditationTracks();
@@ -75,6 +76,7 @@ export function MeditationList() {
                   <div>
                     <CardTitle className="text-lg flex items-center gap-2">
                       {track.title}
+                      <AccessLevelBadge level={track.access_level} />
                       {!track.is_active && (
                         <Badge variant="secondary">Inativo</Badge>
                       )}

@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Save, Loader2, Upload, Music, X } from 'lucide-react';
 import { HelpTooltip } from '@/components/admin/HelpTooltip';
+import { AccessLevelSelect } from '@/components/admin/AccessLevelSelect';
 
 const formSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
@@ -33,6 +34,7 @@ const formSchema = z.object({
   has_narration: z.boolean().default(false),
   display_order: z.number().min(0),
   is_active: z.boolean().default(true),
+  access_level: z.enum(['free', 'basic', 'premium', 'exclusive']).default('free'),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -73,6 +75,7 @@ export function MeditationForm() {
       has_narration: false,
       display_order: 0,
       is_active: true,
+      access_level: 'free',
     },
   });
 
@@ -87,6 +90,7 @@ export function MeditationForm() {
         has_narration: track.has_narration,
         display_order: track.display_order,
         is_active: track.is_active,
+        access_level: (track.access_level as 'free' | 'basic' | 'premium' | 'exclusive') || 'free',
       });
       setBackgroundUrl(track.background_audio_url);
       setNarrationUrl(track.narration_audio_url);
@@ -144,6 +148,7 @@ export function MeditationForm() {
       thumbnail_url: null,
       display_order: data.display_order,
       is_active: data.is_active,
+      access_level: data.access_level,
       created_by: user?.id || null,
     };
 
@@ -426,12 +431,13 @@ export function MeditationForm() {
             </CardContent>
           </Card>
 
-          {/* Status */}
+          {/* Status and Access */}
           <Card>
             <CardHeader>
-              <CardTitle>Status</CardTitle>
+              <CardTitle>Status e Acesso</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <AccessLevelSelect control={form.control} />
               <FormField
                 control={form.control}
                 name="is_active"

@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Save, Loader2, Upload, Music, X, Volume2, VolumeX } from 'lucide-react';
 import { HelpTooltip } from '@/components/admin/HelpTooltip';
 import { ColorPicker } from '@/components/admin/breathing/ColorPicker';
+import { AccessLevelSelect } from '@/components/admin/AccessLevelSelect';
 
 const formSchema = z.object({
   emotion_id: z.string().min(1, 'ID é obrigatório').regex(/^[a-z_]+$/, 'Use apenas letras minúsculas e underscore'),
@@ -39,6 +40,7 @@ const formSchema = z.object({
   display_order: z.number().min(0),
   is_active: z.boolean().default(true),
   background_audio_url: z.string().optional().nullable(),
+  access_level: z.enum(['free', 'basic', 'premium', 'exclusive']).default('free'),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -103,6 +105,7 @@ export function BreathingForm() {
       display_order: 0,
       is_active: true,
       background_audio_url: null,
+      access_level: 'free',
     },
   });
 
@@ -128,6 +131,7 @@ export function BreathingForm() {
         display_order: technique.display_order,
         is_active: technique.is_active,
         background_audio_url: technique.background_audio_url || null,
+        access_level: (technique.access_level as 'free' | 'basic' | 'premium' | 'exclusive') || 'free',
       });
       if (technique.background_audio_url) {
         setAudioPreviewUrl(technique.background_audio_url);
@@ -209,6 +213,7 @@ export function BreathingForm() {
       is_active: data.is_active,
       created_by: user?.id || null,
       background_audio_url: data.background_audio_url || null,
+      access_level: data.access_level,
     };
 
     if (isEditing) {
@@ -597,13 +602,15 @@ export function BreathingForm() {
             </CardContent>
           </Card>
 
-          {/* Advanced */}
+          {/* Advanced and Access */}
           <Card>
             <CardHeader>
               <CardTitle>Configurações Avançadas</CardTitle>
-              <CardDescription>Opções para técnicas especiais</CardDescription>
+              <CardDescription>Nível de acesso e opções para técnicas especiais</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <AccessLevelSelect control={form.control} />
+              
               <div className="flex items-center gap-4">
                 <FormField
                   control={form.control}

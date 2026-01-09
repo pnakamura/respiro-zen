@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Save, Loader2, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AccessLevelSelect } from '@/components/admin/AccessLevelSelect';
 
 const formSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório'),
@@ -26,7 +27,7 @@ const formSchema = z.object({
   difficulty: z.enum(['iniciante', 'intermediário', 'avançado']),
   category: z.string().default('geral'),
   benefits: z.string().optional(),
-  is_premium: z.boolean().default(false),
+  access_level: z.enum(['free', 'basic', 'premium', 'exclusive']).default('free'),
   is_active: z.boolean().default(true),
   display_order: z.number().min(0),
 });
@@ -78,7 +79,7 @@ export function JourneyForm() {
       difficulty: 'iniciante',
       category: 'geral',
       benefits: '',
-      is_premium: false,
+      access_level: 'free',
       is_active: true,
       display_order: 0,
     },
@@ -86,6 +87,12 @@ export function JourneyForm() {
 
   useEffect(() => {
     if (journey) {
+      // Determine access_level from is_premium for backwards compatibility
+      let accessLevel: 'free' | 'basic' | 'premium' | 'exclusive' = 'free';
+      if (journey.is_premium) {
+        accessLevel = 'premium';
+      }
+      
       form.reset({
         title: journey.title,
         subtitle: journey.subtitle || '',
@@ -97,7 +104,7 @@ export function JourneyForm() {
         difficulty: journey.difficulty,
         category: journey.category,
         benefits: journey.benefits?.join('\n') || '',
-        is_premium: journey.is_premium,
+        access_level: accessLevel,
         is_active: journey.is_active,
         display_order: journey.display_order,
       });
@@ -120,7 +127,7 @@ export function JourneyForm() {
       difficulty: data.difficulty,
       category: data.category,
       benefits,
-      is_premium: data.is_premium,
+      is_premium: data.access_level !== 'free', // Keep is_premium for backwards compatibility
       is_active: data.is_active,
       display_order: data.display_order,
     };
@@ -397,9 +404,10 @@ export function JourneyForm() {
           <Card>
             <CardHeader>
               <CardTitle>Configurações</CardTitle>
-              <CardDescription>Status e opções de visibilidade</CardDescription>
+              <CardDescription>Status, nível de acesso e visibilidade</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <AccessLevelSelect control={form.control} />
               <FormField
                 control={form.control}
                 name="is_active"
@@ -409,23 +417,6 @@ export function JourneyForm() {
                       <FormLabel className="text-base">Ativo</FormLabel>
                       <FormDescription>
                         Jornada visível para os usuários
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="is_premium"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Premium</FormLabel>
-                      <FormDescription>
-                        Disponível apenas para assinantes
                       </FormDescription>
                     </div>
                     <FormControl>

@@ -1,3 +1,5 @@
+export type ContentAccessLevel = 'free' | 'basic' | 'premium' | 'exclusive';
+
 export interface BreathingTechnique {
   id: string;
   emotion_id: string;
@@ -23,6 +25,7 @@ export interface BreathingTechnique {
   created_by: string | null;
   deleted_at: string | null;
   background_audio_url: string | null;
+  access_level: ContentAccessLevel | null;
 }
 
 export interface MeditationCategory {
@@ -53,6 +56,7 @@ export interface MeditationTrack {
   updated_at: string;
   created_by: string | null;
   deleted_at: string | null;
+  access_level: ContentAccessLevel | null;
   category?: MeditationCategory;
 }
 
