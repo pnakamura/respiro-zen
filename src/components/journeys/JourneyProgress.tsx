@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { Check, Lock, Play } from 'lucide-react';
+import { Check, Lock, Play, Brain, Dumbbell, Users, Palette, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { JourneyDay } from '@/hooks/useJourneys';
 
 interface JourneyProgressProps {
   currentDay: number;
@@ -8,7 +9,16 @@ interface JourneyProgressProps {
   completedDays: number[];
   onDayClick: (day: number) => void;
   themeColor?: string;
+  days?: JourneyDay[];
 }
+
+const activityIcons: Record<string, React.ElementType> = {
+  mental: Brain,
+  physical: Dumbbell,
+  social: Users,
+  creative: Palette,
+  spiritual: Sparkles,
+};
 
 export function JourneyProgress({
   currentDay,
@@ -16,6 +26,7 @@ export function JourneyProgress({
   completedDays,
   onDayClick,
   themeColor = 'primary',
+  days = [],
 }: JourneyProgressProps) {
   const getColorClass = (color: string) => {
     const colors: Record<string, string> = {
@@ -26,6 +37,19 @@ export function JourneyProgress({
       energy: 'bg-energy text-primary-foreground',
       trust: 'bg-trust text-primary-foreground',
       joy: 'bg-joy text-foreground',
+    };
+    return colors[color] || colors.primary;
+  };
+
+  const getBorderClass = (color: string) => {
+    const colors: Record<string, string> = {
+      primary: 'border-primary/30',
+      secondary: 'border-secondary/30',
+      accent: 'border-accent/30',
+      calm: 'border-calm/30',
+      energy: 'border-energy/30',
+      trust: 'border-trust/30',
+      joy: 'border-joy/30',
     };
     return colors[color] || colors.primary;
   };
@@ -50,38 +74,70 @@ export function JourneyProgress({
         </div>
       </div>
 
-      {/* Days grid */}
-      <div className="grid grid-cols-7 gap-2">
+      {/* Days list */}
+      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
         {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => {
           const isCompleted = completedDays.includes(day);
           const isCurrent = day === currentDay;
           const isLocked = day > currentDay && !isCompleted;
+          const dayData = days.find(d => d.day_number === day);
+          const activityType = dayData?.activity_type || 'mental';
+          const ActivityIcon = activityIcons[activityType] || Brain;
+          const title = dayData?.title || `Dia ${day}`;
 
           return (
             <motion.button
               key={day}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: day * 0.02 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: day * 0.03 }}
               onClick={() => !isLocked && onDayClick(day)}
               disabled={isLocked}
               className={cn(
-                'aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition-all',
-                isCompleted && getColorClass(themeColor),
-                isCurrent && !isCompleted && 'bg-primary/20 text-primary border-2 border-primary animate-pulse',
-                isLocked && 'bg-muted/50 text-muted-foreground cursor-not-allowed',
-                !isCompleted && !isCurrent && !isLocked && 'bg-muted/30 text-muted-foreground hover:bg-muted/50'
+                'w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left',
+                isCompleted && `${getColorClass(themeColor)} shadow-sm`,
+                isCurrent && !isCompleted && `bg-primary/10 border-2 ${getBorderClass(themeColor)} animate-pulse`,
+                isLocked && 'bg-muted/30 text-muted-foreground cursor-not-allowed opacity-60',
+                !isCompleted && !isCurrent && !isLocked && 'bg-muted/20 hover:bg-muted/40 border border-border/30'
               )}
             >
-              {isCompleted ? (
-                <Check className="w-4 h-4" />
-              ) : isCurrent ? (
-                <Play className="w-3 h-3" />
-              ) : isLocked ? (
-                <Lock className="w-3 h-3" />
-              ) : (
-                day
-              )}
+              {/* Day number */}
+              <div className={cn(
+                'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold',
+                isCompleted ? 'bg-white/20' : isCurrent ? 'bg-primary/20 text-primary' : 'bg-muted/50'
+              )}>
+                {day}
+              </div>
+
+              {/* Activity icon */}
+              <div className={cn(
+                'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0',
+                isCompleted ? 'bg-white/20' : isCurrent ? 'bg-primary/10' : 'bg-muted/30'
+              )}>
+                <ActivityIcon className={cn(
+                  'w-4 h-4',
+                  isCompleted ? '' : isCurrent ? 'text-primary' : 'text-muted-foreground'
+                )} />
+              </div>
+
+              {/* Title */}
+              <span className={cn(
+                'flex-1 text-sm font-medium truncate',
+                isCompleted ? '' : isCurrent ? 'text-foreground' : isLocked ? 'text-muted-foreground' : 'text-foreground/80'
+              )}>
+                {title}
+              </span>
+
+              {/* Status icon */}
+              <div className="flex-shrink-0">
+                {isCompleted ? (
+                  <Check className="w-5 h-5" />
+                ) : isCurrent ? (
+                  <Play className="w-4 h-4 text-primary" />
+                ) : isLocked ? (
+                  <Lock className="w-4 h-4" />
+                ) : null}
+              </div>
             </motion.button>
           );
         })}

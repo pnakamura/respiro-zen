@@ -15,7 +15,7 @@ const defaultSettings: AccessibilitySettings = {
 };
 
 const fontScaleClasses: Record<FontScale, string> = {
-  normal: '',
+  normal: 'font-scale-normal',
   large: 'font-scale-large',
   xlarge: 'font-scale-xlarge',
 };
@@ -179,8 +179,12 @@ export function initAccessibility() {
       if (cls) {
         document.documentElement.classList.add(cls);
       }
+    } else {
+      // Default is now 'normal' which has a class
+      document.documentElement.classList.add(fontScaleClasses.normal);
     }
   } catch (e) {
-    // Silent fail
+    // Silent fail - apply default
+    document.documentElement.classList.add(fontScaleClasses.normal);
   }
 }

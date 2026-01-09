@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Compass, ChevronLeft, Sparkles, ArrowRight, BookOpen, Target, CheckCircle2, HelpCircle } from 'lucide-react';
@@ -154,6 +154,15 @@ export default function Journeys() {
   // Get recommended journeys for users without active journey
   const recommendedJourneys = journeys?.slice(0, 3) || [];
 
+  // Redirect first-time users to explore page
+  useEffect(() => {
+    const hasExplored = localStorage.getItem('ethra-journeys-explored');
+    if (!activeJourney && (!userJourneys || userJourneys.length === 0) && !hasExplored && !isLoadingJourneys) {
+      localStorage.setItem('ethra-journeys-explored', 'true');
+      navigate('/journeys/explore', { replace: true });
+    }
+  }, [activeJourney, userJourneys, isLoadingJourneys, navigate]);
+
   return (
     <div className="min-h-[100dvh] flex flex-col pb-28">
       {/* Background */}
@@ -225,6 +234,7 @@ export default function Journeys() {
                 completedDays={completedDayNumbers}
                 onDayClick={handleDayClick}
                 themeColor={activeJourney.journey.theme_color}
+                days={activeJourneyDays}
               />
             </div>
 

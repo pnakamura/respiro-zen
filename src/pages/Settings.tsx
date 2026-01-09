@@ -122,7 +122,7 @@ export default function Settings() {
               <span className="text-sm font-medium text-foreground">Tamanho do Texto</span>
               {accessibilityMounted && (
                 <span className="text-xs text-muted-foreground">
-                  {fontScale === 'normal' ? '100%' : fontScale === 'large' ? '115%' : '130%'}
+                  {fontScale === 'normal' ? '115%' : fontScale === 'large' ? '130%' : '145%'}
                 </span>
               )}
             </div>

@@ -252,13 +252,17 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Accessibility - Font Scaling */
-  html.font-scale-large {
+  /* Accessibility - Font Scaling (bumped up one step) */
+  html.font-scale-normal {
     font-size: 115%;
   }
 
-  html.font-scale-xlarge {
+  html.font-scale-large {
     font-size: 130%;
+  }
+
+  html.font-scale-xlarge {
+    font-size: 145%;
   }
 
   body {
