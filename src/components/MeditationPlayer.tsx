@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Pause, SkipBack, SkipForward, Volume2, Headphones, Loader2 } from 'lucide-react';
+import { X, Play, Pause, SkipBack, SkipForward, Volume2, Headphones, Loader2, Lock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useMeditationTracks, useMeditationCategories } from '@/hooks/useMeditationTracks';
 import { cn } from '@/lib/utils';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { useFavoriteMeditations } from '@/hooks/useFavorites';
+import { ContentLock } from '@/components/access/ContentLock';
 
 // Usar tipo inferido do hook para compatibilidade
 type MeditationTrack = NonNullable<ReturnType<typeof useMeditationTracks>['data']>[number];
@@ -232,48 +233,55 @@ export function MeditationPlayer({ onClose, onComplete, initialTrackId }: Medita
                   }
 
                   return displayTracks.map((track, index) => (
-                    <motion.div
+                    <ContentLock
                       key={track.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={cn(
-                        'w-full p-4 rounded-2xl glass text-left relative',
-                        'flex items-center gap-4',
-                        'hover:shadow-lg transition-all duration-300'
-                      )}
+                      contentType="meditation"
+                      contentId={track.id}
+                      contentTitle={track.title}
+                      badgePosition="top-left"
                     >
-                      {/* Favorite button */}
-                      <div className="absolute top-2 right-2 z-10">
-                        <FavoriteButton type="meditation" itemId={track.id} size="sm" />
-                      </div>
-                      <button
-                        onClick={() => handleTrackSelect(track)}
-                        className="flex items-center gap-4 flex-1"
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className={cn(
+                          'w-full p-4 rounded-2xl glass text-left relative',
+                          'flex items-center gap-4',
+                          'hover:shadow-lg transition-all duration-300'
+                        )}
                       >
-                        <div className="w-16 h-16 md:w-14 md:h-14 rounded-xl bg-meditate-light flex items-center justify-center">
-                          <Headphones className="w-8 h-8 md:w-6 md:h-6 text-meditate" />
+                        {/* Favorite button */}
+                        <div className="absolute top-2 right-2 z-10">
+                          <FavoriteButton type="meditation" itemId={track.id} size="sm" />
                         </div>
-                        <div className="flex-1 text-left">
-                          <h3 className="text-xl md:text-base font-semibold text-foreground pr-8">
-                            {track.title}
-                          </h3>
-                          <div className="flex items-center gap-2 text-lg md:text-sm text-muted-foreground">
-                            <span>{getCategoryName(track.category_id)}</span>
-                            <span>•</span>
-                            <span>{track.duration_display}</span>
+                        <button
+                          onClick={() => handleTrackSelect(track)}
+                          className="flex items-center gap-4 flex-1"
+                        >
+                          <div className="w-16 h-16 md:w-14 md:h-14 rounded-xl bg-meditate-light flex items-center justify-center">
+                            <Headphones className="w-8 h-8 md:w-6 md:h-6 text-meditate" />
                           </div>
-                          {track.description && (
-                            <p className="text-sm text-muted-foreground/80 mt-1 line-clamp-1">
-                              {track.description}
-                            </p>
-                          )}
-                        </div>
-                        <div className="w-12 h-12 md:w-10 md:h-10 rounded-full bg-meditate flex items-center justify-center shrink-0">
-                          <Play className="w-5 h-5 md:w-4 md:h-4 text-primary-foreground ml-0.5" />
-                        </div>
-                      </button>
-                    </motion.div>
+                          <div className="flex-1 text-left">
+                            <h3 className="text-xl md:text-base font-semibold text-foreground pr-8">
+                              {track.title}
+                            </h3>
+                            <div className="flex items-center gap-2 text-lg md:text-sm text-muted-foreground">
+                              <span>{getCategoryName(track.category_id)}</span>
+                              <span>•</span>
+                              <span>{track.duration_display}</span>
+                            </div>
+                            {track.description && (
+                              <p className="text-sm text-muted-foreground/80 mt-1 line-clamp-1">
+                                {track.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="w-12 h-12 md:w-10 md:h-10 rounded-full bg-meditate flex items-center justify-center shrink-0">
+                            <Play className="w-5 h-5 md:w-4 md:h-4 text-primary-foreground ml-0.5" />
+                          </div>
+                        </button>
+                      </motion.div>
+                    </ContentLock>
                   ));
                 })()
               )}

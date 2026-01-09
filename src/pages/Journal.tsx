@@ -11,10 +11,14 @@ import { useJournalEntries, useCreateJournalEntry, useDeleteJournalEntry } from 
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { FeatureGate } from '@/components/access/FeatureGate';
+import { UpgradeModal } from '@/components/access/UpgradeModal';
+import { useCanAccess } from '@/hooks/useFeatureAccess';
 
 export default function Journal() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { accessLevel } = useCanAccess('module_journal');
   const { data: entries, isLoading: loadingEntries } = useJournalEntries();
   const createEntry = useCreateJournalEntry();
   const deleteEntry = useDeleteJournalEntry();

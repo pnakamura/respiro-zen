@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { TrendingUp, Calendar, Sparkles, ChevronRight, AlertCircle } from 'lucide-react';
+import { TrendingUp, Calendar, Sparkles, ChevronRight, AlertCircle, Lock } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/BottomNavigation';
@@ -14,17 +14,24 @@ import { WeeklySummaryCard } from '@/components/insights/WeeklySummaryCard';
 import { EmotionRadarChart } from '@/components/insights/EmotionRadarChart';
 import { DyadTimeline } from '@/components/insights/DyadTimeline';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCanAccess } from '@/hooks/useFeatureAccess';
+import { UpgradeModal } from '@/components/access/UpgradeModal';
 
 export default function Insights() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [period, setPeriod] = useState<Period>('7d');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
+  const { accessLevel, isLoading: accessLoading } = useCanAccess('module_insights');
   const isDemoMode = searchParams.get('demo') === 'true';
   const realData = useInsightsData(period);
   const demoData = useDemoInsightsData();
   
   const { chartData, radarData, dyadOccurrences, patterns, stats, weeklySummary, isLoading, isEmpty } = isDemoMode ? demoData : realData;
+
+  // Check if user has preview-only access (should show overlay)
+  const isPreviewOnly = accessLevel === 'preview' && !isDemoMode;
 
   const handleEnterDemo = () => {
     setSearchParams({ demo: 'true' });
@@ -243,9 +250,42 @@ export default function Insights() {
             </motion.div>
           </>
         )}
+
+        {/* Preview overlay for restricted access */}
+        {isPreviewOnly && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm flex items-center justify-center px-6"
+            onClick={() => setShowUpgradeModal(true)}
+          >
+            <div className="bg-card border border-border rounded-3xl p-6 max-w-sm text-center shadow-xl">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Insights Premium</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Você está visualizando uma prévia. Faça upgrade para acessar todos os seus insights emocionais.
+              </p>
+              <Button
+                onClick={() => setShowUpgradeModal(true)}
+                className="w-full h-12 rounded-xl font-semibold"
+              >
+                Desbloquear Insights
+              </Button>
+            </div>
+          </motion.div>
+        )}
       </main>
 
       <BottomNavigation />
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureTitle="Insights Emocionais"
+        featureDescription="Acesse análises detalhadas do seu bem-estar emocional, gráficos de tendências e padrões identificados pela IA."
+      />
     </div>
   );
 }

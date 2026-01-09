@@ -17,6 +17,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { EmotionType } from '@/types/breathing';
+import { useCanAccess } from '@/hooks/useFeatureAccess';
+import { UpgradeModal } from '@/components/access/UpgradeModal';
 
 type BreathingTechnique = NonNullable<ReturnType<typeof useBreathingTechniques>['data']>[number];
 

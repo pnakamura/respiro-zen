@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Wind, Loader2, Clock, Repeat } from 'lucide-react';
+import { X, Wind, Loader2, Clock, Repeat, Lock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
 import { cn } from '@/lib/utils';
 import { FavoriteButton } from '@/components/FavoriteButton';
 import { useFavoriteBreathings } from '@/hooks/useFavorites';
+import { ContentLock } from '@/components/access/ContentLock';
 // Use the return type from the hook instead of Tables
 type BreathingTechnique = NonNullable<ReturnType<typeof useBreathingTechniques>['data']>[number];
 
@@ -168,68 +169,75 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                 const { emoji, color, bg } = arousalLabels[arousal];
                 
                 return (
-                  <motion.div
+                  <ContentLock
                     key={technique.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.04 }}
-                    className={cn(
-                      'w-full p-3.5 rounded-2xl text-left relative',
-                      'bg-card border border-border/40',
-                      'active:scale-[0.98] transition-transform duration-150'
-                    )}
+                    contentType="breathing"
+                    contentId={technique.id}
+                    contentTitle={technique.label}
+                    badgePosition="top-left"
                   >
-                    {/* Favorite button */}
-                    <div className="absolute top-2 right-2 z-10">
-                      <FavoriteButton type="breathing" itemId={technique.id} size="sm" />
-                    </div>
-                    <button
-                      onClick={() => onSelect(technique)}
-                      className="w-full text-left"
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.04 }}
+                      className={cn(
+                        'w-full p-3.5 rounded-2xl text-left relative',
+                        'bg-card border border-border/40',
+                        'active:scale-[0.98] transition-transform duration-150'
+                      )}
                     >
-                    <div className="flex items-start gap-3">
-                      {/* Icon - slightly smaller */}
-                      <div className={cn(
-                        'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0',
-                        bg
-                      )}>
-                        {technique.icon || emoji}
+                      {/* Favorite button */}
+                      <div className="absolute top-2 right-2 z-10">
+                        <FavoriteButton type="breathing" itemId={technique.id} size="sm" />
                       </div>
-                      
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <h3 className="font-semibold text-sm text-foreground truncate">
-                            {technique.label}
-                          </h3>
-                          <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0', bg, color)}>
-                            {arousalLabels[arousal].label}
-                          </span>
+                      <button
+                        onClick={() => onSelect(technique)}
+                        className="w-full text-left"
+                      >
+                      <div className="flex items-start gap-3">
+                        {/* Icon - slightly smaller */}
+                        <div className={cn(
+                          'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0',
+                          bg
+                        )}>
+                          {technique.icon || emoji}
                         </div>
                         
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">
-                          {technique.description}
-                        </p>
-                        
-                        {/* Meta info */}
-                        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Wind className="w-3 h-3" />
-                            {getPatternDisplay(technique)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Repeat className="w-3 h-3" />
-                            {technique.cycles}x
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {getEstimatedDuration(technique)}
-                          </span>
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <h3 className="font-semibold text-sm text-foreground truncate">
+                              {technique.label}
+                            </h3>
+                            <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0', bg, color)}>
+                              {arousalLabels[arousal].label}
+                            </span>
+                          </div>
+                          
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">
+                            {technique.description}
+                          </p>
+                          
+                          {/* Meta info */}
+                          <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Wind className="w-3 h-3" />
+                              {getPatternDisplay(technique)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Repeat className="w-3 h-3" />
+                              {technique.cycles}x
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {getEstimatedDuration(technique)}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    </button>
-                  </motion.div>
+                      </button>
+                    </motion.div>
+                  </ContentLock>
                 );
               })}
             </div>

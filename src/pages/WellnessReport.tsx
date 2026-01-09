@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Lock } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { safeGoBack } from "@/lib/navigation";
 import { useWellnessReport, Period } from "@/hooks/useWellnessReport";
@@ -14,20 +14,28 @@ import { CorrelationsSection } from "@/components/report/CorrelationsSection";
 import { RecommendationsSection } from "@/components/report/RecommendationsSection";
 import { AchievementsSection } from "@/components/report/AchievementsSection";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { DemoBanner } from "@/components/insights/DemoBanner";
+import { useCanAccess } from "@/hooks/useFeatureAccess";
+import { UpgradeModal } from "@/components/access/UpgradeModal";
 
 const WellnessReport: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [period, setPeriod] = useState<Period>('7d');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
+  const { accessLevel, isLoading: accessLoading } = useCanAccess('module_report');
   const isDemoMode = searchParams.get('demo') === 'true';
   const { data: realReport, isLoading: realLoading, error, refetch } = useWellnessReport(period);
   
   const demoReport = getDemoWellnessReport();
   const report = isDemoMode ? demoReport : realReport;
   const isLoading = isDemoMode ? false : realLoading;
+
+  // Check if user has preview-only access
+  const isPreviewOnly = accessLevel === 'preview' && !isDemoMode;
 
   const handleExitDemo = () => {
     setSearchParams({});
@@ -155,9 +163,42 @@ const WellnessReport: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Preview overlay for restricted access */}
+        {isPreviewOnly && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm flex items-center justify-center px-6"
+            onClick={() => setShowUpgradeModal(true)}
+          >
+            <div className="bg-card border border-border rounded-3xl p-6 max-w-sm text-center shadow-xl">
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Lock className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Relatório com IA</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Você está visualizando uma prévia. Faça upgrade para acessar relatórios personalizados gerados por IA.
+              </p>
+              <Button
+                onClick={() => setShowUpgradeModal(true)}
+                className="w-full h-12 rounded-xl font-semibold"
+              >
+                Desbloquear Relatório
+              </Button>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <BottomNavigation />
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        featureTitle="Relatório de Bem-Estar"
+        featureDescription="Acesse análises detalhadas geradas por IA sobre sua jornada emocional, com recomendações personalizadas."
+      />
     </div>
   );
 };
