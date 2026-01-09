@@ -75,7 +75,7 @@ export function JourneyProgress({
       </div>
 
       {/* Days list */}
-      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[20rem] overflow-y-auto pr-1">
         {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => {
           const isCompleted = completedDays.includes(day);
           const isCurrent = day === currentDay;

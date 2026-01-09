@@ -84,7 +84,7 @@ export function JourneyDayContent({
               </div>
               <button
                 onClick={onClose}
-                className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center"
+                className="w-[2.5rem] h-[2.5rem] rounded-full bg-muted/50 flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -207,7 +207,7 @@ export function JourneyDayContent({
                     value={reflection}
                     onChange={(e) => setReflection(e.target.value)}
                     placeholder="Escreva sua reflexão..."
-                    className="min-h-[100px] resize-none"
+                    className="min-h-[6.25rem] resize-none"
                   />
                 </div>
               )}
