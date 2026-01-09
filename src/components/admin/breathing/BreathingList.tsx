@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { AccessLevelBadge } from '@/components/admin/AccessLevelSelect';
 
 export function BreathingList() {
   const { data: techniques, isLoading } = useBreathingTechniques();
@@ -74,6 +75,7 @@ export function BreathingList() {
                   <div>
                     <CardTitle className="text-lg flex items-center gap-2">
                       {technique.label}
+                      <AccessLevelBadge level={technique.access_level} />
                       {!technique.is_active && (
                         <Badge variant="secondary">Inativo</Badge>
                       )}
