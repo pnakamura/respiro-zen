@@ -31,7 +31,7 @@ export function UpgradeModal({
 
   const handleUpgrade = () => {
     onClose();
-    navigate('/settings');
+    navigate('/plans');
   };
 
   const modalContent = (
