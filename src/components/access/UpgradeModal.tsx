@@ -8,6 +8,7 @@ interface UpgradeModalProps {
   onClose: () => void;
   featureTitle: string;
   featureDescription?: string;
+  contentType?: 'breathing' | 'meditation' | 'journey';
 }
 
 const benefits = [
@@ -23,6 +24,7 @@ export function UpgradeModal({
   onClose,
   featureTitle,
   featureDescription,
+  contentType,
 }: UpgradeModalProps) {
   const navigate = useNavigate();
 

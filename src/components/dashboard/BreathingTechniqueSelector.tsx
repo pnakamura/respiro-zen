@@ -174,6 +174,7 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                     contentType="breathing"
                     contentId={technique.id}
                     contentTitle={technique.label}
+                    contentDescription={technique.description}
                     badgePosition="top-left"
                   >
                     <motion.div

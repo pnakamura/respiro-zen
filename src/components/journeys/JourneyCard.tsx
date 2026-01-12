@@ -37,6 +37,7 @@ export function JourneyCard({ journey, onClick, progress, isCompleted, delay = 0
       contentType="journey"
       contentId={journey.id}
       contentTitle={journey.title}
+      contentDescription={journey.subtitle || journey.description}
       showBadge={journey.is_premium}
       badgePosition="top-left"
     >

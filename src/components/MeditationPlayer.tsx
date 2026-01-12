@@ -238,6 +238,7 @@ export function MeditationPlayer({ onClose, onComplete, initialTrackId }: Medita
                       contentType="meditation"
                       contentId={track.id}
                       contentTitle={track.title}
+                      contentDescription={track.description || undefined}
                       badgePosition="top-left"
                     >
                       <motion.div

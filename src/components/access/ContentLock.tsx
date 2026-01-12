@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Lock, Sparkles } from 'lucide-react';
+import { Lock, Sparkles, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useContentAccess, ContentAccessLevel } from '@/hooks/useFeatureAccess';
@@ -9,6 +9,7 @@ interface ContentLockProps {
   contentType: 'breathing' | 'meditation' | 'journey';
   contentId: string;
   contentTitle?: string;
+  contentDescription?: string;
   children: ReactNode;
   className?: string;
   showBadge?: boolean;
@@ -22,17 +23,18 @@ const levelLabels: Record<ContentAccessLevel, string> = {
   exclusive: 'Exclusivo',
 };
 
-const levelColors: Record<ContentAccessLevel, string> = {
-  free: '',
-  basic: 'bg-blue-500/10 text-blue-500',
-  premium: 'bg-amber-500/10 text-amber-500',
-  exclusive: 'bg-purple-500/10 text-purple-500',
+const levelColors: Record<ContentAccessLevel, { badge: string; cta: string }> = {
+  free: { badge: '', cta: '' },
+  basic: { badge: 'bg-blue-500/10 text-blue-500', cta: 'bg-blue-500/10 border-blue-500/20 text-blue-500' },
+  premium: { badge: 'bg-amber-500/10 text-amber-500', cta: 'bg-amber-500/10 border-amber-500/20 text-amber-500' },
+  exclusive: { badge: 'bg-purple-500/10 text-purple-500', cta: 'bg-purple-500/10 border-purple-500/20 text-purple-500' },
 };
 
 export function ContentLock({
   contentType,
   contentId,
   contentTitle,
+  contentDescription,
   children,
   className,
   showBadge = true,
@@ -55,9 +57,21 @@ export function ContentLock({
     'bottom-right': 'bottom-2 right-2',
   };
 
+  const handleLockedClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setShowUpgradeModal(true);
+  };
+
   return (
-    <div className={cn('relative', className)}>
-      {children}
+    <div 
+      className={cn('relative', className)}
+      onClick={isLocked ? handleLockedClick : undefined}
+    >
+      {/* Conteúdo com interação bloqueada se necessário */}
+      <div className={cn(isLocked && 'pointer-events-none')}>
+        {children}
+      </div>
 
       {/* Badge de nível de acesso */}
       {showBadge && isPremiumContent && (
@@ -65,7 +79,7 @@ export function ContentLock({
           className={cn(
             'absolute z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium',
             badgePositionClasses[badgePosition],
-            levelColors[contentLevel]
+            levelColors[contentLevel].badge
           )}
         >
           <Sparkles className="w-3 h-3" />
@@ -73,21 +87,30 @@ export function ContentLock({
         </div>
       )}
 
-      {/* Overlay de bloqueio */}
+      {/* CTA de desbloqueio na parte inferior - conteúdo permanece visível */}
       {isLocked && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-background/80 backdrop-blur-sm cursor-pointer"
-          onClick={() => setShowUpgradeModal(true)}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute bottom-0 inset-x-0 z-20 p-2 bg-gradient-to-t from-background via-background/95 to-transparent rounded-b-2xl"
         >
-          <div className="flex flex-col items-center gap-2 text-center p-4">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-              <Lock className="w-5 h-5 text-muted-foreground" />
+          <div 
+            className={cn(
+              'flex items-center justify-between gap-2 p-2.5 rounded-xl border cursor-pointer transition-all hover:scale-[1.02]',
+              levelColors[contentLevel].cta
+            )}
+            onClick={handleLockedClick}
+          >
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              <span className="text-xs font-medium">
+                Conteúdo {levelLabels[contentLevel]}
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Conteúdo {levelLabels[contentLevel]}
-            </p>
+            <div className="flex items-center gap-1 text-xs font-semibold">
+              <span>Desbloquear</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
           </div>
         </motion.div>
       )}
@@ -97,7 +120,8 @@ export function ContentLock({
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         featureTitle={contentTitle || `Conteúdo ${levelLabels[contentLevel]}`}
-        featureDescription={`Este conteúdo requer um plano ${levelLabels[contentLevel].toLowerCase()} para acesso completo.`}
+        featureDescription={contentDescription || `Este conteúdo requer um plano ${levelLabels[contentLevel].toLowerCase()} para acesso completo.`}
+        contentType={contentType}
       />
     </div>
   );
@@ -117,7 +141,7 @@ export function PremiumBadge({
     <span
       className={cn(
         'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium',
-        levelColors[level],
+        levelColors[level].badge,
         className
       )}
     >
