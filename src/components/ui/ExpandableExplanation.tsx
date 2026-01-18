@@ -56,64 +56,66 @@ export function ExpandableExplanation({
           <span>Saiba mais</span>
         </span>
 
-        {/* Modal overlay using Portal */}
-        <AnimatePresence>
-          {isOpen && typeof document !== 'undefined' && createPortal(
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
-            >
+        {/* Portal sempre renderiza, AnimatePresence controla o conteúdo */}
+        {typeof document !== 'undefined' && createPortal(
+          <AnimatePresence>
+            {isOpen && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                onClick={(e) => e.stopPropagation()}
-                className="relative max-w-md w-full bg-card border border-border rounded-2xl shadow-xl max-h-[85vh] flex flex-col overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsOpen(false)}
+                className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
               >
-                {/* Fixed header */}
-                <div className="flex items-center justify-between gap-2 p-5 pb-3 border-b border-border/50 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Info className="w-4 h-4 text-primary" />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative max-w-md w-full bg-card border border-border rounded-2xl shadow-xl max-h-[85vh] flex flex-col overflow-hidden"
+                >
+                  {/* Fixed header */}
+                  <div className="flex items-center justify-between gap-2 p-5 pb-3 border-b border-border/50 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Info className="w-4 h-4 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground">Fundamentação Científica</h3>
                     </div>
-                    <h3 className="font-semibold text-foreground">Fundamentação Científica</h3>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setIsOpen(false)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsOpen(false); }}
+                      className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors shrink-0 cursor-pointer"
+                    >
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </span>
                   </div>
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setIsOpen(false)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsOpen(false); }}
-                    className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors shrink-0 cursor-pointer"
-                  >
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </span>
-                </div>
-                
-                {/* Scrollable content */}
-                <div className="flex-1 overflow-y-auto p-5 pt-4 min-h-0">
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                    {explanation}
-                  </p>
-                </div>
-                
-                {/* Fixed footer with button */}
-                <div className="p-5 pt-3 border-t border-border/50 shrink-0">
-                  <Button
-                    onClick={() => setIsOpen(false)}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    Entendi
-                  </Button>
-                </div>
+                  
+                  {/* Scrollable content */}
+                  <div className="flex-1 overflow-y-auto p-5 pt-4 min-h-0">
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {explanation}
+                    </p>
+                  </div>
+                  
+                  {/* Fixed footer with button */}
+                  <div className="p-5 pt-3 border-t border-border/50 shrink-0">
+                    <Button
+                      onClick={() => setIsOpen(false)}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      Entendi
+                    </Button>
+                  </div>
+                </motion.div>
               </motion.div>
-            </motion.div>,
-            document.body
-          )}
-        </AnimatePresence>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
       </>
     );
   }
@@ -124,6 +126,7 @@ export function ExpandableExplanation({
       <div className={cn('mt-2', className)}>
         <button
           type="button"
+          data-contentlock-allow="true"
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -173,6 +176,7 @@ export function ExpandableExplanation({
     <div className={cn('rounded-xl border border-border/50 bg-muted/30 overflow-hidden', className)}>
       <button
         type="button"
+        data-contentlock-allow="true"
         onClick={(e) => {
           e.stopPropagation();
           e.preventDefault();
