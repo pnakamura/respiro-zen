@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,7 +22,7 @@ export function ExpandableExplanation({
 
   if (!explanation) return null;
 
-  // Icon trigger - shows popover/modal on click
+  // Icon trigger - shows modal on click using Portal
   if (triggerType === 'icon') {
     return (
       <>
@@ -41,50 +42,59 @@ export function ExpandableExplanation({
           <Info className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
         </button>
 
-        {/* Modal overlay */}
+        {/* Modal overlay using Portal */}
         <AnimatePresence>
-          {isOpen && (
+          {isOpen && createPortal(
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
+              className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative max-w-md w-full bg-card border border-border rounded-2xl shadow-xl p-5 max-h-[80vh] overflow-y-auto"
+                className="relative max-w-md w-full bg-card border border-border rounded-2xl shadow-xl max-h-[85vh] flex flex-col overflow-hidden"
               >
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="absolute top-3 right-3 w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors"
-                >
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
-                
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Info className="w-4 h-4 text-primary" />
+                {/* Fixed header */}
+                <div className="flex items-center justify-between gap-2 p-5 pb-3 border-b border-border/50 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Info className="w-4 h-4 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-foreground">Fundamentação Científica</h3>
                   </div>
-                  <h3 className="font-semibold text-foreground">Fundamentação Científica</h3>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors shrink-0"
+                  >
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
                 </div>
                 
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {explanation}
-                </p>
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto p-5 pt-4 min-h-0">
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {explanation}
+                  </p>
+                </div>
                 
-                <Button
-                  onClick={() => setIsOpen(false)}
-                  className="w-full mt-4"
-                  variant="outline"
-                >
-                  Entendi
-                </Button>
+                {/* Fixed footer with button */}
+                <div className="p-5 pt-3 border-t border-border/50 shrink-0">
+                  <Button
+                    onClick={() => setIsOpen(false)}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    Entendi
+                  </Button>
+                </div>
               </motion.div>
-            </motion.div>
+            </motion.div>,
+            document.body
           )}
         </AnimatePresence>
       </>
