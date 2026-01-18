@@ -15,14 +15,14 @@ interface ExpandableExplanationProps {
 export function ExpandableExplanation({ 
   explanation, 
   triggerType = 'icon',
-  title = 'Saiba mais',
+  title = 'Ver fundamentação científica',
   className,
 }: ExpandableExplanationProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!explanation) return null;
 
-  // Icon trigger - shows modal on click using Portal
+  // Icon trigger - larger and more visible, shows modal on click using Portal
   if (triggerType === 'icon') {
     return (
       <>
@@ -30,16 +30,18 @@ export function ExpandableExplanation({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
+            e.preventDefault();
             setIsOpen(true);
           }}
           className={cn(
-            'w-5 h-5 rounded-full bg-muted/50 flex items-center justify-center shrink-0',
-            'hover:bg-primary/10 transition-colors',
+            'w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0',
+            'hover:bg-primary/20 active:scale-95 transition-all',
+            'ring-2 ring-primary/20',
             className
           )}
           aria-label="Ver explicação científica"
         >
-          <Info className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
+          <Info className="w-4 h-4 text-primary" />
         </button>
 
         {/* Modal overlay using Portal */}
@@ -101,7 +103,7 @@ export function ExpandableExplanation({
     );
   }
 
-  // Button trigger - shows inline expansion
+  // Button trigger - more visible with label and icon
   if (triggerType === 'button') {
     return (
       <div className={cn('mt-2', className)}>
@@ -109,11 +111,17 @@ export function ExpandableExplanation({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
+            e.preventDefault();
             setIsOpen(!isOpen);
           }}
-          className="text-sm text-primary hover:underline flex items-center gap-1"
+          className={cn(
+            'flex items-center gap-2 px-3 py-2 rounded-xl',
+            'bg-primary/10 hover:bg-primary/15 active:scale-[0.98] transition-all',
+            'text-sm font-medium text-primary'
+          )}
         >
-          {title}
+          <Info className="w-4 h-4" />
+          <span>{title}</span>
           <ChevronDown className={cn(
             'w-4 h-4 transition-transform duration-200',
             isOpen && 'rotate-180'
@@ -132,7 +140,7 @@ export function ExpandableExplanation({
               <div className="mt-3 p-4 rounded-xl bg-muted/30 border border-border/50">
                 <div className="flex items-center gap-2 mb-2">
                   <Info className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Fundamentação Científica</span>
+                  <span className="text-sm font-medium text-foreground">Fundamentação Científica</span>
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
                   {explanation}
@@ -145,16 +153,17 @@ export function ExpandableExplanation({
     );
   }
 
-  // Accordion trigger - collapsible section
+  // Accordion trigger - collapsible section with highlighted style
   return (
-    <div className={cn('border-t border-border/50 mt-4 pt-4', className)}>
+    <div className={cn('rounded-xl border border-border/50 bg-muted/30 overflow-hidden', className)}>
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
+          e.preventDefault();
           setIsOpen(!isOpen);
         }}
-        className="w-full flex items-center justify-between text-left"
+        className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors"
       >
         <span className="text-sm font-medium text-foreground flex items-center gap-2">
           <Info className="w-4 h-4 text-primary" />
@@ -175,9 +184,11 @@ export function ExpandableExplanation({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-              {explanation}
-            </p>
+            <div className="px-4 pb-4 border-t border-border/30">
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                {explanation}
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

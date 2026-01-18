@@ -216,17 +216,20 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                             </span>
                           </div>
                           
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <p className="text-xs text-muted-foreground line-clamp-2 flex-1">
-                              {technique.description}
-                            </p>
-                            {technique.explanation && (
+                          {/* Description */}
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                            {technique.description}
+                          </p>
+                          
+                          {/* Explanation button - separate line for visibility */}
+                          {technique.explanation && (
+                            <div className="mb-2" onClick={(e) => e.stopPropagation()}>
                               <ExpandableExplanation
                                 explanation={technique.explanation}
                                 triggerType="icon"
                               />
-                            )}
-                          </div>
+                            </div>
+                          )}
                           
                           {/* Meta info */}
                           <div className="flex items-center gap-3 text-[10px] text-muted-foreground">

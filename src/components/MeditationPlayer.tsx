@@ -272,17 +272,21 @@ export function MeditationPlayer({ onClose, onComplete, initialTrackId }: Medita
                               <span>•</span>
                               <span>{track.duration_display}</span>
                             </div>
+                            
+                            {/* Short description */}
                             {(track.short_description || track.description) && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-sm text-muted-foreground/80 line-clamp-1 flex-1">
-                                  {track.short_description || track.description}
-                                </p>
-                                {track.explanation && (
-                                  <ExpandableExplanation
-                                    explanation={track.explanation}
-                                    triggerType="icon"
-                                  />
-                                )}
+                              <p className="text-sm text-muted-foreground/80 line-clamp-2 mt-1">
+                                {track.short_description || track.description}
+                              </p>
+                            )}
+                            
+                            {/* Explanation button - separate line for visibility */}
+                            {track.explanation && (
+                              <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                                <ExpandableExplanation
+                                  explanation={track.explanation}
+                                  triggerType="icon"
+                                />
                               </div>
                             )}
                           </div>

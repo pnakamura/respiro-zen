@@ -114,14 +114,15 @@ export function JourneyDetails({
               <div>
                 <p className="text-muted-foreground leading-relaxed">{journey.description}</p>
                 
-                {/* Scientific Explanation */}
+                {/* Scientific Explanation - Accordion style for better visibility */}
                 {journey.explanation && (
-                  <ExpandableExplanation
-                    explanation={journey.explanation}
-                    triggerType="button"
-                    title="Saiba mais sobre o método"
-                    className="mt-3"
-                  />
+                  <div className="mt-4">
+                    <ExpandableExplanation
+                      explanation={journey.explanation}
+                      triggerType="accordion"
+                      title="Fundamentação Científica"
+                    />
+                  </div>
                 )}
               </div>
 
