@@ -59,6 +59,7 @@ export function UpgradeModal({
             className="fixed inset-0 z-[101] flex items-center justify-center p-4"
           >
             <div 
+              data-upgrade-modal="true"
               className="bg-card rounded-3xl border border-border/50 shadow-2xl overflow-hidden max-w-md w-full max-h-[85vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >

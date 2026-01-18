@@ -61,7 +61,12 @@ export function ContentLock({
     // Permitir cliques em elementos marcados como "permitidos" (ex: Saiba mais, Favorito)
     const allowedElement = (e.target as HTMLElement).closest('[data-contentlock-allow="true"]');
     if (allowedElement) {
-      // Deixar o clique seguir normalmente para o elemento permitido
+      return;
+    }
+    
+    // Não interceptar cliques dentro do UpgradeModal (renderizado via Portal)
+    const upgradeModalElement = (e.target as HTMLElement).closest('[data-upgrade-modal="true"]');
+    if (upgradeModalElement) {
       return;
     }
     
