@@ -70,6 +70,12 @@ export function ContentLock({
       return;
     }
     
+    // Não interceptar cliques dentro do ExpandableExplanation modal (renderizado via Portal)
+    const expandableModalElement = (e.target as HTMLElement).closest('[data-expandable-modal="true"]');
+    if (expandableModalElement) {
+      return;
+    }
+    
     e.stopPropagation();
     e.preventDefault();
     setShowUpgradeModal(true);
