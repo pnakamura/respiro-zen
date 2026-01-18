@@ -34,11 +34,14 @@ export function UpgradeModal({
     navigate('/plans');
   };
 
-  const modalContent = (
+  // Portal sempre renderiza, AnimatePresence controla o conteúdo animado
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop - z-index alto para ficar acima de tudo */}
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -47,19 +50,19 @@ export function UpgradeModal({
             onClick={onClose}
           />
 
-          {/* Container centralizado com flexbox */}
+          {/* Container centralizado */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-[101] flex items-center justify-center p-4"
           >
             <div 
-              className="bg-card rounded-3xl border border-border/50 shadow-2xl overflow-hidden max-w-md w-full max-h-[85vh] flex flex-col pointer-events-auto"
+              className="bg-card rounded-3xl border border-border/50 shadow-2xl overflow-hidden max-w-md w-full max-h-[85vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header com gradiente - não encolhe */}
+              {/* Header com gradiente */}
               <div className="relative bg-gradient-to-br from-amber-500/20 via-primary/10 to-purple-500/20 p-5 pb-6 flex-shrink-0">
                 <button
                   onClick={onClose}
@@ -84,7 +87,7 @@ export function UpgradeModal({
                 )}
               </div>
 
-              {/* Benefícios - com scroll se necessário */}
+              {/* Benefícios */}
               <div className="p-5 pt-4 space-y-3 overflow-y-auto flex-1 min-h-0">
                 <p className="text-sm font-medium text-foreground">
                   Com o plano Premium você terá:
@@ -107,7 +110,7 @@ export function UpgradeModal({
                 </ul>
               </div>
 
-              {/* Botões - sempre visíveis, não encolhem */}
+              {/* Botões */}
               <div className="p-5 pt-3 space-y-2.5 flex-shrink-0 border-t border-border/30 bg-card">
                 <Button
                   onClick={handleUpgrade}
@@ -128,9 +131,7 @@ export function UpgradeModal({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
-
-  // Renderizar via Portal diretamente no body para evitar problemas de stacking context
-  return createPortal(modalContent, document.body);
 }
