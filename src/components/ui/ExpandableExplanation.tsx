@@ -22,31 +22,42 @@ export function ExpandableExplanation({
 
   if (!explanation) return null;
 
-  // Icon trigger - larger and more visible, shows modal on click using Portal
+  // Icon trigger - uses span to avoid nested button issues, shows modal on click using Portal
   if (triggerType === 'icon') {
+    const handleOpen = (e: React.MouseEvent | React.KeyboardEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setIsOpen(true);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        handleOpen(e);
+      }
+    };
+
     return (
       <>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            setIsOpen(true);
-          }}
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={handleOpen}
+          onKeyDown={handleKeyDown}
           className={cn(
-            'w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0',
-            'hover:bg-primary/20 active:scale-95 transition-all',
-            'ring-2 ring-primary/20',
+            'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full cursor-pointer select-none',
+            'bg-primary/10 hover:bg-primary/20 active:scale-95 transition-all',
+            'text-xs font-medium text-primary',
             className
           )}
           aria-label="Ver explicação científica"
         >
-          <Info className="w-4 h-4 text-primary" />
-        </button>
+          <Info className="w-3.5 h-3.5" />
+          <span>Saiba mais</span>
+        </span>
 
         {/* Modal overlay using Portal */}
         <AnimatePresence>
-          {isOpen && createPortal(
+          {isOpen && typeof document !== 'undefined' && createPortal(
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -69,12 +80,15 @@ export function ExpandableExplanation({
                     </div>
                     <h3 className="font-semibold text-foreground">Fundamentação Científica</h3>
                   </div>
-                  <button
+                  <span
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setIsOpen(false)}
-                    className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors shrink-0"
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsOpen(false); }}
+                    className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors shrink-0 cursor-pointer"
                   >
                     <X className="w-4 h-4 text-muted-foreground" />
-                  </button>
+                  </span>
                 </div>
                 
                 {/* Scrollable content */}

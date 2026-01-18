@@ -256,33 +256,44 @@ export function MeditationPlayer({ onClose, onComplete, initialTrackId }: Medita
                         <div className="absolute top-2 right-2 z-10">
                           <FavoriteButton type="meditation" itemId={track.id} size="sm" />
                         </div>
-                        <button
-                          onClick={() => handleTrackSelect(track)}
-                          className="flex items-center gap-4 flex-1"
-                        >
-                          <div className="w-16 h-16 md:w-14 md:h-14 rounded-xl bg-meditate-light flex items-center justify-center">
+                        <div className="flex items-center gap-4 flex-1">
+                          <div 
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleTrackSelect(track)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleTrackSelect(track); }}
+                            className="w-16 h-16 md:w-14 md:h-14 rounded-xl bg-meditate-light flex items-center justify-center cursor-pointer"
+                          >
                             <Headphones className="w-8 h-8 md:w-6 md:h-6 text-meditate" />
                           </div>
                           <div className="flex-1 text-left">
-                            <h3 className="text-xl md:text-base font-semibold text-foreground pr-8">
-                              {track.title}
-                            </h3>
-                            <div className="flex items-center gap-2 text-lg md:text-sm text-muted-foreground">
-                              <span>{getCategoryName(track.category_id)}</span>
-                              <span>•</span>
-                              <span>{track.duration_display}</span>
+                            <div 
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => handleTrackSelect(track)}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleTrackSelect(track); }}
+                              className="cursor-pointer"
+                            >
+                              <h3 className="text-xl md:text-base font-semibold text-foreground pr-8">
+                                {track.title}
+                              </h3>
+                              <div className="flex items-center gap-2 text-lg md:text-sm text-muted-foreground">
+                                <span>{getCategoryName(track.category_id)}</span>
+                                <span>•</span>
+                                <span>{track.duration_display}</span>
+                              </div>
+                              
+                              {/* Short description */}
+                              {(track.short_description || track.description) && (
+                                <p className="text-sm text-muted-foreground/80 line-clamp-2 mt-1">
+                                  {track.short_description || track.description}
+                                </p>
+                              )}
                             </div>
                             
-                            {/* Short description */}
-                            {(track.short_description || track.description) && (
-                              <p className="text-sm text-muted-foreground/80 line-clamp-2 mt-1">
-                                {track.short_description || track.description}
-                              </p>
-                            )}
-                            
-                            {/* Explanation button - separate line for visibility */}
+                            {/* Explanation trigger - outside clickable area */}
                             {track.explanation && (
-                              <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                              <div className="mt-2">
                                 <ExpandableExplanation
                                   explanation={track.explanation}
                                   triggerType="icon"
@@ -290,10 +301,16 @@ export function MeditationPlayer({ onClose, onComplete, initialTrackId }: Medita
                               </div>
                             )}
                           </div>
-                          <div className="w-12 h-12 md:w-10 md:h-10 rounded-full bg-meditate flex items-center justify-center shrink-0">
+                          <div 
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleTrackSelect(track)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleTrackSelect(track); }}
+                            className="w-12 h-12 md:w-10 md:h-10 rounded-full bg-meditate flex items-center justify-center shrink-0 cursor-pointer"
+                          >
                             <Play className="w-5 h-5 md:w-4 md:h-4 text-primary-foreground ml-0.5" />
                           </div>
-                        </button>
+                        </div>
                       </motion.div>
                     </ContentLock>
                   ));

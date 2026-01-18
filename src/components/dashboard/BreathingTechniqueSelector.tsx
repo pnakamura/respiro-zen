@@ -192,38 +192,48 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                       <div className="absolute top-2 right-2 z-10">
                         <FavoriteButton type="breathing" itemId={technique.id} size="sm" />
                       </div>
-                      <button
-                        onClick={() => onSelect(technique)}
-                        className="w-full text-left"
-                      >
                       <div className="flex items-start gap-3">
                         {/* Icon - slightly smaller */}
-                        <div className={cn(
-                          'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0',
-                          bg
-                        )}>
+                        <div 
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => onSelect(technique)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(technique); }}
+                          className={cn(
+                            'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 cursor-pointer',
+                            bg
+                          )}
+                        >
                           {technique.icon || emoji}
                         </div>
                         
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <h3 className="font-semibold text-sm text-foreground truncate">
-                              {technique.label}
-                            </h3>
-                            <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0', bg, color)}>
-                              {arousalLabels[arousal].label}
-                            </span>
+                          <div 
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => onSelect(technique)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(technique); }}
+                            className="cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <h3 className="font-semibold text-sm text-foreground truncate">
+                                {technique.label}
+                              </h3>
+                              <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0', bg, color)}>
+                                {arousalLabels[arousal].label}
+                              </span>
+                            </div>
+                            
+                            {/* Description */}
+                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                              {technique.description}
+                            </p>
                           </div>
                           
-                          {/* Description */}
-                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                            {technique.description}
-                          </p>
-                          
-                          {/* Explanation button - separate line for visibility */}
+                          {/* Explanation trigger - outside clickable area */}
                           {technique.explanation && (
-                            <div className="mb-2" onClick={(e) => e.stopPropagation()}>
+                            <div className="mb-2">
                               <ExpandableExplanation
                                 explanation={technique.explanation}
                                 triggerType="icon"
@@ -231,8 +241,14 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                             </div>
                           )}
                           
-                          {/* Meta info */}
-                          <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                          {/* Meta info - clickable to select */}
+                          <div 
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => onSelect(technique)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(technique); }}
+                            className="flex items-center gap-3 text-[10px] text-muted-foreground cursor-pointer"
+                          >
                             <span className="flex items-center gap-1">
                               <Wind className="w-3 h-3" />
                               {getPatternDisplay(technique)}
@@ -248,7 +264,6 @@ export function BreathingTechniqueSelector({ isOpen, onClose, onSelect }: Breath
                           </div>
                         </div>
                       </div>
-                      </button>
                     </motion.div>
                   </ContentLock>
                 );
