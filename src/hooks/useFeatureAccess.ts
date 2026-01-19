@@ -37,8 +37,8 @@ export function useCanAccess(featureKey: string): FeatureAccess {
       if (!user?.id) return 'none';
       
       const { data, error } = await supabase.rpc('check_feature_access', {
-        p_user_id: user.id,
-        p_feature_key: featureKey,
+        user_uuid: user.id,
+        feature_name: featureKey,
       });
       
       if (error) {
@@ -109,8 +109,8 @@ export function useContentAccess(
       // Verificar acesso do usuário à feature premium
       const featureKey = `${contentType}_premium`;
       const { data: accessData } = await supabase.rpc('check_feature_access', {
-        p_user_id: user.id,
-        p_feature_key: featureKey,
+        user_uuid: user.id,
+        feature_name: featureKey,
       });
 
       const userAccessLevel = (accessData as AccessLevel) || 'none';
@@ -184,8 +184,8 @@ export function useUserFeatures() {
       const results = await Promise.all(
         features.map(async (feature) => {
           const { data: accessLevel } = await supabase.rpc('check_feature_access', {
-            p_user_id: user.id,
-            p_feature_key: feature.feature_key,
+            user_uuid: user.id,
+            feature_name: feature.feature_key,
           });
 
           return {

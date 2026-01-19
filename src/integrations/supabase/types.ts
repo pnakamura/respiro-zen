@@ -2080,10 +2080,7 @@ export type Database = {
             Args: { p_feature_key: string; p_user_id: string }
             Returns: string
           }
-        | {
-            Args: { p_feature_key: string; p_user_id: string }
-            Returns: string
-          }
+        | { Args: { feature_name: string; user_uuid: string }; Returns: string }
       check_rate_limit: {
         Args: {
           p_max_attempts?: number
