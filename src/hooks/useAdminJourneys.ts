@@ -260,6 +260,8 @@ export function useUpdateJourneyDay() {
       queryClient.invalidateQueries({ queryKey: ['admin-journey-days', result.journey_id] });
       queryClient.invalidateQueries({ queryKey: ['admin-journey-day', result.id] });
       queryClient.invalidateQueries({ queryKey: ['journey-days', result.journey_id] });
+      // Invalidar todas as queries de journey-days para garantir dados frescos
+      queryClient.invalidateQueries({ queryKey: ['journey-days'] });
       toast.success('Dia atualizado com sucesso!');
     },
     onError: (error) => {

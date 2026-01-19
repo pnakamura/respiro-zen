@@ -12,7 +12,9 @@ import {
   Check,
   Sparkles,
   Play,
-  Clock
+  Clock,
+  ZoomIn,
+  ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -62,6 +64,7 @@ export function JourneyDayContent({
 }: JourneyDayContentProps) {
   const [reflection, setReflection] = useState('');
   const [expandedSection, setExpandedSection] = useState<string | null>('teaching');
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -110,25 +113,70 @@ export function JourneyDayContent({
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
-              {/* Hero Image - Tamanho Padronizado */}
+              {/* Imagem do Dia - Frame com Clique para Expandir */}
               {day.image_url && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 1.02 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4 }}
-                  className="relative w-full aspect-video max-h-56 overflow-hidden bg-muted"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mx-4 mt-4 rounded-2xl bg-muted/30 border border-border/50 p-3 space-y-2"
                 >
-                  <img
-                    src={day.image_url}
-                    alt={day.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <ImageIcon className="w-4 h-4" />
+                    <span>Imagem do Dia</span>
+                    <span className="ml-auto text-[10px] opacity-70">Toque para ampliar</span>
+                  </div>
+                  <button
+                    onClick={() => setIsImageExpanded(true)}
+                    className="relative w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted cursor-zoom-in hover:ring-2 hover:ring-primary/50 transition-all group"
+                  >
+                    <img
+                      src={day.image_url}
+                      alt={day.title}
+                      className="w-full h-full object-contain bg-black/5"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
+                      <ZoomIn className="w-4 h-4 text-foreground" />
+                    </div>
+                  </button>
                 </motion.div>
               )}
+
+              {/* Modal de Imagem Expandida */}
+              <AnimatePresence>
+                {isImageExpanded && day.image_url && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[150] bg-black/95 flex items-center justify-center p-4"
+                    onClick={() => setIsImageExpanded(false)}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.9, opacity: 0 }}
+                      className="relative max-w-full max-h-full flex flex-col items-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => setIsImageExpanded(false)}
+                        className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                      >
+                        <X className="w-5 h-5 text-white" />
+                      </button>
+                      <img
+                        src={day.image_url}
+                        alt={day.title}
+                        className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                      />
+                      <p className="text-center text-white/70 text-sm mt-3">{day.title}</p>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className="px-4 py-4 space-y-4">
                 {/* Day Title with Activity Badge */}
