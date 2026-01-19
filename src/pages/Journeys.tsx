@@ -55,6 +55,7 @@ export default function Journeys() {
   const [selectedTechnique, setSelectedTechnique] = useState<BreathingTechnique | null>(null);
   const [breathingStartTime, setBreathingStartTime] = useState<number>(0);
   const [selectedMeditationId, setSelectedMeditationId] = useState<string | null>(null);
+  const [practiceCompleted, setPracticeCompleted] = useState(false);
 
   const { data: selectedJourneyDays } = useJourneyDays(selectedJourney?.id);
 
@@ -86,7 +87,7 @@ export default function Journeys() {
     setShowDayContent(true);
   };
 
-  const handleCompleteDay = async (reflection?: string) => {
+  const handleCompleteDay = async (reflection?: string, checks?: { teachingRead: boolean; practiceDone: boolean; challengeDone: boolean }) => {
     if (!activeJourney || !activeJourneyDays) return;
 
     try {
@@ -94,7 +95,9 @@ export default function Journeys() {
         userJourneyId: activeJourney.id,
         dayNumber: currentViewingDay,
         reflectionNote: reflection,
-        teachingRead: true,
+        teachingRead: checks?.teachingRead ?? true,
+        practiceDone: checks?.practiceDone ?? true,
+        challengeDone: checks?.challengeDone ?? true,
       });
 
       // Check if journey is complete
@@ -139,14 +142,24 @@ export default function Journeys() {
         cycles_completed: selectedTechnique.cycles,
       });
     }
+    setPracticeCompleted(true);
     setShowBreathPacer(false);
     setSelectedTechnique(null);
+    // Reabrir o conteúdo do dia após a prática
+    setShowDayContent(true);
   };
 
   const handleMeditationComplete = () => {
+    setPracticeCompleted(true);
     setShowMeditation(false);
     setSelectedMeditationId(null);
     toast.success('Meditação concluída!');
+    // Reabrir o conteúdo do dia após a prática
+    setShowDayContent(true);
+  };
+
+  const handlePracticeReset = () => {
+    setPracticeCompleted(false);
   };
 
   const currentDay = activeJourneyDays?.find(d => d.day_number === currentViewingDay);
@@ -361,6 +374,8 @@ export default function Journeys() {
           onOpenBreathing={handleOpenBreathing}
           onOpenMeditation={handleOpenMeditation}
           isCompleting={completeDayMutation.isPending}
+          practiceCompleted={practiceCompleted}
+          onPracticeReset={handlePracticeReset}
         />
       )}
 
