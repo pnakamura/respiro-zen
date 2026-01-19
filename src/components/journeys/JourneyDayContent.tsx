@@ -225,79 +225,6 @@ export function JourneyDayContent({
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
-              {/* Imagem do Dia */}
-              {day.image_url && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mx-4 mt-4 rounded-2xl bg-muted/30 border border-border/50 overflow-hidden"
-                >
-                  <div className="flex items-center justify-between p-3 bg-muted/20">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <ImageIcon className="w-4 h-4 text-muted-foreground" />
-                      <span>Imagem do Dia</span>
-                    </div>
-                    <SectionCheck 
-                      checked={checks.imageViewed} 
-                      onClick={() => setChecks(prev => ({ ...prev, imageViewed: true }))}
-                    />
-                  </div>
-                  <button
-                    onClick={handleImageClick}
-                    className="relative w-full aspect-video max-h-48 overflow-hidden bg-muted cursor-zoom-in hover:ring-2 hover:ring-primary/50 transition-all group"
-                  >
-                    <img
-                      src={day.image_url}
-                      alt={day.title}
-                      className="w-full h-full object-contain bg-black/5"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
-                      <ZoomIn className="w-4 h-4 text-foreground" />
-                    </div>
-                    <span className="absolute bottom-2 left-2 text-[10px] text-foreground/70 bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                      Toque para ampliar
-                    </span>
-                  </button>
-                </motion.div>
-              )}
-
-              {/* Modal de Imagem Expandida */}
-              <AnimatePresence>
-                {isImageExpanded && day.image_url && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[150] bg-black/95 flex items-center justify-center p-4"
-                    onClick={() => setIsImageExpanded(false)}
-                  >
-                    <motion.div
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.9, opacity: 0 }}
-                      className="relative max-w-full max-h-full flex flex-col items-center"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        onClick={() => setIsImageExpanded(false)}
-                        className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                      >
-                        <X className="w-5 h-5 text-white" />
-                      </button>
-                      <img
-                        src={day.image_url}
-                        alt={day.title}
-                        className="max-w-full max-h-[85vh] object-contain rounded-lg"
-                      />
-                      <p className="text-center text-white/70 text-sm mt-3">{day.title}</p>
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               <div className="px-4 py-4 space-y-4">
                 {/* Day Title with Activity Badge */}
                 <div className="text-center py-3">
@@ -310,6 +237,79 @@ export function JourneyDayContent({
                     <p className="text-sm text-muted-foreground mt-1">— {day.teaching_author}</p>
                   )}
                 </div>
+
+                {/* Imagem do Dia - Após o título */}
+                {day.image_url && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl bg-muted/30 border border-border/50 overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between p-3 bg-muted/20">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                        <span>Imagem do Dia</span>
+                      </div>
+                      <SectionCheck 
+                        checked={checks.imageViewed} 
+                        onClick={() => setChecks(prev => ({ ...prev, imageViewed: true }))}
+                      />
+                    </div>
+                    <button
+                      onClick={handleImageClick}
+                      className="relative w-full overflow-hidden bg-muted cursor-zoom-in hover:ring-2 hover:ring-primary/50 transition-all group"
+                    >
+                      <img
+                        src={day.image_url}
+                        alt={day.title}
+                        className="w-full max-h-[60vh] object-contain bg-black/5"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
+                        <ZoomIn className="w-4 h-4 text-foreground" />
+                      </div>
+                      <span className="absolute bottom-2 left-2 text-[10px] text-foreground/70 bg-background/60 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                        Toque para ampliar
+                      </span>
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* Modal de Imagem Expandida */}
+                <AnimatePresence>
+                  {isImageExpanded && day.image_url && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-[150] bg-black/95 flex items-center justify-center p-4"
+                      onClick={() => setIsImageExpanded(false)}
+                    >
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
+                        className="relative max-w-full max-h-full flex flex-col items-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => setIsImageExpanded(false)}
+                          className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                        >
+                          <X className="w-5 h-5 text-white" />
+                        </button>
+                        <img
+                          src={day.image_url}
+                          alt={day.title}
+                          className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                        />
+                        <p className="text-center text-white/70 text-sm mt-3">{day.title}</p>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Teaching Card */}
                 <motion.div
@@ -355,7 +355,7 @@ export function JourneyDayContent({
                       </div>
                       <SectionCheck 
                         checked={checks.practicesDone} 
-                        disabled={true}
+                        onClick={() => setChecks(prev => ({ ...prev, practicesDone: !prev.practicesDone }))}
                       />
                     </div>
                     <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -416,7 +416,7 @@ export function JourneyDayContent({
                     {!checks.practicesDone && (
                       <p className="text-xs text-muted-foreground px-4 pb-4 flex items-center gap-1">
                         <Circle className="w-3 h-3" />
-                        Complete uma prática para desbloquear
+                        Realize ou marque como visualizado para continuar
                       </p>
                     )}
                   </div>
