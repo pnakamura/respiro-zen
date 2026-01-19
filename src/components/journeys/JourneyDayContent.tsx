@@ -110,18 +110,21 @@ export function JourneyDayContent({
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto">
-              {/* Hero Image */}
+              {/* Hero Image - Tamanho Padronizado */}
               {day.image_url && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 1.05 }}
+                  initial={{ opacity: 0, scale: 1.02 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                  className="relative w-full h-48 md:h-64 overflow-hidden"
+                  transition={{ duration: 0.4 }}
+                  className="relative w-full aspect-video max-h-56 overflow-hidden bg-muted"
                 >
                   <img
                     src={day.image_url}
                     alt={day.title}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
                 </motion.div>

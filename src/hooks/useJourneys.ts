@@ -110,7 +110,21 @@ export function useJourneyDays(journeyId: string | undefined) {
       const { data, error } = await supabase
         .from('journey_days')
         .select(`
-          *,
+          id,
+          journey_id,
+          day_number,
+          title,
+          teaching_text,
+          teaching_author,
+          reflection_prompt,
+          challenge_title,
+          challenge_description,
+          bonus_tip,
+          suggested_breathing_id,
+          suggested_meditation_id,
+          activity_type,
+          activity_description,
+          image_url,
           breathing_technique:breathing_techniques(id, label, icon, pattern_name),
           meditation_track:meditation_tracks(id, title, duration_display)
         `)
@@ -130,5 +144,6 @@ export function useJourneyDays(journeyId: string | undefined) {
       }));
     },
     enabled: !!journeyId,
+    staleTime: 0, // Sempre buscar dados frescos
   });
 }
