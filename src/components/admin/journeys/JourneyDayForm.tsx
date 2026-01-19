@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,8 @@ import {
 } from '@/hooks/useAdminJourneys';
 import { useBreathingTechniques } from '@/hooks/useBreathingTechniques';
 import { useMeditationTracks } from '@/hooks/useMeditationTracks';
+import { supabase } from '@/integrations/supabase/client';
+import { sanitizeFileName } from '@/lib/fileUtils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +21,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { toast } from 'sonner';
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const formSchema = z.object({
   day_number: z.number().min(1),
@@ -34,6 +39,7 @@ const formSchema = z.object({
   suggested_meditation_id: z.string().optional(),
   activity_type: z.enum(['mental', 'physical', 'social', 'creative', 'spiritual']),
   activity_description: z.string().optional(),
+  image_url: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -50,6 +56,10 @@ export function JourneyDayForm() {
   const { journeyId, dayId } = useParams();
   const navigate = useNavigate();
   const isEditing = dayId && dayId !== 'new';
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   const { data: journey, isLoading: loadingJourney } = useAdminJourney(journeyId);
   const { data: day, isLoading: loadingDay } = useAdminJourneyDay(isEditing ? dayId : undefined);
@@ -80,6 +90,7 @@ export function JourneyDayForm() {
       suggested_meditation_id: '',
       activity_type: 'mental',
       activity_description: '',
+      image_url: '',
     },
   });
 
@@ -98,11 +109,69 @@ export function JourneyDayForm() {
         suggested_meditation_id: day.suggested_meditation_id || '',
         activity_type: day.activity_type,
         activity_description: day.activity_description || '',
+        image_url: day.image_url || '',
       });
+      if (day.image_url) {
+        setImagePreview(day.image_url);
+      }
     } else if (!isEditing && existingDays) {
       form.setValue('day_number', nextDayNumber);
     }
   }, [day, isEditing, existingDays, nextDayNumber, form]);
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error('Imagem muito grande. Máximo permitido: 5MB');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Arquivo inválido. Selecione uma imagem.');
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      const sanitizedName = sanitizeFileName(file.name);
+      const fileName = `${journeyId}/${Date.now()}-${sanitizedName}`;
+
+      const { data, error } = await supabase.storage
+        .from('journey-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) throw error;
+
+      const { data: publicUrl } = supabase.storage
+        .from('journey-images')
+        .getPublicUrl(data.path);
+
+      form.setValue('image_url', publicUrl.publicUrl);
+      setImagePreview(publicUrl.publicUrl);
+      toast.success('Imagem enviada com sucesso!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    form.setValue('image_url', '');
+    setImagePreview(null);
+  };
 
   const onSubmit = async (data: FormData) => {
     const payload = {
@@ -119,6 +188,7 @@ export function JourneyDayForm() {
       suggested_meditation_id: data.suggested_meditation_id || null,
       activity_type: data.activity_type,
       activity_description: data.activity_description || null,
+      image_url: data.image_url || null,
     };
 
     if (isEditing) {
@@ -237,6 +307,79 @@ export function JourneyDayForm() {
                     <FormLabel>Descrição da Atividade (opcional)</FormLabel>
                     <FormControl>
                       <Input placeholder="Exercício de respiração..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Day Image */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5" />
+                Imagem do Dia
+              </CardTitle>
+              <CardDescription>Imagem ilustrativa que aparecerá no topo do dia (opcional)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="image_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="space-y-4">
+                        {imagePreview ? (
+                          <div className="relative rounded-xl overflow-hidden border border-border">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-full h-48 object-cover"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2"
+                              onClick={handleRemoveImage}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                          >
+                            {isUploadingImage ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground">Enviando...</p>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col items-center gap-2">
+                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground">
+                                  Clique para enviar uma imagem
+                                </p>
+                                <p className="text-xs text-muted-foreground/70">
+                                  JPG, PNG ou WebP (máx. 5MB)
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

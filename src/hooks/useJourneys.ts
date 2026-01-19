@@ -34,6 +34,19 @@ export interface JourneyDay {
   suggested_meditation_id: string | null;
   activity_type: 'mental' | 'physical' | 'social' | 'creative' | 'spiritual';
   activity_description: string | null;
+  image_url: string | null;
+  // Dados enriquecidos via JOIN
+  breathing_technique?: {
+    id: string;
+    label: string;
+    icon: string | null;
+    pattern_name: string;
+  } | null;
+  meditation_track?: {
+    id: string;
+    title: string;
+    duration_display: string;
+  } | null;
 }
 
 export function useJourneys() {
@@ -96,7 +109,11 @@ export function useJourneyDays(journeyId: string | undefined) {
 
       const { data, error } = await supabase
         .from('journey_days')
-        .select('*')
+        .select(`
+          *,
+          breathing_technique:breathing_techniques(id, label, icon, pattern_name),
+          meditation_track:meditation_tracks(id, title, duration_display)
+        `)
         .eq('journey_id', journeyId)
         .order('day_number', { ascending: true });
 
@@ -108,6 +125,8 @@ export function useJourneyDays(journeyId: string | undefined) {
       return (data || []).map(d => ({
         ...d,
         activity_type: d.activity_type as JourneyDay['activity_type'],
+        breathing_technique: d.breathing_technique || null,
+        meditation_track: d.meditation_track || null,
       }));
     },
     enabled: !!journeyId,

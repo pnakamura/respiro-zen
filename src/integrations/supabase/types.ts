@@ -721,6 +721,7 @@ export type Database = {
           created_at: string | null
           day_number: number
           id: string
+          image_url: string | null
           journey_id: string
           reflection_prompt: string | null
           suggested_breathing_id: string | null
@@ -738,6 +739,7 @@ export type Database = {
           created_at?: string | null
           day_number: number
           id?: string
+          image_url?: string | null
           journey_id: string
           reflection_prompt?: string | null
           suggested_breathing_id?: string | null
@@ -755,6 +757,7 @@ export type Database = {
           created_at?: string | null
           day_number?: number
           id?: string
+          image_url?: string | null
           journey_id?: string
           reflection_prompt?: string | null
           suggested_breathing_id?: string | null

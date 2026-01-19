@@ -212,6 +212,7 @@ interface JourneyDayPayload {
   suggested_meditation_id?: string | null;
   activity_type?: string;
   activity_description?: string | null;
+  image_url?: string | null;
 }
 
 export function useCreateJourneyDay() {
