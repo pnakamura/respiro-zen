@@ -69,6 +69,7 @@ export function useCreateBreathingSession() {
       toast.success('Sessão de respiração registrada!');
     },
     onError: (error) => {
+      toast.error('Erro ao registrar sessão de respiração');
       console.error('Error creating breathing session:', error);
     },
   });
