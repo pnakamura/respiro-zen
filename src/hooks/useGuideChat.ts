@@ -94,21 +94,21 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
   // Load conversation history when hook initializes with existing conversationId
   useEffect(() => {
     const loadHistory = async () => {
-      if (!conversationId || historyLoadedRef.current || messages.length > 0) return;
-      
+      if (!conversationId || historyLoadedRef.current) return;
+
       historyLoadedRef.current = true;
-      
+
       const { data, error } = await supabase
         .from('guide_messages')
         .select('id, role, content, created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
-      
+
       if (error) {
         console.error('Failed to load conversation history:', error);
         return;
       }
-      
+
       if (data && data.length > 0) {
         setMessages(data.map(msg => ({
           id: msg.id,
@@ -118,9 +118,9 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
         })));
       }
     };
-    
+
     loadHistory();
-  }, [conversationId, messages.length]);
+  }, [conversationId]);
 
   const sendMessage = useCallback(async (content: string) => {
     // Block if not initialized, already loading OR streaming (prevents concurrent messages)
