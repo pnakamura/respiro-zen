@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export interface UserJourney {
   id: string;
@@ -48,6 +49,7 @@ export function useActiveUserJourney() {
 
       if (error) {
         console.error('Error fetching active journey:', error);
+        toast.error('Erro ao carregar jornada ativa');
         throw error;
       }
 
@@ -78,6 +80,7 @@ export function useUserJourneys() {
 
       if (error) {
         console.error('Error fetching user journeys:', error);
+        toast.error('Erro ao carregar suas jornadas');
         throw error;
       }
 
@@ -101,6 +104,7 @@ export function useJourneyCompletions(userJourneyId: string | undefined) {
 
       if (error) {
         console.error('Error fetching completions:', error);
+        toast.error('Erro ao carregar progresso da jornada');
         throw error;
       }
 
@@ -143,6 +147,10 @@ export function useStartJourney() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-user-journey'] });
       queryClient.invalidateQueries({ queryKey: ['user-journeys'] });
+    },
+    onError: (error) => {
+      console.error('Error starting journey:', error);
+      toast.error('Erro ao iniciar jornada');
     },
   });
 }
@@ -203,6 +211,10 @@ export function useCompleteDay() {
       queryClient.invalidateQueries({ queryKey: ['journey-completions', userJourneyId] });
       queryClient.invalidateQueries({ queryKey: ['active-user-journey'] });
     },
+    onError: (error) => {
+      console.error('Error completing day:', error);
+      toast.error('Erro ao completar dia da jornada');
+    },
   });
 }
 
@@ -224,6 +236,10 @@ export function useCompleteJourney() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['active-user-journey'] });
       queryClient.invalidateQueries({ queryKey: ['user-journeys'] });
+    },
+    onError: (error) => {
+      console.error('Error completing journey:', error);
+      toast.error('Erro ao finalizar jornada');
     },
   });
 }

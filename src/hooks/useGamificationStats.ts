@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface GamificationStats {
   usuario_id: string;
@@ -32,6 +33,7 @@ export function useGamificationStats() {
 
       if (error) {
         console.error('Error fetching gamification stats:', error);
+        toast.error('Erro ao carregar estatísticas de gamificação');
         throw error;
       }
 
@@ -56,6 +58,7 @@ export function useRefreshGamificationStats() {
 
       if (error) {
         console.error('Error refreshing gamification:', error);
+        toast.error('Erro ao atualizar estatísticas');
         throw error;
       }
 
