@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, RefreshCw, Users } from 'lucide-react';
@@ -10,7 +10,7 @@ import { SuggestedQuestions } from '@/components/guide/SuggestedQuestions';
 import { useGuideChat } from '@/hooks/useGuideChat';
 import { useGuide, useUserGuidePreference, useGuides } from '@/hooks/useGuides';
 import { useAuth } from '@/contexts/AuthContext';
-import { getRandomThinkingPhrase } from '@/hooks/useThinkingDelay';
+import { getRandomThinkingPhrase, detectMessageContext, hasEmotionalContent } from '@/hooks/useThinkingDelay';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BottomNavigation } from '@/components/BottomNavigation';
 
@@ -26,6 +26,7 @@ export default function GuideChat() {
   const [thinkingPhrase, setThinkingPhrase] = useState('');
   const [phase, setPhase] = useState<ChatPhase>('idle');
   const [canRevealAssistant, setCanRevealAssistant] = useState(true);
+  const [lastUserMessageContext, setLastUserMessageContext] = useState<'default' | 'emotional' | 'question' | 'greeting'>('default');
   const phraseIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get guide ID from location state or user preference
@@ -95,9 +96,12 @@ export default function GuideChat() {
   useEffect(() => {
     // When user sends a message, start reading phase
     if (isSending && messages[messages.length - 1]?.role === 'user' && phase === 'idle') {
+      const lastUserMessage = messages[messages.length - 1];
+      const context = detectMessageContext(lastUserMessage.content);
+      setLastUserMessageContext(context);
       setCanRevealAssistant(false);
       setPhase('reading');
-      setThinkingPhrase(getRandomThinkingPhrase());
+      setThinkingPhrase(getRandomThinkingPhrase(context));
     }
   }, [isSending, messages, phase]);
 
@@ -120,12 +124,12 @@ export default function GuideChat() {
     }
   }, [phase, messages]);
 
-  // Thinking phase - rotate phrases
+  // Thinking phase - rotate phrases using context
   useEffect(() => {
     if (phase === 'thinking') {
-      // Change phrase every 4 seconds
+      // Change phrase every 4 seconds, keeping context
       phraseIntervalRef.current = setInterval(() => {
-        setThinkingPhrase(getRandomThinkingPhrase());
+        setThinkingPhrase(getRandomThinkingPhrase(lastUserMessageContext));
       }, 4000);
       
       return () => {
@@ -135,7 +139,7 @@ export default function GuideChat() {
         }
       };
     }
-  }, [phase]);
+  }, [phase, lastUserMessageContext]);
 
   // Handle transitioning phase + safety timeout
   useEffect(() => {
@@ -353,15 +357,27 @@ export default function GuideChat() {
       <div className="flex-1 overflow-y-auto px-4 py-4" style={{ paddingBottom: 'calc(var(--bottom-nav-height, 88px) + 144px)' }}>
         <div className="max-w-2xl mx-auto space-y-4">
           <AnimatePresence mode="popLayout">
-            {visibleMessages.map((message, index) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-                guideEmoji={guide?.avatar_emoji}
-                guideName={guide?.name}
-                isStreaming={isStreaming && message.role === 'assistant' && index === visibleMessages.length - 1}
-              />
-            ))}
+            {visibleMessages.map((message, index) => {
+              // Determine if this assistant message should show empathic state
+              const isLastAssistant = message.role === 'assistant' && index === visibleMessages.length - 1;
+              const previousUserMessage = isLastAssistant 
+                ? messages.filter(m => m.role === 'user').pop()
+                : null;
+              const isEmpathicResponse = previousUserMessage 
+                ? hasEmotionalContent(previousUserMessage.content)
+                : false;
+
+              return (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  guideEmoji={guide?.avatar_emoji}
+                  guideName={guide?.name}
+                  isStreaming={isStreaming && isLastAssistant}
+                  isEmpathic={isLastAssistant && isEmpathicResponse}
+                />
+              );
+            })}
           </AnimatePresence>
 
           {/* Typing indicator with synchronized exit - mode="wait" ensures exit completes before new element */}

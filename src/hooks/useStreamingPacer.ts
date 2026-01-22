@@ -10,6 +10,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 /**
  * Hook to control the pacing of streamed text display
  * Creates a human-like typing rhythm with pauses at punctuation
+ * and occasional "hesitation" moments
  */
 export function useStreamingPacer() {
   const bufferRef = useRef('');
@@ -18,8 +19,9 @@ export function useStreamingPacer() {
   const abortRef = useRef(false);
   const optionsRef = useRef<PacerOptions | null>(null);
   const totalCharsRef = useRef(0);
+  const lastHesitationRef = useRef(0); // Track last hesitation position
 
-  const getDelay = (char: string, displayedLength: number): number => {
+  const getDelay = (char: string, displayedLength: number, chunk: string): number => {
     // Slower start - first 150 chars are slower for more human feel
     const startSlowdown = displayedLength < 150 ? 1.5 : 1;
     
@@ -27,6 +29,19 @@ export function useStreamingPacer() {
     const accelerationFactor = displayedLength > 500 
       ? Math.max(0.35, 1 - (displayedLength - 500) / 800)
       : 1;
+
+    // Detect "tone" modifiers for speed variation
+    const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(chunk);
+    const hasExcitement = /!/.test(chunk);
+    const hasReflection = /\.{2,}|…/.test(chunk);
+    
+    // Enthusiasm speeds up slightly, reflection slows down
+    let toneMultiplier = 1;
+    if (hasEmoji || hasExcitement) {
+      toneMultiplier = 0.85; // Slightly faster for enthusiastic content
+    } else if (hasReflection) {
+      toneMultiplier = 1.25; // Slower for reflective content
+    }
 
     let baseDelay = 0;
 
@@ -57,7 +72,25 @@ export function useStreamingPacer() {
       baseDelay = 12 + Math.random() * 18; // 12-30ms
     }
 
-    return baseDelay * accelerationFactor * startSlowdown;
+    return baseDelay * accelerationFactor * startSlowdown * toneMultiplier;
+  };
+
+  // Random micro-hesitation to simulate "thinking while typing"
+  const shouldHesitate = (displayedLength: number): number => {
+    // Only hesitate in responses longer than 100 chars
+    if (displayedLength < 100) return 0;
+    
+    // Don't hesitate too close to last hesitation (min 80-150 chars apart)
+    const minDistance = 80 + Math.random() * 70;
+    if (displayedLength - lastHesitationRef.current < minDistance) return 0;
+    
+    // 5% chance of hesitation
+    if (Math.random() < 0.05) {
+      lastHesitationRef.current = displayedLength;
+      return 400 + Math.random() * 400; // 400-800ms hesitation
+    }
+    
+    return 0;
   };
 
   const processBuffer = useCallback(async () => {
@@ -91,10 +124,15 @@ export function useStreamingPacer() {
 
       // Get delay based on last char of chunk
       const lastChar = chunk[chunk.length - 1];
-      const delay = getDelay(lastChar, displayedRef.current.length);
+      const delay = getDelay(lastChar, displayedRef.current.length, chunk);
       
-      if (delay > 0) {
-        await sleep(delay);
+      // Check for random hesitation
+      const hesitationDelay = shouldHesitate(displayedRef.current.length);
+      
+      const totalDelay = delay + hesitationDelay;
+      
+      if (totalDelay > 0) {
+        await sleep(totalDelay);
       }
     }
 
@@ -120,6 +158,7 @@ export function useStreamingPacer() {
     isRunningRef.current = false;
     abortRef.current = false;
     totalCharsRef.current = 0;
+    lastHesitationRef.current = 0;
     optionsRef.current = options;
   }, []);
 
