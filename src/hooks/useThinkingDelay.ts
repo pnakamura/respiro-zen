@@ -95,12 +95,13 @@ export function getRandomThinkingPhrase(context: MessageContext = 'default'): st
 
 /**
  * Calculates a human-like thinking time based on message complexity
+ * Tempos aumentados para simular reflexão mais profunda de um guia espiritual
  */
 export function calculateThinkingTime(userMessage: string): number {
-  const baseTime = 2500; // 2.5 seconds minimum - more time to "process"
-  const perCharTime = 30; // 30ms per character - slower, more thoughtful
-  const maxTime = 10000; // 10 seconds maximum - allows for deep reflection
-  const randomVariation = Math.random() * 1000 - 500; // +/- 500ms
+  const baseTime = 4000; // 4 seconds minimum - guia reflete mais
+  const perCharTime = 50; // 50ms per character - mensagens complexas requerem mais reflexão
+  const maxTime = 15000; // 15 seconds maximum - permite reflexão profunda
+  const randomVariation = Math.random() * 1600 - 800; // +/- 800ms mais imprevisibilidade
   
   const messageLength = userMessage.length;
   
@@ -108,14 +109,15 @@ export function calculateThinkingTime(userMessage: string): number {
   // Longer/deeper messages = more "thinking" time
   let calculatedTime = baseTime + messageLength * perCharTime + randomVariation;
   
-  // Add extra time for emotional content
+  // Add extra time for emotional content - conteúdo sensível merece mais cuidado
   if (hasEmotionalContent(userMessage)) {
-    calculatedTime += 1500; // Extra reflection time for emotional content
+    calculatedTime += 2500; // Extra reflection time for emotional content
   }
   
   // First messages get extra time (guide is "getting to know" the user)
+  // Mesmo perguntas simples merecem atenção
   if (messageLength < 50) {
-    calculatedTime += 800;
+    calculatedTime += 1200;
   }
   
   return Math.min(Math.max(calculatedTime, baseTime), maxTime);

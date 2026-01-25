@@ -39,10 +39,10 @@ export default function GuideChat() {
 
   // Callback when stream starts - delay proportional to estimated response length
   const handleStreamStart = useCallback((estimatedLength: number = 0) => {
-    // Base delay + proportional to estimated response size (up to 1200ms extra)
-    const baseDelay = 600;
-    const proportionalDelay = Math.min(estimatedLength * 1.5, 1200);
-    const transitionDelay = baseDelay + proportionalDelay + Math.random() * 400;
+    // Base delay + proportional to estimated response size (up to 1800ms extra)
+    const baseDelay = 1000;
+    const proportionalDelay = Math.min(estimatedLength * 2, 1800);
+    const transitionDelay = baseDelay + proportionalDelay + Math.random() * 600;
     
     setTimeout(() => {
       setPhase('transitioning');
@@ -108,14 +108,14 @@ export default function GuideChat() {
   // Reading phase -> Thinking phase
   useEffect(() => {
     if (phase === 'reading') {
-      // Reading delay based on user message length (1600-3500ms)
+      // Reading delay based on user message length (2800-6000ms)
       const lastUserMessage = messages.filter(m => m.role === 'user').pop();
       const userMessageLength = lastUserMessage?.content.length || 0;
-      const baseReading = 1600; // 1.6s minimum
-      const perCharReading = 12; // 12ms per character
+      const baseReading = 2800; // 2.8s minimum - pessoa real leva mais tempo
+      const perCharReading = 25; // 25ms per character - velocidade de leitura humana
       const readingDelay = Math.min(
-        baseReading + userMessageLength * perCharReading + Math.random() * 600,
-        3500 // Max 3.5s reading
+        baseReading + userMessageLength * perCharReading + Math.random() * 1000,
+        6000 // Max 6s reading - permite leitura completa
       );
       const timeout = setTimeout(() => {
         setPhase('thinking');
@@ -127,10 +127,10 @@ export default function GuideChat() {
   // Thinking phase - rotate phrases using context
   useEffect(() => {
     if (phase === 'thinking') {
-      // Change phrase every 4 seconds, keeping context
+      // Change phrase every 5.5 seconds, keeping context - frases mudam mais lentamente
       phraseIntervalRef.current = setInterval(() => {
         setThinkingPhrase(getRandomThinkingPhrase(lastUserMessageContext));
-      }, 4000);
+      }, 5500);
       
       return () => {
         if (phraseIntervalRef.current) {
