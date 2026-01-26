@@ -2,18 +2,27 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useStreamingPacer } from './useStreamingPacer';
+import { processResponseIntoChunks } from './useMessageChunker';
 
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   createdAt: Date;
+  /** Whether this message is a continuation chunk */
+  isChunk?: boolean;
+  /** Whether this is the first chunk in a series */
+  isFirstChunk?: boolean;
 }
 
 interface UseGuideChatOptions {
   guideId: string;
   onMessageComplete?: (message: ChatMessage) => void;
   onStreamStart?: (estimatedLength: number) => void;
+  /** Called when pausing between chunks */
+  onChunkPause?: (chunkIndex: number, totalChunks: number) => void;
+  /** Called when a new chunk is displayed */
+  onChunkDisplay?: (chunkIndex: number, totalChunks: number) => void;
 }
 
 // Persist conversation ID per guide in localStorage
@@ -41,11 +50,18 @@ const removeStoredConversationId = (guideId: string) => {
   }
 };
 
-export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseGuideChatOptions) {
+export function useGuideChat({ 
+  guideId, 
+  onMessageComplete, 
+  onStreamStart,
+  onChunkPause,
+  onChunkDisplay,
+}: UseGuideChatOptions) {
   // All hooks must be called unconditionally and in same order
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isPausing, setIsPausing] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   
@@ -56,6 +72,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
   const historyLoadedRef = useRef(false);
   const conversationIdRef = useRef<string | null>(null);
   const initializedGuideIdRef = useRef<string | null>(null);
+  const chunkAbortRef = useRef(false);
   
   // Custom hook - must be called unconditionally
   const pacer = useStreamingPacer();
@@ -122,15 +139,97 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
     loadHistory();
   }, [conversationId, messages.length]);
 
+  /**
+   * Display chunks with pauses between them
+   */
+  const displayChunksWithPauses = useCallback(async (
+    fullContent: string,
+    baseMessageId: string
+  ) => {
+    const chunks = processResponseIntoChunks(fullContent, baseMessageId);
+    
+    // If only 1 chunk, display directly without chunking UI
+    if (chunks.length === 1) {
+      setMessages(prev => {
+        const hasMessage = prev.some(m => m.id === baseMessageId);
+        if (hasMessage) {
+          return prev.map(msg => 
+            msg.id === baseMessageId 
+              ? { ...msg, content: fullContent }
+              : msg
+          );
+        }
+        return [...prev, {
+          id: baseMessageId,
+          role: 'assistant' as const,
+          content: fullContent,
+          createdAt: new Date(),
+          isChunk: false,
+          isFirstChunk: true,
+        }];
+      });
+      return;
+    }
+
+    // Multiple chunks - display with pauses
+    for (let i = 0; i < chunks.length; i++) {
+      if (chunkAbortRef.current) break;
+      
+      const chunk = chunks[i];
+      const isFirst = i === 0;
+      
+      // Notify about new chunk
+      onChunkDisplay?.(i, chunks.length);
+      
+      // Add chunk message
+      setMessages(prev => {
+        // For first chunk, might already exist from streaming
+        if (isFirst) {
+          const hasMessage = prev.some(m => m.id === chunk.id);
+          if (hasMessage) {
+            return prev.map(msg => 
+              msg.id === chunk.id 
+                ? { ...msg, content: chunk.content, isChunk: true, isFirstChunk: true }
+                : msg
+            );
+          }
+        }
+        
+        return [...prev, {
+          id: chunk.id,
+          role: 'assistant' as const,
+          content: chunk.content,
+          createdAt: new Date(),
+          isChunk: true,
+          isFirstChunk: isFirst,
+        }];
+      });
+      
+      // Wait before showing next chunk (if not last)
+      if (!chunk.isLast && !chunkAbortRef.current) {
+        setIsPausing(true);
+        onChunkPause?.(i, chunks.length);
+        
+        await new Promise(resolve => setTimeout(resolve, chunk.delay));
+        
+        setIsPausing(false);
+      }
+    }
+  }, [onChunkPause, onChunkDisplay]);
+
   const sendMessage = useCallback(async (content: string) => {
     // Block if not initialized, already loading OR streaming (prevents concurrent messages)
     if (!content.trim() || !isInitialized || isLoading || isStreaming) return;
+
+    // Reset abort flag
+    chunkAbortRef.current = false;
 
     // Stop any existing pacer before starting new message
     pacer.stop();
 
     setIsLoading(true);
     setIsStreaming(false);
+    setIsPausing(false);
     streamStartedRef.current = false;
 
     // Add user message immediately
@@ -197,7 +296,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
       const assistantMessageId = crypto.randomUUID();
       assistantMessageIdRef.current = assistantMessageId;
 
-      // Initialize paced streaming
+      // Initialize paced streaming for first chunk only
       pacer.start({
         onUpdate: (displayedText) => {
           setMessages(prev => {
@@ -216,9 +315,11 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
                 role: 'assistant' as const,
                 content: displayedText,
                 createdAt: new Date(),
+                isChunk: true,
+                isFirstChunk: true,
               }];
             }
-            // Subsequent updates
+            // Subsequent updates - only update first chunk during streaming
             return prev.map(msg => 
               msg.id === assistantMessageId 
                 ? { ...msg, content: displayedText }
@@ -227,7 +328,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
           });
         },
         onComplete: () => {
-          setIsStreaming(false);
+          // Don't set isStreaming false here - we handle it after chunk processing
         },
       });
 
@@ -273,11 +374,21 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
         }
       }
 
-      // Wait a bit for pacer to finish, then flush if needed
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Wait for pacer to finish streaming first chunk
+      await new Promise(resolve => setTimeout(resolve, 300));
       pacer.flush();
+      pacer.stop();
 
-      // Final message
+      // Now display all chunks with pauses
+      // Remove the streaming message first and replace with chunks
+      setMessages(prev => prev.filter(m => m.id !== assistantMessageId));
+      
+      // Small delay before starting chunk display
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      await displayChunksWithPauses(fullContent, assistantMessageId);
+
+      // Final message callback
       const finalMessage: ChatMessage = {
         id: assistantMessageId,
         role: 'assistant',
@@ -285,19 +396,13 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
         createdAt: new Date(),
       };
 
-      // Ensure final content is set
-      setMessages(prev => prev.map(msg => 
-        msg.id === assistantMessageId 
-          ? { ...msg, content: fullContent }
-          : msg
-      ));
-
       onMessageComplete?.(finalMessage);
 
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
         console.log('Request aborted');
         pacer.stop();
+        chunkAbortRef.current = true;
         return;
       }
 
@@ -313,13 +418,15 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
     } finally {
       setIsLoading(false);
       setIsStreaming(false);
+      setIsPausing(false);
       abortControllerRef.current = null;
     }
-  }, [guideId, isInitialized, isLoading, isStreaming, onMessageComplete, onStreamStart, pacer]);
+  }, [guideId, isInitialized, isLoading, isStreaming, onMessageComplete, onStreamStart, pacer, displayChunksWithPauses]);
 
   const cancelRequest = useCallback(() => {
     abortControllerRef.current?.abort();
     pacer.stop();
+    chunkAbortRef.current = true;
   }, [pacer]);
 
   const clearMessages = useCallback(() => {
@@ -328,6 +435,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
     setConversationId(null);
     historyLoadedRef.current = false;
     pacer.stop();
+    chunkAbortRef.current = true;
     // Clear from localStorage too
     if (guideId) {
       removeStoredConversationId(guideId);
@@ -338,6 +446,7 @@ export function useGuideChat({ guideId, onMessageComplete, onStreamStart }: UseG
     messages,
     isLoading,
     isStreaming,
+    isPausing,
     isInitialized,
     conversationId,
     sendMessage,

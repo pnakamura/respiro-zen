@@ -10,6 +10,10 @@ interface MessageBubbleProps {
   guideName?: string;
   isStreaming?: boolean;
   isEmpathic?: boolean;
+  /** Whether this is a continuation chunk (hides guide name) */
+  isChunk?: boolean;
+  /** Whether this is the first chunk in a series (shows guide name) */
+  isFirstChunk?: boolean;
 }
 
 // Patterns that indicate the guide is recalling conversation history
@@ -39,9 +43,14 @@ export function MessageBubble({
   guideName = 'Guia',
   isStreaming = false,
   isEmpathic = false,
+  isChunk = false,
+  isFirstChunk = true,
 }: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const showMemoryIndicator = !isUser && hasMemoryReference(message.content);
+  
+  // Hide guide name and avatar for continuation chunks
+  const showGuideHeader = !isUser && (!isChunk || isFirstChunk);
 
   return (
     <motion.div
@@ -57,12 +66,16 @@ export function MessageBubble({
         isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'
       )}
     >
-      {/* Avatar - only for assistant */}
-      {!isUser && (
+      {/* Avatar - only for assistant, hidden on continuation chunks */}
+      {!isUser && showGuideHeader && (
         <GuideAvatar 
           emoji={guideEmoji} 
           state={isStreaming ? 'speaking' : isEmpathic ? 'empathic' : 'idle'} 
         />
+      )}
+      {/* Spacer for continuation chunks to maintain alignment */}
+      {!isUser && !showGuideHeader && (
+        <div className="w-10 flex-shrink-0" />
       )}
 
       {/* Message content */}
@@ -75,7 +88,7 @@ export function MessageBubble({
           isEmpathic && !isUser && 'ring-1 ring-primary/20'
         )}
       >
-        {!isUser && (
+        {showGuideHeader && (
           <div className="flex items-center gap-1.5 mb-1">
             <span className="text-xs font-medium text-muted-foreground">
               {guideName}

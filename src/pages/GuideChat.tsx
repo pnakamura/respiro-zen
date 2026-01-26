@@ -14,7 +14,7 @@ import { getRandomThinkingPhrase, detectMessageContext, hasEmotionalContent } fr
 import { Skeleton } from '@/components/ui/skeleton';
 import { BottomNavigation } from '@/components/BottomNavigation';
 
-type ChatPhase = 'idle' | 'reading' | 'thinking' | 'transitioning' | 'responding';
+type ChatPhase = 'idle' | 'reading' | 'thinking' | 'transitioning' | 'responding' | 'pausing';
 
 export default function GuideChat() {
   const navigate = useNavigate();
@@ -49,6 +49,16 @@ export default function GuideChat() {
     }, transitionDelay);
   }, []);
 
+  // Callback when pausing between chunks
+  const handleChunkPause = useCallback((chunkIndex: number, totalChunks: number) => {
+    setPhase('pausing');
+  }, []);
+
+  // Callback when a new chunk is displayed
+  const handleChunkDisplay = useCallback((chunkIndex: number, totalChunks: number) => {
+    setPhase('responding');
+  }, []);
+
   // Use stable guideId - never change from empty to non-empty (prevents hooks reorder)
   const stableGuideId = guideId || '';
   
@@ -56,12 +66,15 @@ export default function GuideChat() {
     messages,
     isLoading: isSending,
     isStreaming,
+    isPausing,
     sendMessage,
     clearMessages,
     setMessages,
   } = useGuideChat({ 
     guideId: stableGuideId,
     onStreamStart: handleStreamStart,
+    onChunkPause: handleChunkPause,
+    onChunkDisplay: handleChunkDisplay,
   });
 
   // Redirect to guide selection if no guide selected and not loading
@@ -161,12 +174,12 @@ export default function GuideChat() {
     }
   }, [phase]);
 
-  // Handle responding phase completion
+  // Handle responding phase completion - also handle pausing
   useEffect(() => {
-    if (!isSending && !isStreaming && phase === 'responding') {
+    if (!isSending && !isStreaming && !isPausing && (phase === 'responding' || phase === 'pausing')) {
       setPhase('idle');
     }
-  }, [isSending, isStreaming, phase]);
+  }, [isSending, isStreaming, isPausing, phase]);
 
   // Handle typing indicator exit complete - add small buffer before reveal
   const handleTypingIndicatorExitComplete = useCallback(() => {
@@ -246,9 +259,9 @@ export default function GuideChat() {
     return true;
   });
 
-  // Show typing indicator during reading, thinking, and transitioning phases
-  // Show typing indicator only during reading and thinking - NOT transitioning (so it exits)
-  const showTypingIndicator = phase === 'reading' || phase === 'thinking';
+  // Show typing indicator during reading, thinking, transitioning, and pausing phases
+  // NOT during 'responding' (so it exits when chunks appear)
+  const showTypingIndicator = phase === 'reading' || phase === 'thinking' || phase === 'pausing';
 
   // Get header status text
   const getStatusText = () => {
@@ -260,6 +273,8 @@ export default function GuideChat() {
       case 'transitioning':
       case 'responding':
         return 'digitando...';
+      case 'pausing':
+        return 'pensando...';
       default:
         return guide?.approach || '';
     }
@@ -375,6 +390,8 @@ export default function GuideChat() {
                   guideName={guide?.name}
                   isStreaming={isStreaming && isLastAssistant}
                   isEmpathic={isLastAssistant && isEmpathicResponse}
+                  isChunk={message.isChunk}
+                  isFirstChunk={message.isFirstChunk}
                 />
               );
             })}
