@@ -11,6 +11,7 @@ import { useGuideChat } from '@/hooks/useGuideChat';
 import { useGuide, useUserGuidePreference, useGuides } from '@/hooks/useGuides';
 import { useAuth } from '@/contexts/AuthContext';
 import { getRandomThinkingPhrase, detectMessageContext, hasEmotionalContent } from '@/hooks/useThinkingDelay';
+import { PauseType } from '@/hooks/useMessageChunker';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BottomNavigation } from '@/components/BottomNavigation';
 
@@ -27,6 +28,7 @@ export default function GuideChat() {
   const [phase, setPhase] = useState<ChatPhase>('idle');
   const [canRevealAssistant, setCanRevealAssistant] = useState(true);
   const [lastUserMessageContext, setLastUserMessageContext] = useState<'default' | 'emotional' | 'question' | 'greeting'>('default');
+  const [currentPauseType, setCurrentPauseType] = useState<PauseType>('simple');
   const phraseIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get guide ID from location state or user preference
@@ -49,8 +51,9 @@ export default function GuideChat() {
     }, transitionDelay);
   }, []);
 
-  // Callback when pausing between chunks
-  const handleChunkPause = useCallback((chunkIndex: number, totalChunks: number) => {
+  // Callback when pausing between chunks - receives pauseType for indicator variant
+  const handleChunkPause = useCallback((chunkIndex: number, totalChunks: number, pauseType: PauseType) => {
+    setCurrentPauseType(pauseType);
     setPhase('pausing');
   }, []);
 
@@ -403,6 +406,8 @@ export default function GuideChat() {
               <TypingIndicator 
                 guideEmoji={guide?.avatar_emoji} 
                 thinkingPhrase={thinkingPhrase}
+                // During 'pausing' phase, use simple variant (dots only) unless pauseType is reflective
+                variant={phase === 'pausing' && currentPauseType === 'simple' ? 'simple' : 'thinking'}
               />
             )}
           </AnimatePresence>

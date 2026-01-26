@@ -27,10 +27,11 @@ export const thinkingPhrasesByContext = {
   ],
   greeting: [
     'Que bom te ver por aqui...',
-    'Olá! Deixe-me me preparar...',
+    'Olá! Um momento...',
     'Bem-vindo de volta...',
-    'Preparando-me para conversar...',
   ],
+  // Minimal phrases for pauses between chunks - just visual indicator
+  pause: [],
 };
 
 // All phrases combined for backward compatibility

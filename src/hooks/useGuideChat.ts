@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useStreamingPacer } from './useStreamingPacer';
-import { processResponseIntoChunks } from './useMessageChunker';
+import { processResponseIntoChunks, PauseType } from './useMessageChunker';
 
 export interface ChatMessage {
   id: string;
@@ -19,8 +19,8 @@ interface UseGuideChatOptions {
   guideId: string;
   onMessageComplete?: (message: ChatMessage) => void;
   onStreamStart?: (estimatedLength: number) => void;
-  /** Called when pausing between chunks */
-  onChunkPause?: (chunkIndex: number, totalChunks: number) => void;
+  /** Called when pausing between chunks - includes pauseType for indicator variant */
+  onChunkPause?: (chunkIndex: number, totalChunks: number, pauseType: PauseType) => void;
   /** Called when a new chunk is displayed */
   onChunkDisplay?: (chunkIndex: number, totalChunks: number) => void;
 }
@@ -144,9 +144,10 @@ export function useGuideChat({
    */
   const displayChunksWithPauses = useCallback(async (
     fullContent: string,
-    baseMessageId: string
+    baseMessageId: string,
+    isAfterQuestion: boolean
   ) => {
-    const chunks = processResponseIntoChunks(fullContent, baseMessageId);
+    const chunks = processResponseIntoChunks(fullContent, baseMessageId, { isAfterQuestion });
     
     // If only 1 chunk, display directly without chunking UI
     if (chunks.length === 1) {
@@ -207,11 +208,13 @@ export function useGuideChat({
       
       // Wait before showing next chunk (if not last)
       if (!chunk.isLast && !chunkAbortRef.current) {
+        // Set pausing state BEFORE the delay
         setIsPausing(true);
-        onChunkPause?.(i, chunks.length);
+        onChunkPause?.(i, chunks.length, chunk.pauseType);
         
         await new Promise(resolve => setTimeout(resolve, chunk.delay));
         
+        // Clear pausing state AFTER the delay
         setIsPausing(false);
       }
     }
@@ -379,6 +382,9 @@ export function useGuideChat({
       pacer.flush();
       pacer.stop();
 
+      // Determine if user message was a question
+      const isAfterQuestion = userMessage.content.trim().endsWith('?');
+      
       // Now display all chunks with pauses
       // Remove the streaming message first and replace with chunks
       setMessages(prev => prev.filter(m => m.id !== assistantMessageId));
@@ -386,7 +392,7 @@ export function useGuideChat({
       // Small delay before starting chunk display
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      await displayChunksWithPauses(fullContent, assistantMessageId);
+      await displayChunksWithPauses(fullContent, assistantMessageId, isAfterQuestion);
 
       // Final message callback
       const finalMessage: ChatMessage = {

@@ -82,12 +82,18 @@ export function splitIntoChunks(text: string, maxChunkLength: number = 250): str
   return chunks.filter(c => c.length > 0);
 }
 
+export type PauseType = 'simple' | 'reflective';
+
+export interface ChunkDelayOptions {
+  isAfterQuestion?: boolean;
+}
+
 /**
  * Calculate delay before showing the next chunk
  * Based on chunk content and position
  */
-export function getChunkDelay(chunk: string, index: number, prevChunk?: string): number {
-  // Base delay - longer for first chunk transition
+export function getChunkDelay(chunk: string, index: number, options?: ChunkDelayOptions): number {
+  // Base delay - longer for subsequent chunks
   const baseDelay = index === 0 ? 1500 : 2500;
   
   // Length bonus - longer chunks need more "reading" time
@@ -96,16 +102,16 @@ export function getChunkDelay(chunk: string, index: number, prevChunk?: string):
   // Emotional content bonus
   const emotionalBonus = hasEmotionalContent(chunk) ? 1200 : 0;
   
-  // If previous chunk ended with ellipsis, add extra pause (thought continuation)
-  const ellipsisBonus = prevChunk?.endsWith('...') ? 800 : 0;
-  
-  // Paragraph transition bonus (if chunks look like different topics)
+  // Transition bonus for subsequent chunks
   const transitionBonus = index > 0 ? 500 : 0;
   
   // Random variation for natural feel
   const randomVariation = Math.random() * 1000;
   
-  return baseDelay + lengthBonus + emotionalBonus + ellipsisBonus + transitionBonus + randomVariation;
+  // Extra time for first chunk after user question
+  const questionBonus = (index === 0 && options?.isAfterQuestion) ? 1000 : 0;
+  
+  return baseDelay + lengthBonus + emotionalBonus + transitionBonus + randomVariation + questionBonus;
 }
 
 export interface ChunkInfo {
@@ -114,14 +120,20 @@ export interface ChunkInfo {
   delay: number;
   isFirst: boolean;
   isLast: boolean;
+  pauseType: PauseType;
+}
+
+export interface ProcessChunksOptions {
+  isAfterQuestion?: boolean;
 }
 
 /**
- * Process full response into chunks with delays
+ * Process full response into chunks with delays and pause types
  */
 export function processResponseIntoChunks(
   fullContent: string,
-  baseMessageId: string
+  baseMessageId: string,
+  options?: ProcessChunksOptions
 ): ChunkInfo[] {
   const chunks = splitIntoChunks(fullContent);
   
@@ -133,14 +145,17 @@ export function processResponseIntoChunks(
       delay: 0,
       isFirst: true,
       isLast: true,
+      pauseType: 'simple',
     }];
   }
   
   return chunks.map((content, index) => ({
     id: index === 0 ? baseMessageId : `${baseMessageId}-chunk-${index}`,
     content,
-    delay: getChunkDelay(content, index, chunks[index - 1]),
+    delay: getChunkDelay(content, index, options),
     isFirst: index === 0,
     isLast: index === chunks.length - 1,
+    // First chunk after question gets reflective pause, others get simple
+    pauseType: (index === 0 && options?.isAfterQuestion) ? 'reflective' as PauseType : 'simple' as PauseType,
   }));
 }
