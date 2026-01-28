@@ -199,7 +199,13 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             dragElastic={0.15}
             onDragEnd={handleDragEnd}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-lg flex flex-col max-h-[92dvh] overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50"
+            // Android (browser normal) pode sobrepor a barra de navegação do sistema em conteúdo fixo no bottom.
+            // Por isso elevamos levemente o sheet e usamos fallback vh/dvh para altura máxima.
+            className={cn(
+              "relative w-full max-w-lg flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50",
+              "max-h-[min(92dvh,92vh)]",
+              "mb-[max(env(safe-area-inset-bottom,24px),24px)]"
+            )}
           >
             {/* Drag indicator */}
             <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
