@@ -153,16 +153,16 @@ export function useHydrationEntries() {
   });
 
   const addWaterMutation = useMutation({
-    mutationFn: async (quantidade_ml: number) => {
+    mutationFn: async ({ quantidade_ml, tipo_liquido }: { quantidade_ml: number; tipo_liquido: string }) => {
       if (!user?.id) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('registro_hidratacao')
-        .insert({
+        .insert([{
           usuario_id: user.id,
           quantidade_ml,
-          tipo_liquido: 'água',
-        })
+          tipo_liquido: tipo_liquido as 'água' | 'café' | 'chá' | 'suco' | 'outro',
+        }])
         .select()
         .single();
       
@@ -171,17 +171,31 @@ export function useHydrationEntries() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hydration-entries'] });
+      queryClient.invalidateQueries({ queryKey: ['insights-hydration'] });
     },
   });
 
-  const totalToday = query.data?.reduce((sum, entry) => sum + entry.quantidade_ml, 0) ?? 0;
+  // Calculate totals
+  const entries = query.data ?? [];
+  const waterToday = entries
+    .filter(e => e.tipo_liquido === 'água')
+    .reduce((sum, entry) => sum + entry.quantidade_ml, 0);
+  
+  const otherLiquidsToday = entries
+    .filter(e => e.tipo_liquido !== 'água')
+    .reduce((sum, entry) => sum + entry.quantidade_ml, 0);
+  
+  const totalToday = waterToday + otherLiquidsToday;
 
   return {
     data: query.data,
     isLoading: query.isLoading,
     error: query.error,
     totalToday,
-    addWater: addWaterMutation.mutateAsync,
+    waterToday,
+    otherLiquidsToday,
+    addWater: (quantidade_ml: number, tipo_liquido: string = 'água') => 
+      addWaterMutation.mutateAsync({ quantidade_ml, tipo_liquido }),
     isAddingWater: addWaterMutation.isPending,
   };
 }

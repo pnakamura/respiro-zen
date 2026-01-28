@@ -13,6 +13,7 @@ import { InsightsStats } from '@/components/insights/InsightsStats';
 import { WeeklySummaryCard } from '@/components/insights/WeeklySummaryCard';
 import { EmotionRadarChart } from '@/components/insights/EmotionRadarChart';
 import { DyadTimeline } from '@/components/insights/DyadTimeline';
+import { NutritionInsightsCard } from '@/components/insights/NutritionInsightsCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCanAccess } from '@/hooks/useFeatureAccess';
 import { UpgradeModal } from '@/components/access/UpgradeModal';
@@ -191,6 +192,11 @@ export default function Insights() {
                   </div>
                 </div>
               </motion.div>
+            )}
+
+            {/* Nutrition Insights */}
+            {!isDemoMode && (
+              <NutritionInsightsCard periodDays={period === '7d' ? 7 : period === '30d' ? 30 : 90} />
             )}
 
             {/* Dyad Timeline */}

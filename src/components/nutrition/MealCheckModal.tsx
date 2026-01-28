@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, Sparkles, Wind, Check } from 'lucide-react';
+import { X, ChevronRight, Wind, Check, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEmotionNutritionContext, useMealCategories } from '@/hooks/useNutrition';
 import { toast } from 'sonner';
@@ -11,7 +11,7 @@ interface MealCheckModalProps {
   onSuggestBreathing?: () => void;
 }
 
-type Step = 'mood' | 'hunger' | 'category' | 'success';
+type Step = 'mood' | 'hunger' | 'category' | 'energy' | 'notes' | 'success';
 
 const moods = [
   { id: 'good', emoji: '😊', label: 'Bem' },
@@ -29,11 +29,21 @@ const hungerTypes = [
   { id: 'unknown', emoji: '🤷', label: 'Não sei', description: 'Preciso refletir' },
 ];
 
+const energyLevels = [
+  { id: 'sleepy', emoji: '😴', label: 'Sonolento', description: 'Com vontade de descansar' },
+  { id: 'satisfied', emoji: '😌', label: 'Satisfeito', description: 'Bem e leve' },
+  { id: 'energized', emoji: '⚡', label: 'Energizado', description: 'Pronto para ação' },
+  { id: 'uncomfortable', emoji: '🤢', label: 'Desconfortável', description: 'Comi demais ou mal' },
+  { id: 'normal', emoji: '😐', label: 'Normal', description: 'Sem mudanças significativas' },
+];
+
 export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealCheckModalProps) {
   const [step, setStep] = useState<Step>('mood');
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [selectedHunger, setSelectedHunger] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedEnergy, setSelectedEnergy] = useState<string | null>(null);
+  const [notes, setNotes] = useState('');
   const [showBreathingSuggestion, setShowBreathingSuggestion] = useState(false);
 
   const { createEntry, isCreating } = useEmotionNutritionContext();
@@ -44,6 +54,8 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     setSelectedMood(null);
     setSelectedHunger(null);
     setSelectedCategory(null);
+    setSelectedEnergy(null);
+    setNotes('');
     setShowBreathingSuggestion(false);
   };
 
@@ -68,14 +80,24 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     }
   };
 
-  const handleCategorySelect = async (categoryName: string | null) => {
+  const handleCategorySelect = (categoryName: string | null) => {
     setSelectedCategory(categoryName);
-    
+    setStep('energy');
+  };
+
+  const handleEnergySelect = (energyId: string) => {
+    setSelectedEnergy(energyId);
+    setStep('notes');
+  };
+
+  const handleSubmit = async () => {
     try {
       await createEntry({
         mood_before: selectedMood!,
         hunger_type: selectedHunger as 'physical' | 'emotional' | 'unknown',
-        meal_category: categoryName,
+        meal_category: selectedCategory,
+        energy_after: selectedEnergy,
+        mindful_eating_notes: notes.trim() || null,
       });
       
       setStep('success');
@@ -89,6 +111,10 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     }
   };
 
+  const handleSkipNotes = () => {
+    handleSubmit();
+  };
+
   const handleBreathingChoice = (wantsBreathing: boolean) => {
     if (wantsBreathing && onSuggestBreathing) {
       handleClose();
@@ -96,6 +122,23 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     } else {
       setShowBreathingSuggestion(false);
       setStep('category');
+    }
+  };
+
+  const handleBack = () => {
+    switch (step) {
+      case 'hunger':
+        setStep('mood');
+        break;
+      case 'category':
+        setStep('hunger');
+        break;
+      case 'energy':
+        setStep('category');
+        break;
+      case 'notes':
+        setStep('energy');
+        break;
     }
   };
 
@@ -107,10 +150,21 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
         return 'Que tipo de fome é essa?';
       case 'category':
         return 'Qual refeição você vai fazer?';
+      case 'energy':
+        return 'Como você se sente depois de comer?';
+      case 'notes':
+        return 'Quer anotar algo sobre essa experiência?';
       case 'success':
         return 'Registro salvo!';
     }
   };
+
+  const getStepNumber = () => {
+    const steps: Step[] = ['mood', 'hunger', 'category', 'energy', 'notes'];
+    return steps.indexOf(step) + 1;
+  };
+
+  const canGoBack = step !== 'mood' && step !== 'success' && !showBreathingSuggestion;
 
   return (
     <AnimatePresence>
@@ -132,7 +186,15 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                {canGoBack && (
+                  <button
+                    onClick={handleBack}
+                    className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                )}
                 <span className="text-2xl">🍽️</span>
                 <h2 className="text-lg font-semibold text-foreground">Alimentação Consciente</h2>
               </div>
@@ -148,12 +210,12 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             <div className="p-6 overflow-y-auto">
               {/* Progress indicator */}
               <div className="flex gap-2 mb-6">
-                {['mood', 'hunger', 'category'].map((s, i) => (
+                {['mood', 'hunger', 'category', 'energy', 'notes'].map((s, i) => (
                   <div
                     key={s}
                     className={cn(
                       'h-1 flex-1 rounded-full transition-colors',
-                      step === s || ['mood', 'hunger', 'category'].indexOf(step) > i
+                      getStepNumber() > i
                         ? 'bg-nutrition'
                         : 'bg-muted'
                     )}
@@ -289,6 +351,72 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
                     <span className="text-2xl">✨</span>
                     <span className="font-semibold text-foreground">Apenas registrar momento</span>
                   </motion.button>
+                </div>
+              )}
+
+              {/* Energy level selection */}
+              {step === 'energy' && !showBreathingSuggestion && (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground text-center mb-4">
+                    Como seu corpo está se sentindo após a refeição?
+                  </p>
+                  {energyLevels.map((energy) => (
+                    <motion.button
+                      key={energy.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleEnergySelect(energy.id)}
+                      className={cn(
+                        'w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left',
+                        selectedEnergy === energy.id
+                          ? 'bg-nutrition/20 border-nutrition'
+                          : 'bg-card border-border/50 hover:border-nutrition/50'
+                      )}
+                    >
+                      <span className="text-3xl">{energy.emoji}</span>
+                      <div className="flex-1">
+                        <span className="font-semibold text-foreground block">{energy.label}</span>
+                        <span className="text-sm text-muted-foreground">{energy.description}</span>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+
+              {/* Notes step */}
+              {step === 'notes' && !showBreathingSuggestion && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    Reflexões sobre essa experiência alimentar (opcional)
+                  </p>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Ex: Comi devagar e percebi que estava satisfeito antes de terminar o prato..."
+                    className="w-full h-32 p-4 rounded-2xl bg-muted border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-nutrition resize-none"
+                    maxLength={500}
+                  />
+                  <p className="text-xs text-muted-foreground text-right">
+                    {notes.length}/500
+                  </p>
+                  
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={handleSkipNotes}
+                      disabled={isCreating}
+                      className="flex-1 py-3 px-4 rounded-xl bg-muted text-foreground font-medium disabled:opacity-50"
+                    >
+                      Pular
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={isCreating}
+                      className="flex-1 py-3 px-4 rounded-xl bg-nutrition text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      <Check className="w-4 h-4" />
+                      Salvar
+                    </button>
+                  </div>
                 </div>
               )}
 
