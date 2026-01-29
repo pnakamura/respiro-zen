@@ -1,55 +1,108 @@
 
 
-# Plano: Corrigir Visibilidade do Botão Salvar
+# Plano: Corrigir Visibilidade do Botão Salvar + Fluxo de Restauração
 
-## Diagnóstico do Problema
+## Problemas Identificados
 
-Após análise detalhada da screenshot e do código, identifiquei a causa raiz:
+### 1. Botão "Salvar" Ainda Invisível
 
-**O footer está posicionado corretamente FORA da área scrollável, mas a altura combinada de todos os elementos excede o espaço disponível na viewport.**
+Após análise detalhada, o problema é que:
+- O footer tem `pb-6` (24px) + `safe-area-bottom` (mais 24px) = ~48px de padding-bottom
+- Mas o conteúdo scrollável também tem `pb-6`, criando excesso
+- O `max-h-[85dvh]` ainda pode ser muito para dispositivos com viewports menores
 
-### Estrutura Atual
-```text
-┌─────────────────────────────────────────┐
-│ Drag Indicator (pt-3 pb-1)              │
-├─────────────────────────────────────────┤
-│ Header (sticky, ~70px)                   │
-├─────────────────────────────────────────┤
-│ Content (flex-1 overflow-y-auto)         │
-│   └── Progress bars + labels (~50px)     │
-│   └── Title (~30px)                      │
-│   └── Step content (textarea, tags)      │
-│   └── SEM padding-bottom extra           │  ← PROBLEMA
-├─────────────────────────────────────────┤
-│ Footer (flex-shrink-0, ~100px)           │  ← CORTADO!
-│   └── Texto explicativo                  │
-│   └── Botão "Salvar Registro"            │
-└─────────────────────────────────────────┘
-max-h = 88dvh (não deixa espaço suficiente)
-```
+**Causa raiz**: A classe `safe-area-bottom` aplica `padding-bottom: max(1.5rem, ...)`, mas o footer JÁ TEM `pb-6` na mesma linha. Isso causa conflito - o Tailwind `pb-6` está sendo sobrescrito pela classe CSS customizada, mas a especificidade pode variar.
 
-### Causa
-O `flex-1` no container de conteúdo está "empurrando" o footer para baixo, ultrapassando o limite de `max-h-[min(88dvh,88vh)]`. No dispositivo mostrado na screenshot, o footer fica parcialmente visível (texto sim, botão não).
+### 2. Restauração Voltando para Pergunta 5 (deveria ser 4)
+
+O hook `useNutritionDraft.ts` salva o step atual a cada mudança. Porém:
+- O auto-save acontece quando `step` muda E está em `['category', 'energy', 'notes']`
+- Se o usuário está no step 4 (energy), seleciona uma opção e o app fecha, o draft salva `step: 'energy'`
+- **MAS** ao selecionar energia, `handleEnergySelect` chama `goToStep('notes', 1)`, salvando o draft com `step: 'notes'`
+
+O problema está na ordem dos eventos:
+1. Usuário seleciona energia no step 4
+2. `handleEnergySelect` é chamado → `setSelectedEnergy` + `goToStep('notes')`
+3. O `useEffect` de auto-save detecta `step='notes'` e salva com step 5
+4. Ao restaurar, volta no step 5 em vez de 4
 
 ---
 
 ## Solução
 
-### 1. Reduzir max-height do modal e adicionar estrutura mais rígida
+### Solução 1: Footer Sempre Visível
 
-Mudar de `max-h-[min(88dvh,88vh)]` para `max-h-[85dvh]` para garantir mais margem.
+**Arquivo: `src/components/nutrition/MealCheckModal.tsx`**
 
-### 2. Adicionar padding-bottom ao conteúdo scrollável
+Estratégia mais agressiva para garantir que o footer apareça:
 
-Garantir que o conteúdo tenha espaço interno para não competir com o footer.
+1. **Reduzir max-height para 80dvh** - Deixa mais margem na parte inferior
+2. **Remover pb-6 do footer** - Deixar apenas `safe-area-bottom` controlar o padding
+3. **Remover pb-6 do conteúdo scrollável** - Evitar padding duplo
+4. **Adicionar `overflow-hidden` no container principal** - Forçar o flex a calcular corretamente
 
-### 3. Usar altura fixa para o footer (não flex)
+```tsx
+// Container do modal (linha 296-299)
+className={cn(
+  "relative w-full max-w-lg flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50",
+  "max-h-[80dvh]"  // Reduzido de 85dvh
+)}
 
-Evitar que o footer seja "comprimido" ou "empurrado" para fora.
+// Conteúdo scrollável (linha 337)
+<div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">  // Removido pb-6
 
-### 4. Remover o inline style de paddingBottom problemático
+// Footer (linha 650)
+<div className="flex-shrink-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
+// Removido pb-6, safe-area-bottom já cuida do padding inferior
+```
 
-O `style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 20px))' }}` pode não funcionar corretamente em todos os navegadores. Usar classe Tailwind com fallback.
+### Solução 2: Corrigir Lógica de Restauração
+
+**Arquivo: `src/hooks/useNutritionDraft.ts`**
+
+Mudar para salvar o step ANTERIOR ao avançar, ou seja, salvar o step onde o usuário fez a última seleção:
+
+Na verdade, a correção mais simples é no `MealCheckModal.tsx`: restaurar para o step ANTERIOR ao salvo, quando aplicável.
+
+**Arquivo: `src/components/nutrition/MealCheckModal.tsx`**
+
+Adicionar lógica para voltar 1 step ao restaurar:
+
+```tsx
+// Linhas 102-120 - Restore draft
+useEffect(() => {
+  if (isOpen && !hasRestoredRef.current) {
+    const draft = loadDraft();
+    if (draft && ['category', 'energy', 'notes'].includes(draft.step)) {
+      // Restaurar dados
+      setSelectedMood(draft.selectedMood);
+      setSelectedHunger(draft.selectedHunger);
+      setSelectedCategory(draft.selectedCategory);
+      setSelectedEnergy(draft.selectedEnergy);
+      setNotes(draft.notes);
+      
+      // Restaurar para o step ANTERIOR se for 'notes' ou 'energy'
+      // (porque o usuário pode não ter completado o step atual)
+      let restoreStep = draft.step;
+      if (draft.step === 'notes' && !draft.notes.trim()) {
+        restoreStep = 'energy';
+      }
+      if (draft.step === 'energy' && !draft.selectedEnergy) {
+        restoreStep = 'category';
+      }
+      
+      setStep(restoreStep);
+      hasRestoredRef.current = true;
+      toast.info('Continuando de onde você parou...', { duration: 2000 });
+    }
+  }
+  if (!isOpen) {
+    hasRestoredRef.current = false;
+  }
+}, [isOpen, loadDraft]);
+```
+
+Esta lógica verifica: se o draft está em 'notes' mas não tem notas, volta para 'energy'. Se está em 'energy' mas não tem energia selecionada, volta para 'category'.
 
 ---
 
@@ -57,51 +110,41 @@ O `style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 20px))' }}`
 
 ### Arquivo: `src/components/nutrition/MealCheckModal.tsx`
 
-**Linha 296-300 - Ajustar container do modal:**
+**Mudança 1 - Container do modal (linhas 296-299):**
 ```tsx
 // DE:
-className={cn(
-  "relative w-full max-w-lg flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50",
-  "max-h-[min(88dvh,88vh)]"
-)}
-style={{ marginBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}
-
-// PARA:
 className={cn(
   "relative w-full max-w-lg flex flex-col bg-card rounded-t-3xl shadow-xl border-t border-border/50",
   "max-h-[85dvh]"
 )}
-// Remover o style inline
-```
-
-**Linha 338 - Adicionar padding-bottom ao conteúdo:**
-```tsx
-// DE:
-<div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
 
 // PARA:
+className={cn(
+  "relative w-full max-w-lg flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50",
+  "max-h-[80dvh]"
+)}
+```
+
+**Mudança 2 - Conteúdo scrollável (linha 337):**
+```tsx
+// DE:
 <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 pb-6">
-```
-
-**Linhas 651-653 - Simplificar footer:**
-```tsx
-// DE:
-<div 
-  className="flex-shrink-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130]"
-  style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 20px))' }}
->
 
 // PARA:
-<div className="flex-shrink-0 px-5 pt-3 pb-6 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
+<div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
 ```
 
-**Adicionar classe CSS para safe-area (se não existir):**
-No index.css:
-```css
-.safe-area-bottom {
-  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1.5rem));
-}
+**Mudança 3 - Footer (linha 650):**
+```tsx
+// DE:
+<div className="flex-shrink-0 px-5 pt-3 pb-6 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
+
+// PARA:
+<div className="flex-shrink-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
 ```
+
+**Mudança 4 - Lógica de restauração (linhas 102-120):**
+Adicionar verificação para restaurar no step correto baseado nos dados presentes.
 
 ---
 
@@ -109,35 +152,14 @@ No index.css:
 
 | Arquivo | Mudança |
 |---------|---------|
-| `src/components/nutrition/MealCheckModal.tsx` | Ajustar max-height, padding-bottom e footer |
-| `src/index.css` | Adicionar classe `.safe-area-bottom` (se necessário) |
-
----
-
-## Resultado Esperado
-
-```text
-┌─────────────────────────────────────────┐
-│ Drag Indicator                          │
-├─────────────────────────────────────────┤
-│ Header                                   │
-├─────────────────────────────────────────┤
-│ Content (scrollable, com pb-6)           │
-│   └── ...                                │
-│   └── Espaço extra no final              │
-├─────────────────────────────────────────┤
-│ Footer (SEMPRE visível)                  │
-│   └── Texto explicativo ✓                │
-│   └── Botão "Salvar Registro" ✓          │
-└─────────────────────────────────────────┘
-max-h = 85dvh (com margem de segurança)
-```
+| `src/components/nutrition/MealCheckModal.tsx` | Ajustar max-height, remover paddings duplicados, corrigir lógica de restauração |
 
 ---
 
 ## Testes Recomendados
-1. Abrir modal de nutrição no Android Chrome e verificar se o botão "Salvar" está visível no passo 5
-2. Testar com teclado virtual aberto (digitando notas)
-3. Testar em diferentes tamanhos de tela
-4. Verificar que o conteúdo ainda é scrollável quando necessário
+1. Abrir modal de nutrição no Android Chrome e verificar se botão "Salvar" está visível no passo 5
+2. Ir até o passo 4 (Energia), selecionar uma opção, fechar o modal
+3. Reabrir o modal e verificar que restaura no passo 4, não no passo 5
+4. Ir até o passo 3 (Refeição), fechar e reabrir - deve restaurar no passo 3
+5. Testar com diferentes tamanhos de tela
 
