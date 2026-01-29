@@ -1,12 +1,12 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { X, ChevronRight, Wind, Check, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEmotionNutritionContext, useMealCategories } from '@/hooks/useNutrition';
+import { useNutritionDraft } from '@/hooks/useNutritionDraft';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ContextualHelp } from '@/components/ui/ContextualHelp';
-
 interface MealCheckModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -82,6 +82,9 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
 
   const { createEntry, isCreating } = useEmotionNutritionContext();
   const { data: categories } = useMealCategories();
+  const { saveDraft, loadDraft, clearDraft } = useNutritionDraft();
+  
+  const hasRestoredRef = useRef(false);
 
   const hasData = selectedMood || selectedHunger || selectedCategory || selectedEnergy || notes.trim();
 
@@ -96,7 +99,42 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     setShowBreathingSuggestion(false);
   }, []);
 
+  // Restore draft when modal opens
+  useEffect(() => {
+    if (isOpen && !hasRestoredRef.current) {
+      const draft = loadDraft();
+      if (draft && ['category', 'energy', 'notes'].includes(draft.step)) {
+        setStep(draft.step);
+        setSelectedMood(draft.selectedMood);
+        setSelectedHunger(draft.selectedHunger);
+        setSelectedCategory(draft.selectedCategory);
+        setSelectedEnergy(draft.selectedEnergy);
+        setNotes(draft.notes);
+        hasRestoredRef.current = true;
+        toast.info('Continuando de onde você parou...', { duration: 2000 });
+      }
+    }
+    if (!isOpen) {
+      hasRestoredRef.current = false;
+    }
+  }, [isOpen, loadDraft]);
+
+  // Auto-save draft after step 3
+  useEffect(() => {
+    if (['category', 'energy', 'notes'].includes(step) && hasData) {
+      saveDraft({
+        step,
+        selectedMood,
+        selectedHunger,
+        selectedCategory,
+        selectedEnergy,
+        notes,
+      });
+    }
+  }, [step, selectedMood, selectedHunger, selectedCategory, selectedEnergy, notes, hasData, saveDraft]);
+
   const handleClose = useCallback(() => {
+    // Draft is auto-saved via useEffect, just reset and close
     resetForm();
     onClose();
   }, [resetForm, onClose]);
@@ -141,6 +179,9 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
         mindful_eating_notes: notes.trim() || null,
       });
       
+      // Clear draft on successful save
+      clearDraft();
+      
       goToStep('success', 1);
       toast.success('Registro de alimentação consciente salvo!');
       
@@ -150,7 +191,7 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     } catch (error) {
       toast.error('Erro ao salvar registro');
     }
-  }, [selectedMood, selectedHunger, selectedCategory, selectedEnergy, notes, createEntry, goToStep, handleClose]);
+  }, [selectedMood, selectedHunger, selectedCategory, selectedEnergy, notes, createEntry, goToStep, handleClose, clearDraft]);
 
   const handleBreathingChoice = useCallback((wantsBreathing: boolean) => {
     if (wantsBreathing && onSuggestBreathing) {
@@ -254,9 +295,9 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             onClick={(e) => e.stopPropagation()}
             className={cn(
               "relative w-full max-w-lg flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50",
-              "max-h-[min(92dvh,92vh)]",
-              "mb-[max(env(safe-area-inset-bottom,24px),24px)]"
+              "max-h-[min(88dvh,88vh)]"
             )}
+            style={{ marginBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}
           >
             {/* Drag indicator */}
             <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -607,7 +648,10 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
 
             {/* Footer - OUTSIDE scrollable area, always visible */}
             {step !== 'success' && !showBreathingSuggestion && (
-              <div className="flex-shrink-0 px-5 pt-3 pb-5 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130]" style={{ marginBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}>
+              <div 
+                className="flex-shrink-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130]"
+                style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 20px))' }}
+              >
                 {step === 'notes' ? (
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground text-center">
