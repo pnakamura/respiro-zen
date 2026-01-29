@@ -663,14 +663,14 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
                     </div>
                     
                     {/* STICKY Save Button - always visible at bottom */}
-                    <div className="sticky bottom-0 -mx-5 px-5 pt-3 pb-2 bg-card border-t border-border/30 z-20">
+                    <div className="sticky bottom-0 -mx-5 px-5 pt-3 pb-2 bg-card border-t border-border/30 z-20 safe-area-bottom">
                       <p className="text-xs text-muted-foreground text-center mb-3">
                         Ao salvar, seu registro aparecerá na timeline e ajudará a identificar padrões alimentares
                       </p>
                       <Button
                         onClick={handleSubmit}
                         disabled={isCreating}
-                        className="w-full h-12 rounded-xl bg-nutrition hover:bg-nutrition/90 text-white font-semibold text-base"
+                        className="w-full h-12 rounded-xl bg-nutrition hover:bg-nutrition/90 text-primary-foreground font-semibold text-base"
                       >
                         <Check className="w-5 h-5 mr-2" />
                         {isCreating ? 'Salvando...' : 'Salvar Registro'}

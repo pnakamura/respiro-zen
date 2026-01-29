@@ -71,6 +71,14 @@ export default {
           DEFAULT: "hsl(var(--meditate))",
           light: "hsl(var(--meditate-light))",
         },
+         nutrition: {
+           DEFAULT: "hsl(var(--nutrition))",
+           light: "hsl(var(--nutrition-light))",
+         },
+         water: {
+           DEFAULT: "hsl(var(--water))",
+           light: "hsl(var(--water-light))",
+         },
         // Plutchik emotion colors
         joy: "hsl(var(--joy))",
         trust: "hsl(var(--trust))",
