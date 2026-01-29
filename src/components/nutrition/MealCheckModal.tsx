@@ -589,25 +589,44 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
                     <p className="text-base font-semibold text-foreground mb-1">
                       Excelente! 🎉
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mb-4">
                       Você praticou alimentação consciente. Continue assim!
                     </p>
+                    <div className="bg-muted/50 rounded-xl p-4 text-left">
+                      <p className="text-xs text-muted-foreground">
+                        📋 Seu registro foi salvo na timeline de refeições
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        📊 Você pode ver padrões de alimentação na página de Insights
+                      </p>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Footer - sticky with safe area */}
-            {step === 'notes' && !showBreathingSuggestion && (
-              <div className="sticky bottom-0 px-5 pt-3 pb-5 border-t border-border/30 bg-card flex-shrink-0 safe-bottom">
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isCreating}
-                  className="w-full h-12 rounded-xl bg-nutrition hover:bg-nutrition/90 text-white font-semibold text-base"
-                >
-                  <Check className="w-5 h-5 mr-2" />
-                  Salvar
-                </Button>
+            {/* Footer - OUTSIDE scrollable area, always visible */}
+            {step !== 'success' && !showBreathingSuggestion && (
+              <div className="flex-shrink-0 px-5 pt-3 pb-5 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130]" style={{ marginBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}>
+                {step === 'notes' ? (
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground text-center">
+                      Ao salvar, seu registro aparecerá na timeline e ajudará a identificar padrões alimentares
+                    </p>
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={isCreating}
+                      className="w-full h-12 rounded-xl bg-nutrition hover:bg-nutrition/90 text-white font-semibold text-base"
+                    >
+                      <Check className="w-5 h-5 mr-2" />
+                      {isCreating ? 'Salvando...' : 'Salvar Registro'}
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    Continue para registrar sua experiência alimentar
+                  </p>
+                )}
               </div>
             )}
           </motion.div>
