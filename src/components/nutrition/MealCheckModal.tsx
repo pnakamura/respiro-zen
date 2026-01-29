@@ -118,8 +118,9 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
         // DETERMINISTIC RESTORATION LOGIC:
         // Priority 1: If energy is selected but notes is empty → stay on energy (step 4)
         // Priority 2: If step is 'notes' but notes is empty → go back to energy
-        // Priority 3: If on energy but no energy selected → go back to category
         // Default: use saved step
+        // NOTE: We intentionally do NOT fall back to 'category' if selectedEnergy is null,
+        // because the user should stay on 'energy' and select again
         let restoreStep = draft.step;
         
         // Priority 1 & 2: Force back to energy if notes is empty
@@ -127,11 +128,6 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
           restoreStep = 'energy';
         } else if (draft.step === 'notes' && !hasNotes) {
           restoreStep = 'energy';
-        }
-        
-        // Priority 3: Can't be on energy without energy selected
-        if (restoreStep === 'energy' && !draft.selectedEnergy) {
-          restoreStep = 'category';
         }
         
         setStep(restoreStep);
@@ -145,8 +141,15 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
   }, [isOpen, loadDraft]);
 
   // Auto-save draft after step 3 - save as 'energy' when on 'notes' but notes is empty
+  // CRITICAL: Don't overwrite when selectedEnergy is null (state not yet updated by React)
   useEffect(() => {
     if (['category', 'energy', 'notes'].includes(step) && hasData) {
+      // Prevent auto-save from overwriting the draft when we're on notes/energy
+      // but selectedEnergy hasn't been updated yet by React
+      if ((step === 'notes' || step === 'energy') && !selectedEnergy) {
+        return; // Don't overwrite - handleEnergySelect already saved correctly
+      }
+      
       // Determine correct step to save: if on 'notes' but no notes written, anchor to 'energy'
       const stepToSave = (step === 'notes' && !notes.trim()) ? 'energy' : step;
       
@@ -374,7 +377,7 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             </div>
 
             {/* Content - scrollable with padding for absolute footer */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 pb-24">
               {/* Progress indicator with labels */}
               <div className="mb-4">
                 <div className="flex gap-1.5 mb-2">
