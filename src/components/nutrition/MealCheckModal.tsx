@@ -104,19 +104,32 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     if (isOpen && !hasRestoredRef.current) {
       const draft = loadDraft();
       if (draft && ['category', 'energy', 'notes'].includes(draft.step)) {
+        // Normalize notes as a safe string
+        const restoredNotes = typeof draft.notes === 'string' ? draft.notes : '';
+        const hasNotes = restoredNotes.trim().length > 0;
+        
         // Restore all data first
         setSelectedMood(draft.selectedMood);
         setSelectedHunger(draft.selectedHunger);
         setSelectedCategory(draft.selectedCategory);
         setSelectedEnergy(draft.selectedEnergy);
-        setNotes(draft.notes);
+        setNotes(restoredNotes);
         
-        // Determine correct step to restore to
-        // If the saved step's data is empty, go back to the previous step
+        // DETERMINISTIC RESTORATION LOGIC:
+        // Priority 1: If energy is selected but notes is empty → stay on energy (step 4)
+        // Priority 2: If step is 'notes' but notes is empty → go back to energy
+        // Priority 3: If on energy but no energy selected → go back to category
+        // Default: use saved step
         let restoreStep = draft.step;
-        if (draft.step === 'notes' && !draft.notes.trim()) {
+        
+        // Priority 1 & 2: Force back to energy if notes is empty
+        if (draft.selectedEnergy && !hasNotes) {
+          restoreStep = 'energy';
+        } else if (draft.step === 'notes' && !hasNotes) {
           restoreStep = 'energy';
         }
+        
+        // Priority 3: Can't be on energy without energy selected
         if (restoreStep === 'energy' && !draft.selectedEnergy) {
           restoreStep = 'category';
         }
@@ -361,7 +374,7 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             </div>
 
             {/* Content - scrollable with padding for absolute footer */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 pb-32">
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
               {/* Progress indicator with labels */}
               <div className="mb-4">
                 <div className="flex gap-1.5 mb-2">
@@ -614,7 +627,7 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder={randomPrompt}
-                        className="w-full h-32 p-4 rounded-2xl bg-muted border border-border/50 text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-nutrition resize-none text-sm leading-relaxed"
+                        className="w-full h-28 p-4 rounded-2xl bg-muted border border-border/50 text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-nutrition resize-none text-sm leading-relaxed"
                         maxLength={500}
                       />
                       <span className="absolute bottom-3 right-3 text-[10px] text-muted-foreground/50">
@@ -633,6 +646,21 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
                           + {tag}
                         </button>
                       ))}
+                    </div>
+
+                    {/* INLINE Save Button - positioned right after textarea */}
+                    <div className="pt-3 border-t border-border/30">
+                      <p className="text-xs text-muted-foreground text-center mb-3">
+                        Ao salvar, seu registro aparecerá na timeline e ajudará a identificar padrões alimentares
+                      </p>
+                      <Button
+                        onClick={handleSubmit}
+                        disabled={isCreating}
+                        className="w-full h-12 rounded-xl bg-nutrition hover:bg-nutrition/90 text-white font-semibold text-base"
+                      >
+                        <Check className="w-5 h-5 mr-2" />
+                        {isCreating ? 'Salvando...' : 'Salvar Registro'}
+                      </Button>
                     </div>
                   </motion.div>
                 )}
@@ -672,31 +700,15 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
               </AnimatePresence>
             </div>
 
-            {/* Footer - ABSOLUTE positioned to ensure always visible */}
-            {step !== 'success' && !showBreathingSuggestion && (
-              <div className="absolute bottom-0 left-0 right-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
-                {step === 'notes' ? (
-                  <div className="space-y-3">
-                    <p className="text-xs text-muted-foreground text-center">
-                      Ao salvar, seu registro aparecerá na timeline e ajudará a identificar padrões alimentares
-                    </p>
-                    <Button
-                      onClick={handleSubmit}
-                      disabled={isCreating}
-                      className="w-full h-12 rounded-xl bg-nutrition hover:bg-nutrition/90 text-white font-semibold text-base"
-                    >
-                      <Check className="w-5 h-5 mr-2" />
-                      {isCreating ? 'Salvando...' : 'Salvar Registro'}
-                    </Button>
-                  </div>
-                ) : step === 'energy' ? (
-                  <div className="space-y-3">
-                    <p className="text-xs text-muted-foreground text-center">
-                      Selecione como você se sentiu após a refeição
-                    </p>
-                  </div>
+            {/* Footer - simplified, save button is now inline in notes step */}
+            {step !== 'success' && step !== 'notes' && !showBreathingSuggestion && (
+              <div className="px-5 pt-3 pb-4 border-t border-border/30 bg-card flex-shrink-0 safe-area-bottom">
+                {step === 'energy' ? (
+                  <p className="text-xs text-muted-foreground text-center">
+                    Selecione como você se sentiu após a refeição
+                  </p>
                 ) : (
-                  <p className="text-xs text-muted-foreground text-center py-2">
+                  <p className="text-xs text-muted-foreground text-center">
                     Continue para registrar sua experiência alimentar
                   </p>
                 )}
