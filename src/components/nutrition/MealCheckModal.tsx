@@ -131,11 +131,14 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     }
   }, [isOpen, loadDraft]);
 
-  // Auto-save draft after step 3
+  // Auto-save draft after step 3 - save as 'energy' when on 'notes' but notes is empty
   useEffect(() => {
     if (['category', 'energy', 'notes'].includes(step) && hasData) {
+      // Determine correct step to save: if on 'notes' but no notes written, anchor to 'energy'
+      const stepToSave = (step === 'notes' && !notes.trim()) ? 'energy' : step;
+      
       saveDraft({
-        step,
+        step: stepToSave,
         selectedMood,
         selectedHunger,
         selectedCategory,
@@ -178,8 +181,20 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
 
   const handleEnergySelect = useCallback((energyId: string) => {
     setSelectedEnergy(energyId);
+    
+    // Save draft immediately with step 'energy' before advancing
+    // This ensures that if the app closes mid-transition, draft stays on energy
+    saveDraft({
+      step: 'energy',
+      selectedMood,
+      selectedHunger,
+      selectedCategory,
+      selectedEnergy: energyId,
+      notes,
+    });
+    
     goToStep('notes', 1);
-  }, [goToStep]);
+  }, [goToStep, saveDraft, selectedMood, selectedHunger, selectedCategory, notes]);
 
   const handleSubmit = useCallback(async () => {
     try {
@@ -345,8 +360,8 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
               </button>
             </div>
 
-            {/* Content - scrollable */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+            {/* Content - scrollable with padding for absolute footer */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 pb-32">
               {/* Progress indicator with labels */}
               <div className="mb-4">
                 <div className="flex gap-1.5 mb-2">
@@ -657,9 +672,9 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
               </AnimatePresence>
             </div>
 
-            {/* Footer - OUTSIDE scrollable area, always visible */}
+            {/* Footer - ABSOLUTE positioned to ensure always visible */}
             {step !== 'success' && !showBreathingSuggestion && (
-              <div className="flex-shrink-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
+              <div className="absolute bottom-0 left-0 right-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
                 {step === 'notes' ? (
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground text-center">
@@ -673,6 +688,12 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
                       <Check className="w-5 h-5 mr-2" />
                       {isCreating ? 'Salvando...' : 'Salvar Registro'}
                     </Button>
+                  </div>
+                ) : step === 'energy' ? (
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground text-center">
+                      Selecione como você se sentiu após a refeição
+                    </p>
                   </div>
                 ) : (
                   <p className="text-xs text-muted-foreground text-center py-2">
