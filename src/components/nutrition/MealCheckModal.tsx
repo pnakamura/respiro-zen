@@ -294,10 +294,9 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             onDragEnd={handleDragEnd}
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              "relative w-full max-w-lg flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50",
-              "max-h-[min(88dvh,88vh)]"
+              "relative w-full max-w-lg flex flex-col bg-card rounded-t-3xl shadow-xl border-t border-border/50",
+              "max-h-[85dvh]"
             )}
-            style={{ marginBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}
           >
             {/* Drag indicator */}
             <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
@@ -335,7 +334,7 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             </div>
 
             {/* Content - scrollable */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 pb-6">
               {/* Progress indicator with labels */}
               <div className="mb-4">
                 <div className="flex gap-1.5 mb-2">
@@ -648,10 +647,7 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
 
             {/* Footer - OUTSIDE scrollable area, always visible */}
             {step !== 'success' && !showBreathingSuggestion && (
-              <div 
-                className="flex-shrink-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130]"
-                style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 20px))' }}
-              >
+              <div className="flex-shrink-0 px-5 pt-3 pb-6 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
                 {step === 'notes' ? (
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground text-center">
