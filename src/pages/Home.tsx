@@ -230,7 +230,7 @@ export default function Home() {
             <QuickActionCard
               emoji="😊"
               icon={Smile}
-              label="Humor"
+              label="Emoções"
               color="joy"
               onClick={handleMoodCheck}
               delay={0.1}
