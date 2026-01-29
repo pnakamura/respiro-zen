@@ -104,12 +104,24 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
     if (isOpen && !hasRestoredRef.current) {
       const draft = loadDraft();
       if (draft && ['category', 'energy', 'notes'].includes(draft.step)) {
-        setStep(draft.step);
+        // Restore all data first
         setSelectedMood(draft.selectedMood);
         setSelectedHunger(draft.selectedHunger);
         setSelectedCategory(draft.selectedCategory);
         setSelectedEnergy(draft.selectedEnergy);
         setNotes(draft.notes);
+        
+        // Determine correct step to restore to
+        // If the saved step's data is empty, go back to the previous step
+        let restoreStep = draft.step;
+        if (draft.step === 'notes' && !draft.notes.trim()) {
+          restoreStep = 'energy';
+        }
+        if (restoreStep === 'energy' && !draft.selectedEnergy) {
+          restoreStep = 'category';
+        }
+        
+        setStep(restoreStep);
         hasRestoredRef.current = true;
         toast.info('Continuando de onde você parou...', { duration: 2000 });
       }
@@ -294,8 +306,8 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             onDragEnd={handleDragEnd}
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              "relative w-full max-w-lg flex flex-col bg-card rounded-t-3xl shadow-xl border-t border-border/50",
-              "max-h-[85dvh]"
+              "relative w-full max-w-lg flex flex-col overflow-hidden bg-card rounded-t-3xl shadow-xl border-t border-border/50",
+              "max-h-[80dvh]"
             )}
           >
             {/* Drag indicator */}
@@ -334,7 +346,7 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
             </div>
 
             {/* Content - scrollable */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 pb-6">
+            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
               {/* Progress indicator with labels */}
               <div className="mb-4">
                 <div className="flex gap-1.5 mb-2">
@@ -647,7 +659,7 @@ export function MealCheckModal({ isOpen, onClose, onSuggestBreathing }: MealChec
 
             {/* Footer - OUTSIDE scrollable area, always visible */}
             {step !== 'success' && !showBreathingSuggestion && (
-              <div className="flex-shrink-0 px-5 pt-3 pb-6 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
+              <div className="flex-shrink-0 px-5 pt-3 border-t border-border/30 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-[130] safe-area-bottom">
                 {step === 'notes' ? (
                   <div className="space-y-3">
                     <p className="text-xs text-muted-foreground text-center">
