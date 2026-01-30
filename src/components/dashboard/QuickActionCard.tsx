@@ -7,7 +7,7 @@ interface QuickActionCardProps {
   emoji?: string;
   label: string;
   description?: string;
-  color: 'primary' | 'secondary' | 'accent' | 'joy' | 'trust' | 'calm' | 'meditate' | 'nutrition' | 'journey';
+  color: 'primary' | 'secondary' | 'accent' | 'joy' | 'trust' | 'calm' | 'meditate' | 'nutrition' | 'journey' | 'studio';
   onClick: () => void;
   delay?: number;
 }
@@ -66,6 +66,12 @@ const colorClasses = {
     text: 'text-[hsl(var(--surprise))]',
     border: 'border-[hsl(var(--surprise)/0.25)] dark:border-[hsl(var(--surprise)/0.4)]',
     glow: 'shadow-[0_4px_20px_hsl(var(--surprise)/0.2)] dark:shadow-[0_4px_35px_hsl(var(--surprise)/0.45)]',
+  },
+  studio: {
+    bg: 'bg-gradient-to-br from-violet-500/15 to-fuchsia-500/15 dark:from-violet-500/25 dark:to-fuchsia-500/25',
+    text: 'text-violet-600 dark:text-violet-400',
+    border: 'border-violet-400/30 dark:border-violet-400/50',
+    glow: 'shadow-[0_4px_20px_rgba(139,92,246,0.25)] dark:shadow-[0_4px_35px_rgba(139,92,246,0.5)]',
   },
 };
 

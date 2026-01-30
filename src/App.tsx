@@ -28,6 +28,7 @@ import WellnessReport from "./pages/WellnessReport";
 import GuideChat from "./pages/GuideChat";
 import GuideSelect from "./pages/GuideSelect";
 import Plans from "./pages/Plans";
+import AnimationStudio from "./pages/AnimationStudio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App: React.FC = () => (
                 <Route path="/guide" element={<ErrorBoundary><GuideChat /></ErrorBoundary>} />
                 <Route path="/guide/select" element={<GuideSelect />} />
                 <Route path="/plans" element={<Plans />} />
+                <Route path="/animation-studio" element={<AnimationStudio />} />
                 <Route path="/admin/*" element={<Admin />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
