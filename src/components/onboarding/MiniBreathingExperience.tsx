@@ -24,14 +24,14 @@ const PATTERN = {
 
 const TOTAL_CYCLES = 3;
 
-// Purple gradient colors
+// Sage/Earth gradient colors
 const PHASE_COLORS: Record<Phase, { from: string; to: string }> = {
-  idle: { from: '#9B87F5', to: '#7C3AED' },
-  inhale: { from: '#A78BFA', to: '#8B5CF6' },
-  holdIn: { from: '#8B5CF6', to: '#7C3AED' },
-  exhale: { from: '#7C3AED', to: '#6D28D9' },
-  holdOut: { from: '#6D28D9', to: '#5B21B6' },
-  complete: { from: '#10B981', to: '#059669' },
+  idle: { from: '#7d8f7d', to: '#5f735f' },
+  inhale: { from: '#a3b0a3', to: '#7d8f7d' },
+  holdIn: { from: '#7d8f7d', to: '#5f735f' },
+  exhale: { from: '#5f735f', to: '#4a5b4a' },
+  holdOut: { from: '#4a5b4a', to: '#3d4a3d' },
+  complete: { from: '#5f735f', to: '#4a5b4a' },
 };
 
 interface MiniBreathingExperienceProps {
@@ -166,16 +166,16 @@ export function MiniBreathingExperience({ onComplete, onSkip }: MiniBreathingExp
                     <Check className="w-12 h-12 mb-1" />
                   </motion.div>
                 ) : isRunning ? (
-                  <motion.span 
+                  <motion.span
                     key={countdown}
                     initial={{ scale: 1.2, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-5xl font-bold mb-1"
+                    className="text-5xl font-display font-light mb-1"
                   >
                     {countdown}
                   </motion.span>
                 ) : null}
-                <span className="text-xl font-semibold">
+                <span className="text-xl font-body font-medium">
                   {PHASE_LABELS[phase]}
                 </span>
               </motion.div>
@@ -230,14 +230,14 @@ export function MiniBreathingExperience({ onComplete, onSkip }: MiniBreathingExp
                 key={i}
                 className="w-2.5 h-2.5 rounded-full"
                 style={{
-                  backgroundColor: i <= cycle ? '#9B87F5' : 'hsl(var(--muted))',
+                  backgroundColor: i <= cycle ? '#7d8f7d' : 'hsl(var(--muted))',
                 }}
                 animate={i === cycle ? { scale: [1, 1.3, 1] } : {}}
                 transition={{ duration: 0.3 }}
               />
             ))}
           </div>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm font-body text-sage-600">
             Ciclo {cycle + 1} de {TOTAL_CYCLES}
           </span>
         </motion.div>
@@ -245,7 +245,7 @@ export function MiniBreathingExperience({ onComplete, onSkip }: MiniBreathingExp
 
       {/* Actions - Large buttons for mobile */}
       {!isRunning && phase !== 'complete' && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col gap-3 w-full max-w-xs"
@@ -253,20 +253,20 @@ export function MiniBreathingExperience({ onComplete, onSkip }: MiniBreathingExp
           <Button
             onClick={startExperience}
             size="lg"
-            className="h-16 text-lg font-semibold rounded-2xl gap-3"
+            className="h-16 text-lg font-body font-medium rounded-2xl gap-3 shadow-[0_8px_24px_rgba(95,115,95,0.25)]"
             style={{
-              background: 'linear-gradient(135deg, #9B87F5 0%, #7C3AED 100%)',
+              background: 'linear-gradient(135deg, #7d8f7d 0%, #5f735f 100%)',
             }}
           >
             <Play className="w-6 h-6" />
             Iniciar respiração
           </Button>
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={onSkip}
-            className="h-12 text-muted-foreground hover:text-foreground"
+            className="h-12 text-base font-body border-sage-300/50 hover:bg-sage-50/50 text-sage-700 hover:text-sage-900"
           >
-            Pular esta etapa
+            Pular esta prática
           </Button>
         </motion.div>
       )}
@@ -277,10 +277,10 @@ export function MiniBreathingExperience({ onComplete, onSkip }: MiniBreathingExp
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <p className="text-lg font-medium text-foreground mb-1">
-            Excelente! 🎉
+          <p className="text-xl font-display font-medium text-sage-900 mb-1">
+            Excelente! 🌿
           </p>
-          <p className="text-muted-foreground">
+          <p className="font-body text-sage-600">
             Você completou a prática!
           </p>
         </motion.div>
