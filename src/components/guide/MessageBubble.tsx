@@ -22,6 +22,13 @@ export function MessageBubble({
   const relativeTime = formatRelativeTime(message.createdAt);
   const fullDateTime = formatFullDateTime(message.createdAt);
 
+  console.log('MessageBubble render:', {
+    role: message.role,
+    createdAt: message.createdAt,
+    relativeTime,
+    fullDateTime
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 22, scale: 0.92, filter: 'blur(6px)' }}
@@ -82,13 +89,13 @@ export function MessageBubble({
         {/* Timestamp with tooltip */}
         <span
           className={cn(
-            'text-xs font-body cursor-default transition-opacity duration-200',
+            'text-xs font-body cursor-default transition-opacity duration-200 bg-yellow-200 px-2 py-1',
             isUser
-              ? 'text-sage-700 text-right'
-              : 'text-sage-700 text-left'
+              ? 'text-sage-900 text-right'
+              : 'text-sage-900 text-left'
           )}
         >
-          {relativeTime || 'Agora'}
+          DEBUG: {relativeTime || 'Agora'} - {message.createdAt?.toString()}
         </span>
       </div>
     </motion.div>
