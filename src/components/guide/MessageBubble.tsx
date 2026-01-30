@@ -10,9 +10,9 @@ interface MessageBubbleProps {
   isStreaming?: boolean;
 }
 
-export function MessageBubble({ 
-  message, 
-  guideEmoji = '🧘', 
+export function MessageBubble({
+  message,
+  guideEmoji = '🧘',
   guideName = 'Guia',
   isStreaming = false,
 }: MessageBubbleProps) {
@@ -22,8 +22,8 @@ export function MessageBubble({
     <motion.div
       initial={{ opacity: 0, y: 22, scale: 0.92, filter: 'blur(6px)' }}
       animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-      transition={{ 
-        duration: 0.65, 
+      transition={{
+        duration: 0.65,
         ease: [0.22, 1, 0.36, 1],
         delay: isUser ? 0 : 0.15,
       }}
@@ -34,32 +34,40 @@ export function MessageBubble({
     >
       {/* Avatar - only for assistant */}
       {!isUser && (
-        <GuideAvatar 
-          emoji={guideEmoji} 
-          state={isStreaming ? 'speaking' : 'idle'} 
+        <GuideAvatar
+          emoji={guideEmoji}
+          state={isStreaming ? 'speaking' : 'idle'}
         />
       )}
 
       {/* Message content */}
       <div
         className={cn(
-          'rounded-2xl px-4 py-3 text-sm leading-relaxed',
-          isUser 
-            ? 'bg-primary text-primary-foreground rounded-br-md' 
-            : 'bg-muted text-foreground rounded-bl-md'
+          'rounded-2xl px-4 py-3 text-sm leading-relaxed font-body backdrop-blur-sm',
+          isUser
+            ? 'rounded-br-md shadow-[0_4px_16px_rgba(95,115,95,0.15)] text-cream-50'
+            : 'bg-cream-50/90 text-sage-900 rounded-bl-md shadow-[0_2px_12px_rgba(95,115,95,0.08)] border border-sage-200/30'
         )}
+        style={
+          isUser
+            ? {
+                background: 'linear-gradient(135deg, #7d8f7d 0%, #5f735f 100%)',
+              }
+            : undefined
+        }
       >
         {!isUser && (
-          <span className="block text-xs font-medium text-muted-foreground mb-1">
+          <span className="block text-xs font-medium text-sage-600 mb-1 font-body">
             {guideName}
           </span>
         )}
         <p className="whitespace-pre-wrap">{message.content}</p>
-        
+
         {/* Streaming indicator */}
         {isStreaming && !isUser && (
           <motion.span
-            className="inline-block w-1.5 h-4 bg-primary/50 ml-0.5 rounded-sm"
+            className="inline-block w-1.5 h-4 ml-0.5 rounded-sm"
+            style={{ background: 'rgba(95, 115, 95, 0.5)' }}
             animate={{ opacity: [1, 0, 1] }}
             transition={{ duration: 0.8, repeat: Infinity }}
           />

@@ -18,14 +18,14 @@ const sizeClasses = {
 
 const glowStyles = {
   idle: '',
-  thinking: 'shadow-[0_0_20px_hsl(var(--primary)/0.3)]',
-  speaking: 'shadow-[0_0_15px_hsl(var(--primary)/0.25)]',
-  empathic: 'shadow-[0_0_25px_hsl(var(--primary)/0.4)]',
+  thinking: 'shadow-[0_0_20px_rgba(95,115,95,0.3)]',
+  speaking: 'shadow-[0_0_15px_rgba(95,115,95,0.25)]',
+  empathic: 'shadow-[0_0_25px_rgba(139,115,95,0.4)]',
 };
 
-export function GuideAvatar({ 
-  emoji, 
-  state = 'idle', 
+export function GuideAvatar({
+  emoji,
+  state = 'idle',
   size = 'sm',
   className,
 }: GuideAvatarProps) {
@@ -34,8 +34,8 @@ export function GuideAvatar({
       case 'thinking':
         return {
           scale: [1, 1.08, 1],
-          transition: { 
-            duration: 2, 
+          transition: {
+            duration: 2,
             repeat: Infinity,
             ease: 'easeInOut' as const,
           },
@@ -43,8 +43,8 @@ export function GuideAvatar({
       case 'speaking':
         return {
           scale: [1, 1.03, 1],
-          transition: { 
-            duration: 0.6, 
+          transition: {
+            duration: 0.6,
             repeat: Infinity,
             ease: 'easeInOut' as const,
           },
@@ -65,15 +65,18 @@ export function GuideAvatar({
   return (
     <motion.div
       className={cn(
-        'flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center transition-shadow duration-300',
+        'flex-shrink-0 rounded-full flex items-center justify-center transition-shadow duration-300',
         sizeClasses[size],
         glowStyles[state],
         className
       )}
+      style={{
+        background: 'linear-gradient(135deg, rgba(125, 143, 125, 0.15) 0%, rgba(95, 115, 95, 0.1) 100%)',
+      }}
       animate={getAnimation()}
     >
       <motion.span
-        animate={state === 'thinking' ? { 
+        animate={state === 'thinking' ? {
           opacity: [1, 0.7, 1],
         } : {}}
         transition={{ duration: 1.5, repeat: Infinity }}
