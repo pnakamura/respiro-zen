@@ -3,18 +3,19 @@
  * Throws an error on app startup if any are missing
  */
 
-const requiredEnvVars = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_PUBLISHABLE_KEY',
-] as const;
-
 export function validateEnv(): void {
   const missing: string[] = [];
 
-  for (const envVar of requiredEnvVars) {
-    if (!import.meta.env[envVar]) {
-      missing.push(envVar);
-    }
+  // Required
+  if (!import.meta.env.VITE_SUPABASE_URL) {
+    missing.push('VITE_SUPABASE_URL');
+  }
+
+  // Accept either key name for backwards compatibility
+  const hasPublishable = Boolean(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+  const hasAnon = Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY);
+  if (!hasPublishable && !hasAnon) {
+    missing.push('VITE_SUPABASE_PUBLISHABLE_KEY (or VITE_SUPABASE_ANON_KEY)');
   }
 
   if (missing.length > 0) {
