@@ -66,8 +66,8 @@ export function MessageBubble({
           )}
           <p className="whitespace-pre-wrap">
             {message.content}
-            <span className="block mt-2 text-xs text-sage-500 italic">
-              — {relativeTime}
+            <span className="block mt-2 text-xs text-red-500 font-bold">
+              — TESTE TIMESTAMP
             </span>
           </p>
 
