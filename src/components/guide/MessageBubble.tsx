@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { GuideAvatar } from './GuideAvatar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatRelativeTime, formatFullDateTime } from '@/lib/formatTime';
 import type { ChatMessage } from '@/hooks/useGuideChat';
 
@@ -80,28 +80,26 @@ export function MessageBubble({
         </div>
 
         {/* Timestamp with tooltip */}
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span
-                className={cn(
-                  'text-xs font-body cursor-default select-none transition-opacity duration-200 hover:opacity-100',
-                  isUser
-                    ? 'text-sage-500 opacity-60 text-right'
-                    : 'text-sage-500 opacity-60 text-left'
-                )}
-              >
-                {relativeTime}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent
-              side={isUser ? 'left' : 'right'}
-              className="bg-sage-900 border-sage-700 text-cream-50 font-body text-xs"
+        <Tooltip delayDuration={200}>
+          <TooltipTrigger asChild>
+            <span
+              className={cn(
+                'text-xs font-body cursor-default select-none transition-opacity duration-200 hover:opacity-100',
+                isUser
+                  ? 'text-sage-500 opacity-60 text-right'
+                  : 'text-sage-500 opacity-60 text-left'
+              )}
             >
-              {fullDateTime}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+              {relativeTime}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            side={isUser ? 'left' : 'right'}
+            className="bg-sage-900 border-sage-700 text-cream-50 font-body text-xs"
+          >
+            {fullDateTime}
+          </TooltipContent>
+        </Tooltip>
       </div>
     </motion.div>
   );

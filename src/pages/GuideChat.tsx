@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MessageBubble } from '@/components/guide/MessageBubble';
 import { TypingIndicator } from '@/components/guide/TypingIndicator';
 import { SuggestedQuestions } from '@/components/guide/SuggestedQuestions';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useGuideChat } from '@/hooks/useGuideChat';
 import { useGuide, useUserGuidePreference, useGuides } from '@/hooks/useGuides';
 import { useAuth } from '@/contexts/AuthContext';
@@ -262,7 +263,8 @@ export default function GuideChat() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-cream-50 via-sage-50/30 to-earth-50/20 flex flex-col">
+    <TooltipProvider>
+      <div className="min-h-[100dvh] bg-gradient-to-br from-cream-50 via-sage-50/30 to-earth-50/20 flex flex-col">
       {/* Noise texture overlay */}
       <div
         className="fixed inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none"
@@ -438,5 +440,6 @@ export default function GuideChat() {
 
       <BottomNavigation />
     </div>
+    </TooltipProvider>
   );
 }
