@@ -16,6 +16,7 @@ import {
   LogOut,
   Settings,
   Leaf,
+  Wand2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BottomNavigation } from '@/components/BottomNavigation';
@@ -103,6 +104,7 @@ export default function Home() {
   const handleJournal = () => navigate('/journal');
   const handleInsights = () => navigate('/insights');
   const handleJourneys = () => navigate('/journeys');
+  const handleAnimationStudio = () => navigate('/animation-studio');
 
   return (
     <div className="min-h-[100dvh] flex flex-col pb-32 bg-gradient-to-br from-cream-50 via-sage-50/30 to-earth-50/20 relative overflow-hidden">
@@ -322,6 +324,14 @@ export default function Home() {
               color="secondary"
               onClick={handleInsights}
               delay={0.4}
+            />
+            <QuickActionCard
+              emoji="✨"
+              icon={Wand2}
+              label="Studio"
+              color="studio"
+              onClick={handleAnimationStudio}
+              delay={0.45}
             />
           </div>
         </motion.div>
