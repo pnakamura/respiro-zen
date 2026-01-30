@@ -9,7 +9,7 @@ interface WaveVisualizerProps {
   isPlaying?: boolean;
   showGrid?: boolean;
   showDerivative?: boolean;
-  colorScheme?: 'calm' | 'energy' | 'focus' | 'custom';
+  colorScheme?: 'calm' | 'energy' | 'focus' | 'nature' | 'custom';
   customColors?: {
     primary: string;
     secondary: string;
@@ -42,6 +42,13 @@ const colorSchemes = {
     grid: 'rgba(255, 255, 255, 0.1)',
     marker: '#34D399',
     gradient: ['#A78BFA', '#818CF8', '#6366F1'],
+  },
+  nature: {
+    primary: '#88D8B0',
+    secondary: 'rgba(136, 216, 176, 0.2)',
+    grid: 'rgba(255, 255, 255, 0.1)',
+    marker: '#A78BFA',
+    gradient: ['#88D8B0', '#A8E6CF', '#DCEDC1'],
   },
   custom: {
     primary: '#4ECDC4',

@@ -346,6 +346,13 @@ export function BreathPacerAdvanced({
     return 1;
   }, [phase, progress, selectedEquation, equationParams]);
 
+  // Visualization components don't support the terminal "complete" phase;
+  // treat it as idle for rendering to keep types + behavior consistent.
+  const visualizationBreathPhase = (phase === 'complete' ? 'idle' : phase) as Exclude<
+    BreathPhase,
+    'complete'
+  >;
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
@@ -363,7 +370,7 @@ export function BreathPacerAdvanced({
             className="absolute inset-0"
           >
             <FluidParticles
-              breathPhase={phase}
+              breathPhase={visualizationBreathPhase}
               progress={progress}
               colorScheme={emotionToColorScheme[emotionType]}
               particleCount={80}
@@ -378,7 +385,7 @@ export function BreathPacerAdvanced({
             className="absolute inset-0"
           >
             <MandalaVisualizer
-              breathPhase={phase}
+              breathPhase={visualizationBreathPhase}
               progress={progress}
               equation={selectedEquation}
               equationParams={equationParams}
