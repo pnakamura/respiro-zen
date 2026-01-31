@@ -257,7 +257,7 @@ export default function GuideSelect() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-0 left-0 right-0 p-4 backdrop-blur-xl bg-cream-50/80 border-t border-sage-300/30 safe-bottom"
+            className="fixed bottom-0 left-0 right-0 p-4 pb-20 backdrop-blur-xl bg-cream-50/80 border-t border-sage-300/30 z-40"
           >
             <Button
               onClick={handleContinue}
