@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -39,37 +40,42 @@ function hasMemoryReference(content: string): boolean {
   return memoryPatterns.some(pattern => lowerContent.includes(pattern));
 }
 
-export function MessageBubble({
-  message,
-  guideEmoji = '🧘',
-  guideName = 'Guia',
-  isStreaming = false,
-  isEmpathic = false,
-  isChunk = false,
-  isFirstChunk = true,
-}: MessageBubbleProps) {
-  const isUser = message.role === 'user';
-  const relativeTime = formatRelativeTime(message.createdAt);
-  const fullDateTime = formatFullDateTime(message.createdAt);
-  const showMemoryIndicator = !isUser && hasMemoryReference(message.content);
+export const MessageBubble = forwardRef<HTMLDivElement, MessageBubbleProps>(
+  function MessageBubble(
+    {
+      message,
+      guideEmoji = '🧘',
+      guideName = 'Guia',
+      isStreaming = false,
+      isEmpathic = false,
+      isChunk = false,
+      isFirstChunk = true,
+    },
+    ref
+  ) {
+    const isUser = message.role === 'user';
+    const relativeTime = formatRelativeTime(message.createdAt);
+    const fullDateTime = formatFullDateTime(message.createdAt);
+    const showMemoryIndicator = !isUser && hasMemoryReference(message.content);
 
-  // Hide guide name and avatar for continuation chunks
-  const showGuideHeader = !isUser && (!isChunk || isFirstChunk);
+    // Hide guide name and avatar for continuation chunks
+    const showGuideHeader = !isUser && (!isChunk || isFirstChunk);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 22, scale: 0.92, filter: 'blur(6px)' }}
-      animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-      transition={{
-        duration: 0.65,
-        ease: [0.22, 1, 0.36, 1],
-        delay: isUser ? 0 : 0.15,
-      }}
-      className={cn(
-        'flex gap-3 max-w-[85%]',
-        isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'
-      )}
-    >
+    return (
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 22, scale: 0.92, filter: 'blur(6px)' }}
+        animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+        transition={{
+          duration: 0.65,
+          ease: [0.22, 1, 0.36, 1],
+          delay: isUser ? 0 : 0.15,
+        }}
+        className={cn(
+          'flex gap-3 max-w-[85%]',
+          isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'
+        )}
+      >
       {/* Avatar - only for assistant, hidden on continuation chunks */}
       {!isUser && showGuideHeader && (
         <GuideAvatar
@@ -155,4 +161,6 @@ export function MessageBubble({
       </div>
     </motion.div>
   );
-}
+});
+
+MessageBubble.displayName = 'MessageBubble';
