@@ -30,11 +30,12 @@ import {
   Globe,
   Zap,
   Cloud,
+  Circle,
 } from 'lucide-react';
 
 // Types
 type BreathPhase = 'idle' | 'inhale' | 'holdFull' | 'exhale' | 'holdEmpty' | 'complete';
-type VisualMode = 'starDust' | 'fluid' | 'crystal' | 'topography' | 'bio' | 'atmosphere';
+type VisualMode = 'rings' | 'starDust' | 'fluid' | 'crystal' | 'topography' | 'bio' | 'atmosphere';
 
 interface BreathConfig {
   inhaleTime: number;
@@ -61,9 +62,9 @@ const defaultConfig: BreathConfig = {
   exhaleTime: 4,
   holdEmptyTime: 4,
   cycles: 4,
-  visualMode: 'starDust',
-  primaryColor: '#4ECDC4',
-  backgroundColor: '#0a0a0f',
+  visualMode: 'rings',
+  primaryColor: '#FFFFFF',
+  backgroundColor: '#000000',
   complexity: 50,
 };
 
@@ -77,6 +78,7 @@ const phaseNames: Record<BreathPhase, string> = {
 };
 
 const modeInfo: Record<VisualMode, { name: string; icon: React.ReactNode; description: string }> = {
+  rings: { name: 'Anéis', icon: <Circle className="w-4 h-4" />, description: 'Anéis concêntricos que sobem e descem' },
   starDust: { name: 'Pó de Estrela', icon: <Sparkles className="w-4 h-4" />, description: 'Partículas com gravidade invertida' },
   fluid: { name: 'Fluido Viscoso', icon: <Droplets className="w-4 h-4" />, description: 'Tinta se dissolvendo na água' },
   crystal: { name: 'Cristalização', icon: <Snowflake className="w-4 h-4" />, description: 'Ordem emergindo do caos' },
@@ -154,6 +156,23 @@ export function BreathVisualizationEngine({
     const count = config.complexity * 3;
 
     switch (config.visualMode) {
+      case 'rings':
+        // Concentric rings that rise and fall with breathing
+        const ringCount = 10;
+        state.rings = [];
+        const maxRadius = Math.min(width, height) * 0.45;
+        for (let i = 0; i < ringCount; i++) {
+          const t = i / (ringCount - 1); // 0 to 1
+          state.rings.push({
+            baseRadius: maxRadius * (0.1 + t * 0.9), // Inner to outer
+            index: i,
+            // Y offset range: from flat (0) to stacked above (+height) or below (-height)
+            yOffset: 0,
+          });
+        }
+        state.perspectiveY = centerY + height * 0.15; // Slightly below center for 3D perspective
+        break;
+
       case 'starDust':
         // Create particles at bottom - they will rise during inhale
         for (let i = 0; i < count; i++) {
@@ -358,6 +377,106 @@ export function BreathVisualizationEngine({
     const rgb = hexToRgb(config.primaryColor);
 
     switch (config.visualMode) {
+      case 'rings': {
+        // Concentric rings animation
+        // Inhale: rings rise and stack upward (0 -> 1)
+        // HoldFull: rings stay stacked at top
+        // Exhale: rings descend and go below/invert (1 -> 0)
+        // HoldEmpty: rings stay stacked at bottom (inverted)
+
+        if (!state.rings) break;
+
+        const perspectiveY = state.perspectiveY || centerY + height * 0.15;
+        const maxStackHeight = height * 0.35; // Maximum vertical displacement
+        const easedIntensity = easeInOutCubic(intensity);
+
+        // Calculate ring positions based on breath phase
+        for (const ring of state.rings) {
+          const ringIndex = ring.index;
+          const ringCount = state.rings.length;
+          const normalizedIndex = ringIndex / (ringCount - 1); // 0 to 1, inner to outer
+
+          // Stack offset: inner rings go higher/lower, outer rings stay closer to center
+          // When intensity = 1 (inhale complete): rings stacked above
+          // When intensity = 0 (exhale complete): rings flat or stacked below
+
+          if (currentPhase === 'inhale') {
+            // Rings rise: inner rings go higher
+            const stackFactor = 1 - normalizedIndex; // Inner = 1, outer = 0
+            ring.yOffset = -easedIntensity * maxStackHeight * stackFactor;
+          } else if (currentPhase === 'holdFull') {
+            // Keep stacked at top with subtle floating
+            const stackFactor = 1 - normalizedIndex;
+            const baseOffset = -maxStackHeight * stackFactor;
+            const float = Math.sin(state.time * 2 + ringIndex * 0.5) * 5;
+            ring.yOffset = baseOffset + float;
+          } else if (currentPhase === 'exhale') {
+            // Rings descend and go below
+            const stackFactor = 1 - normalizedIndex;
+            // From stacked above (-maxStackHeight) to stacked below (+maxStackHeight)
+            const targetOffset = maxStackHeight * stackFactor;
+            const startOffset = -maxStackHeight * stackFactor;
+            ring.yOffset = lerp(startOffset, targetOffset, easedIntensity);
+          } else if (currentPhase === 'holdEmpty') {
+            // Keep stacked at bottom with subtle settling
+            const stackFactor = 1 - normalizedIndex;
+            const baseOffset = maxStackHeight * stackFactor;
+            const settle = Math.sin(state.time * 1.5 + ringIndex * 0.3) * 3;
+            ring.yOffset = baseOffset + settle;
+          } else {
+            // Idle - flat
+            ring.yOffset = 0;
+          }
+        }
+
+        // Draw rings from back to front (outer to inner when above, inner to outer when below)
+        // Sort rings by their Y position for proper depth ordering
+        const sortedRings = [...state.rings].sort((a, b) => {
+          // Rings with positive yOffset (below) should be drawn first
+          // Then rings with negative yOffset (above) should be drawn last
+          return b.yOffset - a.yOffset;
+        });
+
+        ctx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.9)`;
+        ctx.lineWidth = 1.5;
+
+        for (const ring of sortedRings) {
+          const radius = ring.baseRadius;
+          const yOffset = ring.yOffset;
+
+          // 3D perspective: ellipse becomes more circular as it rises
+          // and more flat as it approaches the viewing plane
+          const perspectiveFactor = 0.25 + Math.abs(yOffset) / (height * 0.6) * 0.15;
+          const ellipseHeight = radius * perspectiveFactor;
+
+          // Position
+          const x = centerX;
+          const y = perspectiveY + yOffset;
+
+          // Calculate alpha based on position (fade distant rings slightly)
+          const distanceFromCenter = Math.abs(yOffset);
+          const alpha = 0.6 + (1 - distanceFromCenter / maxStackHeight) * 0.4;
+
+          ctx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+
+          // Draw ellipse
+          ctx.beginPath();
+          ctx.ellipse(x, y, radius, ellipseHeight, 0, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Add subtle glow for closer rings
+          if (currentPhase === 'holdFull' || currentPhase === 'holdEmpty') {
+            ctx.strokeStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha * 0.2})`;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.ellipse(x, y, radius, ellipseHeight, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.lineWidth = 1.5;
+          }
+        }
+        break;
+      }
+
       case 'starDust': {
         // Calculate particle positions based on breath intensity
         // Inhale: particles rise from bottom to top (intensity 0->1)
